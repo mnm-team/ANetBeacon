@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include "tools.h"
 
+
+// code based on http://stackoverflow.com/a/3974138
 void printVarInFormats(size_t const size, void const * const ptr)
 {
 	unsigned char *b = (unsigned char*) ptr;

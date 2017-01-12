@@ -1,7 +1,7 @@
 CC = gcc
-CFLAGS = -Wall -Werror -g
+CFLAGS = -Wall -Werror -g -Wno-unused-variable
 # CFLAGS = -std=c99 -Wall -Werror -g
-OBJECTS = main.o# beacon.o
+OBJECTS = main.o tools.o beacon.o
 
 LANbeacon: $(OBJECTS)
 		$(CC) $(CFLAGS) $(OBJECTS) -o LANbeacon
