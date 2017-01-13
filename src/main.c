@@ -1,26 +1,32 @@
-
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include "beacon.h"
 #include "tools.h"
 
-
 int main(int argc, char **argv) {
 	
 	struct LANbeacon myLANbeacon = createLANbeacon(); 
 	
+	printLANbeacon(myLANbeacon);
 	
-	
-//	printVarInFormats(sizeof(myLANbeacon.TLVtype),&myLANbeacon.TLVtype);
-	
-	
-	printVarInFormats(sizeof(myLANbeacon.TLVorganizationIdentifier),myLANbeacon.TLVorganizationIdentifier);
 	
 	
 	// ###### SPIELWIESE ######
 	printf("\n\n##########\nSPIELWIESE\n##########\n");
 	
+	for (int i = 0;i<4;i++)
+	{
+		printf("%c ",myLANbeacon.TLVorganizationIdentifier[i]);
+		printf("\t%p\n",&myLANbeacon.TLVorganizationIdentifier[i]);
+	}
+	
+	unsigned char *TLVlengthPointer = (unsigned char*) &myLANbeacon.TLVlength;
+	for (int i = 0;i<4;i++)
+	{
+		binPrint(sizeof(*TLVlengthPointer),TLVlengthPointer);
+		printf("\t%p\n",TLVlengthPointer++);
+	}
 	
 //	printf("%zu\n", sizeof(short unsigned int));
 	
@@ -45,16 +51,6 @@ int main(int argc, char **argv) {
 		}
 	}
 	
-
 	
 	return 0;
 }
-
-
-
-
-
-
-
-
-
