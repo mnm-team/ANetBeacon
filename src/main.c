@@ -12,8 +12,17 @@ int main(int argc, char **argv) {
 	
 	
 	
+	
+	
 	// ###### SPIELWIESE ######
 	printf("\n\n##########\nSPIELWIESE\n##########\n");
+	
+	unsigned char testblabla[4];
+	unsigned char yolopolo;
+	
+	yolopolo = 0b11110101;
+	
+//	*testblabla = 0b111101010111101100010010;
 	
 	for (int i = 0;i<4;i++)
 	{
