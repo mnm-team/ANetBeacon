@@ -8,11 +8,6 @@ struct LANbeacon createLANbeacon()
 {
 	struct LANbeacon myLANbeacon;
 	
-	//	TLV Header:
-	myLANbeacon.TLVtype = 127;
-	myLANbeacon.TLVlength = 0b0000000101010101; // TODO Arbitrary value for testing
-	myLANbeacon.TLVheader_combined = (myLANbeacon.TLVtype * 0b1000000000) | myLANbeacon.TLVlength;	// Shift der bits nach Rechts und anschließendes bitweises OR zur Kombination der 7+9 bit
-	
 	// TLV information string: OUI und subtype
 	myLANbeacon.TLVorganizationIdentifier[0] = 0b11001100;	//	0b111101010111101100010010
 	myLANbeacon.TLVorganizationIdentifier[1] = 0b11111111;
@@ -24,8 +19,17 @@ struct LANbeacon createLANbeacon()
 	strcpy(myLANbeacon.TLVinformationString[TLV_INFO_VLAN_NAME],"LMU IFI Test-VLAN");
 	myLANbeacon.VLAN_name_plus_id_length = strlen(myLANbeacon.TLVinformationString[TLV_INFO_VLAN_NAME]);
 	
+	// Custom string
+	strcpy(myLANbeacon.TLVinformationString[TLV_CUSTOM_TEXT],"Das ist ein CustomText-Test");
+	
 	// Information string
 	strcpy(myLANbeacon.TLVinformationString[TLV_INFO_FLIESSTEXT],"Das ist ein Infostring-Test");
+	
+	// TLV length without header
+	myLANbeacon.TLVlength = getBeaconLength(myLANbeacon);
+	// TLV Header:
+	myLANbeacon.TLVtype = 127;
+	myLANbeacon.TLVheader_combined = (myLANbeacon.TLVtype * 0b1000000000) | myLANbeacon.TLVlength;	// Shift der bits nach Rechts und anschließendes bitweises OR zur Kombination der 7+9 bit
 	
 	return myLANbeacon;
 }
@@ -33,6 +37,9 @@ struct LANbeacon createLANbeacon()
 
 void printLANbeacon(struct LANbeacon myLANbeacon)
 {
+	FILE *binBeacon = fopen("binBeacon","w");
+	fwrite(&myLANbeacon, sizeof(struct LANbeacon), 1, binBeacon);
+	
 	puts("myLANbeacon.TLVtype:");
 	printVarInFormats(sizeof(myLANbeacon.TLVtype),&myLANbeacon.TLVtype);	
 	
@@ -70,10 +77,19 @@ void printLANbeacon(struct LANbeacon myLANbeacon)
 }
 
 
-unsigned short int getBeaconLength (struct LANbeacon myLANbeacon)
+unsigned short int getBeaconLength (struct LANbeacon myLANbeacon)	// TODO
 {
-	printf("test");
+	puts("Getting Beacon Length");
 	
-	return 13;
+	return 0b0000000101010101;
 }
+
+
+void combineBeacon(struct LANbeacon myLANbeacon)	// TODO
+{
+	puts ("LANbeacon being combined.");
+}
+
+
+
 

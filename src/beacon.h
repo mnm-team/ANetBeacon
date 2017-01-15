@@ -2,9 +2,10 @@
 #define BEACON_H
 
 #define TLV_INFO_STRINGS_BUF_SIZE 36
-#define TLV_INFO_STRINGS_NUMBER 2
+#define TLV_INFO_STRINGS_NUMBER 3
 #define TLV_INFO_VLAN_NAME 0
-#define TLV_INFO_FLIESSTEXT 1
+#define TLV_CUSTOM_TEXT 1
+#define TLV_INFO_FLIESSTEXT 2
 
 
 struct LANbeacon {
@@ -29,6 +30,7 @@ struct LANbeacon createLANbeacon();
 void printLANbeacon(struct LANbeacon myLANbeacon);
 void puttogetherLANbeacon (struct LANbeacon myLANbeacon);
 unsigned short int getBeaconLength (struct LANbeacon myLANbeacon);
+void combineBeacon(struct LANbeacon myLANbeacon);
 
 #endif
 
