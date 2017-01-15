@@ -15,7 +15,7 @@ void printVarInFormats(size_t const size, void const * const ptr)
 	
 	//Start printing values
 	printf("DEC:\t%d\n", *myInt);
-	printf("int DEC:\t%hu\n", *myInt);
+	printf("sint DEC:\t%hu\n", *myInt);
 	printf("char DEC:\t%hu\n", *b);
 	
 	printf("Binary:\t");
@@ -41,31 +41,4 @@ void printVarInFormats(size_t const size, void const * const ptr)
 	puts("\n");
 	
 }
-
-
-// code based on http://stackoverflow.com/a/3974138
-void binPrint(size_t const size, void const * const ptr)	// JUST FOR TESTING!!
-{
-	unsigned char *b = (unsigned char*) ptr;
-	unsigned char byte;
-	int i, j;
-	
-	unsigned int *myInt = (unsigned int*) ptr;
-	
-
-	printf("Binary:\t");
-	for (i=1-1;i>=0;i--)
-	{
-		for (j=7;j>=0;j--)
-		{
-			byte = (b[i] >> j) & 1;
-			printf("%u", byte);
-		}
-		printf(" ");
-		
-		if ((i>0)&&((size-i)%4 == 0)) {printf("\n\t");}		//Newline each 4 blocks
-	}
-	
-}
-
 

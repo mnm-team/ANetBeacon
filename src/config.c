@@ -6,28 +6,32 @@
 #include "tools.h"
 #include "config.h"
 
-struct LANbeaconProperties *setLANbeaconProperties(int *argc, char **argv) {		// TODO
-	
-
-//	char *configFile;
+// code based on https://github.com/ciil/nine-mens-morris/blob/master/src/config.c
+struct LANbeaconProperties *setLANbeaconProperties(int *argc, char **argv) {
 	
 	struct LANbeaconProperties *myLANbeaconProperties = malloc(sizeof(struct LANbeaconProperties));
-
-//	configFile = malloc(sizeof(char)*INPUT_STRINGS_SIZE);
-//	strncpy(configFile, CONFIGFILE, INPUT_STRINGS_SIZE-1);
+	
+	// Setting default values
+	strcpy(myLANbeaconProperties->VLAN_name, "No VLAN name set");
+	strcpy(myLANbeaconProperties->Custom_Text, "No custom Text set");
+	strcpy(myLANbeaconProperties->VLAN_id, "101");
+	strcpy(myLANbeaconProperties->organization_identifier, "LMU");
 
 	if(*argc == 1) printHelp();
-	
 	int opt;
-	while((opt=getopt(*argc, argv, "i:n:c:h")) != -1) {
+	while((opt=getopt(*argc, argv, "i:n:c:o:h")) != -1) {
 		switch(opt) {
 			case 'i':
 				strncpy(myLANbeaconProperties->VLAN_id, optarg, INPUT_STRINGS_SIZE-1);	// TODO Überprüfung der Zahl
 				break;
 				
+			case 'o':
+				strncpy(myLANbeaconProperties->organization_identifier, optarg, INPUT_STRINGS_SIZE-1);	// TODO Überprüfung der Anzahl
+				break;
+				
 			case 'n':
 				strncpy(myLANbeaconProperties->VLAN_name, optarg, INPUT_STRINGS_SIZE-1);
-				if(strlen(myLANbeaconProperties->VLAN_name) > 32)
+				if(strlen(myLANbeaconProperties->VLAN_name) > 32)	// TODO Überprüfung
 				{
 					puts("Error because the VLAN name string is longer than 32 Digits.");
 					exit(EXIT_FAILURE);
@@ -43,29 +47,21 @@ struct LANbeaconProperties *setLANbeaconProperties(int *argc, char **argv) {		//
 				}
 				break;
 
-			// TODO: alte rausschmeißen:
-/*			case 'c':
-				strncpy(configFile, optarg, INPUT_STRINGS_SIZE-1);
-				break;
-			case 'd':
-				myLANbeaconProperties->debugmode = 1;
-				break;
-*/			case 'h':
+			case 'h':
 				printHelp();
 				break;
+				
 			default:
 				printHelp();
 		}
 	}
 
-//	readConfigFile(myLANbeaconProperties, configFile);
-
 	return myLANbeaconProperties;
 }
 
 
-void printHelp() {		// TODO
-	printf("Usage: \t./client [-i GAMEID] [-c CONFIGFILE]\n");
+void printHelp() {
+	printf("Usage: \t./LANbeacon [-i VLAN_ID] [-o ORGANIZATIONAL_IDENTIFIER] [-n VLAN_NAME] [-c CUSTOM_STRING]\n");
 	printf("\t./client -h\n");
 	exit(EXIT_FAILURE);
 }

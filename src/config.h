@@ -8,15 +8,8 @@ struct LANbeaconProperties {
 	char VLAN_id[INPUT_STRINGS_SIZE];
 	char VLAN_name[INPUT_STRINGS_SIZE];
 	char Custom_Text[INPUT_STRINGS_SIZE];
+	char organization_identifier[INPUT_STRINGS_SIZE];
 	
-	
-	// TODO: alte rausschmeißen:
-	char	*gamekindname;
-	unsigned int	portnumber;
-	char	*hostname;
-	char	*gameid;
-	char	*clientversion;
-	int		debugmode;
 };
 
 
