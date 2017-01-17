@@ -8,8 +8,8 @@
 #define TLV_INFO_FLIESSTEXT 2
 #include "config.h"
 
-
 struct __attribute__((__packed__)) LANbeacon {
+//struct LANbeacon {
 	//	TLV Header:
 	unsigned char TLVtype;
 	unsigned short int TLVlength;
@@ -25,13 +25,19 @@ struct __attribute__((__packed__)) LANbeacon {
 	
 	// TLV information string:	"Payload"
 	char TLVinformationString[TLV_INFO_STRINGS_NUMBER][TLV_INFO_STRINGS_BUF_SIZE];
+	
+	unsigned char custom_String_length;
+	unsigned char fliesstext_String_length;
+	
+	// Beacon after combination:
+	char *combinedBeacon;
 };
 
 struct LANbeacon *createLANbeacon(struct LANbeaconProperties *myLANbeaconProperties);
 void printLANbeacon(struct LANbeacon myLANbeacon);
 void puttogetherLANbeacon (struct LANbeacon myLANbeacon);
 unsigned short int getBeaconLength (struct LANbeacon *myLANbeacon);
-void combineBeacon(struct LANbeacon myLANbeacon);
+void combineBeacon(struct LANbeacon *myLANbeacon);
 
 #endif
 
