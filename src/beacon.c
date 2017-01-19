@@ -26,11 +26,27 @@ struct LANbeacon *createLANbeacon(struct LANbeaconProperties *myLANbeaconPropert
 	myLANbeacon->VLAN_name_length = strlen(myLANbeacon->TLVinformationString[TLV_INFO_VLAN_NAME]);
 	
 	// Custom string
-	strcpy(myLANbeacon->TLVinformationString[TLV_CUSTOM_TEXT],myLANbeaconProperties->Custom_Text);
+	strcpy(myLANbeacon->TLVinformationString[TLV_CUSTOM_TEXT],". ");
+	strcat(myLANbeacon->TLVinformationString[TLV_CUSTOM_TEXT],myLANbeaconProperties->Custom_Text);
 	myLANbeacon->custom_String_length = strlen(myLANbeacon->TLVinformationString[TLV_CUSTOM_TEXT]);
 	
 	// Information string
-	strcpy(myLANbeacon->TLVinformationString[TLV_INFO_FLIESSTEXT],"Das ist ein Fliesstext-Test");
+	char tempstring[30];
+	strcpy(myLANbeacon->TLVinformationString[TLV_INFO_FLIESSTEXT]," Organizational identifier: ");
+	strncat(myLANbeacon->TLVinformationString[TLV_INFO_FLIESSTEXT],myLANbeaconProperties->organization_identifier,4);
+	sprintf(tempstring, " %u. ", myLANbeacon->TLVtype);
+	strcat(myLANbeacon->TLVinformationString[TLV_INFO_FLIESSTEXT],tempstring);
+	
+	
+	strcpy(myLANbeacon->TLVinformationString[TLV_INFO_FLIESSTEXT]," VLAN ID and VLAN Name: ");
+	sprintf(tempstring, "%u. ", myLANbeacon->VLAN_id);
+	strcat(myLANbeacon->TLVinformationString[TLV_INFO_FLIESSTEXT],tempstring);
+	strcat(myLANbeacon->TLVinformationString[TLV_INFO_FLIESSTEXT],myLANbeacon->TLVinformationString[TLV_INFO_VLAN_NAME]);	
+//	strcat(myLANbeacon->TLVinformationString[TLV_INFO_FLIESSTEXT],);
+//	strcat(myLANbeacon->TLVinformationString[TLV_INFO_FLIESSTEXT],);
+//	strcat(myLANbeacon->TLVinformationString[TLV_INFO_FLIESSTEXT],);
+//	strcat(myLANbeacon->TLVinformationString[TLV_INFO_FLIESSTEXT],);
+	
 	myLANbeacon->fliesstext_String_length = strlen(myLANbeacon->TLVinformationString[TLV_INFO_FLIESSTEXT]);
 	
 	// TLV length without header
@@ -129,6 +145,8 @@ void printLANbeacon(struct LANbeacon myLANbeacon)
 	BEACON_STR_PRINT(myLANbeacon.TLVinformationString[TLV_INFO_VLAN_NAME]);
 	
 	BEACON_STR_PRINT(myLANbeacon.TLVinformationString[TLV_INFO_FLIESSTEXT]);
+	
+	BEACON_VAR_PRINT(myLANbeacon.fliesstext_String_length);
 	
 	printf("Size of LANbeacon: %zu\n\n",sizeof(myLANbeacon));
 //	BEACON_VAR_PRINT(myLANbeacon);
