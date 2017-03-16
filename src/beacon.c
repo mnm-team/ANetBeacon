@@ -13,11 +13,12 @@ struct LANbeacon *createLANbeacon(struct LANbeaconProperties *myLANbeaconPropert
 	// TLV information string: OUI und subtype
 	strncpy(myLANbeacon->TLVorganizationIdentifier,myLANbeaconProperties->organization_identifier,3);
 	myLANbeacon->TLVorganizationIdentifier[0] = myLANbeaconProperties->organization_identifier[0] | 0b10000000;
-	
-//	myLANbeacon->TLVorganizationIdentifier[0] = myLANbeaconProperties->organization_identifier[0] | 0b10000000;
-//	myLANbeacon->TLVorganizationIdentifier[1] = myLANbeaconProperties->organization_identifier[1];
-//	myLANbeacon->TLVorganizationIdentifier[2] = myLANbeaconProperties->organization_identifier[2];
-	myLANbeacon->TLVsubtype = 217;		// Wegen Jahr 2017
+	myLANbeacon->TLVsubtype = 217;		// Wegen Jahr 2017, beliebig
+
+	/*	DEPRECATED CODE:	
+	myLANbeacon->TLVorganizationIdentifier[0] = myLANbeaconProperties->organization_identifier[0] | 0b10000000;
+	myLANbeacon->TLVorganizationIdentifier[1] = myLANbeaconProperties->organization_identifier[1];
+	myLANbeacon->TLVorganizationIdentifier[2] = myLANbeaconProperties->organization_identifier[2];	*/
 	
 	// TLV VLAN ID and name length
 	char *ptr;
@@ -61,7 +62,7 @@ struct LANbeacon *createLANbeacon(struct LANbeaconProperties *myLANbeaconPropert
 
 void combineBeacon(struct LANbeacon *myLANbeacon)	// TODO
 {
-	myLANbeacon->combinedBeacon = malloc(sizeof(char)*(2+myLANbeacon->TLVlength));
+	myLANbeacon->combinedBeacon = malloc(sizeof(char)*(2+myLANbeacon->TLVlength));		// Two additional bytes for header (TLVtype and TLVlength)
 	int currentByte = 0;	//counter for current position in Array combinedBeacon
 	
 	// transfer combined TLV Header to combined Beacon
@@ -90,10 +91,6 @@ void combineBeacon(struct LANbeacon *myLANbeacon)	// TODO
 	// transfer fliesstext string to combined Beacon
 	strncpy(&myLANbeacon->combinedBeacon[currentByte],myLANbeacon->TLVinformationString[TLV_INFO_FLIESSTEXT],myLANbeacon->fliesstext_String_length);
 	currentByte += myLANbeacon->fliesstext_String_length;
-	
-	
-	
-	
 	
 	
 	
