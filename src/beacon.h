@@ -36,8 +36,7 @@ struct __attribute__((__packed__)) LANbeacon {
 struct LANbeacon *createLANbeacon(struct LANbeaconProperties *myLANbeaconProperties);
 void printLANbeacon(struct LANbeacon myLANbeacon);
 void puttogetherLANbeacon (struct LANbeacon myLANbeacon);
-unsigned short int getBeaconLength (struct LANbeacon *myLANbeacon);
-void combineBeacon(struct LANbeacon *myLANbeacon);
+// unsigned short int getBeaconLength (struct LANbeaconProperties *myLANbeaconProperties, struct LANbeacon *myLANbeacon);
 
 #endif
 

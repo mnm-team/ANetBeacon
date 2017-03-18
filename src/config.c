@@ -12,8 +12,8 @@ struct LANbeaconProperties *setLANbeaconProperties(int *argc, char **argv) {
 	struct LANbeaconProperties *myLANbeaconProperties = malloc(sizeof(struct LANbeaconProperties));
 	
 	// Setting default values
-	strcpy(myLANbeaconProperties->VLAN_name, "No VLAN name set. ");
-	strcpy(myLANbeaconProperties->Custom_Text, "No custom Text set. ");
+	strcpy(myLANbeaconProperties->VLAN_name, "");
+	strcpy(myLANbeaconProperties->Custom_Text, "");
 	strcpy(myLANbeaconProperties->VLAN_id, "101");
 	strcpy(myLANbeaconProperties->organization_identifier, "LMU");
 

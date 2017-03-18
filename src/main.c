@@ -19,13 +19,11 @@ int main(int argc, char **argv) {
 	struct LANbeaconProperties *myLANbeaconProperties = setLANbeaconProperties(&argc, argv);
 	
 	struct LANbeacon *myLANbeacon = createLANbeacon(myLANbeaconProperties);
-	combineBeacon(myLANbeacon);		// Is now contained in LANBeacon Structure
-	
 	
 //	printLANbeacon(*myLANbeacon);
 	
 	// ###### SPIELWIESE ######
-//	printf("\n\n##########\nSPIELWIESE\n##########\n\n\n");
+	//	printf("\n\n##########\nSPIELWIESE\n##########\n\n\n");
 	
 	return 0;
 }
