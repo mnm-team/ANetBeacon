@@ -1,14 +1,21 @@
 #ifndef BEACON_H
 #define BEACON_H
 
-#define TLV_INFO_STRINGS_BUF_SIZE 80
-#define TLV_INFO_STRINGS_NUMBER 3
-#define TLV_INFO_VLAN_NAME 0
-#define TLV_CUSTOM_TEXT 1
-#define TLV_INFO_FLIESSTEXT 2
+#define TLV_INFO_STRINGS_BUF_SIZE 100
+#define TLV_INFO_STRINGS_NUMBER 10
+#define ORGANIZATIONAL_IDENTIFIER 0
+#define TLV_INFO_VLAN_NAME 1
+#define VLAN_ID 2
+#define TLV_CUSTOM_TEXT 3
+#define TLV_INFO_FLIESSTEXT 4
+#define IPV4_NETWORKS 5
+#define IPV6_NETWORKS 6
+#define CONTACT_EMAIL 7
+#define DHCP_TYPES 8
+#define ROUTER_INFO 9
 #include "config.h"
 
-struct __attribute__((__packed__)) LANbeacon {
+struct LANbeacon {
 //struct LANbeacon {
 	//	TLV Header:
 	unsigned char TLVtype;
@@ -25,16 +32,15 @@ struct __attribute__((__packed__)) LANbeacon {
 	
 	// TLV information string:	"Payload"
 	char TLVinformationString[TLV_INFO_STRINGS_NUMBER][TLV_INFO_STRINGS_BUF_SIZE];
-	
-	unsigned char custom_String_length;
-	unsigned char fliesstext_String_length;
+	unsigned char stringLengths[TLV_INFO_STRINGS_NUMBER];
 	
 	// Beacon after combination:
 	char *combinedBeacon;
+	int currentByte;
 };
 
+void copyStringToCombinedBeacon (int currentString, struct LANbeacon *myLANbeacon, struct LANbeaconProperties *myLANbeaconProperties);
 struct LANbeacon *createLANbeacon(struct LANbeaconProperties *myLANbeaconProperties);
-void printLANbeacon(struct LANbeacon myLANbeacon);
 void puttogetherLANbeacon (struct LANbeacon myLANbeacon);
 // unsigned short int getBeaconLength (struct LANbeaconProperties *myLANbeaconProperties, struct LANbeacon *myLANbeacon);
 
