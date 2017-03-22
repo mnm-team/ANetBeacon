@@ -28,7 +28,8 @@ struct LANbeacon *createLANbeacon(struct LANbeaconProperties *myLANbeaconPropert
 	myLANbeacon->TLVorganizationIdentifier[0] = myLANbeaconProperties->TLVpropertyStrings[ORGANIZATIONAL_IDENTIFIER][0] | 0b10000000;	// WARNING: first two bits 11 have to be left like this		REF: nach http://standards.ieee.org/getieee802/download/802-2014.pdf clause 9.3
 	myLANbeacon->TLVsubtype = 217;		// Wegen Jahr 2017, beliebig
 	// transfer OUI and OUI subtype to combined Beacon
-	strncpy(&myLANbeacon->combinedBeacon[myLANbeacon->currentByte],myLANbeacon->TLVorganizationIdentifier,3); myLANbeacon->currentByte += 3;
+	strncpy(&myLANbeacon->combinedBeacon[myLANbeacon->currentByte],myLANbeacon->TLVorganizationIdentifier,3); 
+	myLANbeacon->currentByte += 3;
 	myLANbeacon->combinedBeacon[myLANbeacon->currentByte++] = myLANbeacon->TLVsubtype;
 	
 	//## TLV VLAN ID and name length ##//
