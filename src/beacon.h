@@ -39,7 +39,7 @@ struct LANbeacon {
 	int currentByte;
 };
 
-void copyStringToCombinedBeacon (int currentString, struct LANbeacon *myLANbeacon, struct LANbeaconProperties *myLANbeaconProperties);
+void copyStringToCombinedBeacon (int currentString, char* description, struct LANbeacon *myLANbeacon, struct LANbeaconProperties *myLANbeaconProperties);
 struct LANbeacon *createLANbeacon(struct LANbeaconProperties *myLANbeaconProperties);
 void puttogetherLANbeacon (struct LANbeacon myLANbeacon);
 // unsigned short int getBeaconLength (struct LANbeaconProperties *myLANbeaconProperties, struct LANbeacon *myLANbeacon);
