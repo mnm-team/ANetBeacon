@@ -1,4 +1,6 @@
-# Coded using: http://www.binarytides.com/python-packet-sniffer-code-linux/
+# Coded using: 
+# http://www.binarytides.com/python-packet-sniffer-code-linux/
+# https://github.com/GoozeyX/python_lldp
 
 import struct
 import socket
