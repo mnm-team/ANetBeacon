@@ -10,7 +10,7 @@ struct LANbeaconProperties {
 
 struct LANbeaconProperties *setLANbeaconProperties(int *argc, char **argv);
 void StringTransfer (char *target, char *origin, int maxsize);
-void printHelp();
+// void printHelp();
 
 
 #endif

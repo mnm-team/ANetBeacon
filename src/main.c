@@ -4,6 +4,7 @@
 #include "beacon.h"
 #include "tools.h"
 #include "config.h"
+#include "mergedBeacon.h"
 
 /* 
 - to run enter:
@@ -23,11 +24,7 @@ configure lldp custom-tlv add oui cc,4d,55 subtype 217 oui-info xxxxxxxx
 
 int main(int argc, char **argv) {
 	
-	struct LANbeaconProperties *myLANbeaconProperties = setLANbeaconProperties(&argc, argv);
-	
-	struct LANbeacon *myLANbeacon = createLANbeacon(myLANbeaconProperties);
-	
-//	printLANbeacon(*myLANbeacon);
+	char *mergedLANbeacon = mergedLANbeaconCreator(&argc, argv);
 	
 	// ###### SPIELWIESE ######
 	//	printf("\n\n##########\nSPIELWIESE\n##########\n\n\n");

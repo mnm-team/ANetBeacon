@@ -5,6 +5,7 @@
 #include "beacon.h"
 #include "tools.h"
 #include "config.h"
+#include "mergedBeacon.h"
 
 // code based on https://github.com/ciil/nine-mens-morris/blob/master/src/config.c
 struct LANbeaconProperties *setLANbeaconProperties(int *argc, char **argv) {
@@ -74,10 +75,10 @@ void StringTransfer (char *target, char *origin, int maxsize) {
 	}
 	strncpy(target, origin, maxsize-1);
 }
-
+/*
 void printHelp() {
 	printf("Usage: \t./LANbeacon [-o ORGANIZATIONAL_IDENTIFIER] [-i VLAN_ID] [-n VLAN_NAME] [-4 IPv4_NETWORKS] [-6 IPv6_NETWORKS] [-e EMAIL_CONTACTPERSON] [-d DHCP_TYPES] [-r ROUTER_INFORMATION] [-c CUSTOM_STRING]\n");
 	printf("\t./client -h\n");
 	exit(EXIT_FAILURE);
 }
-
+*/
