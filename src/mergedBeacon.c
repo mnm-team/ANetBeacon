@@ -50,80 +50,109 @@ char *mergedLANbeaconCreator (int *argc, char **argv) {
 			case 'c':
 				transferToCombinedBeaconAndString(202, "Custom: ", combinedString, optarg, myLANbeacon, &currentByte);
 				break;
+			
+/*			case '4':
+				transferCombinedString ("IPv4: ", combinedString, optarg); 
 				
+
+				transferCombinedBeacon (203, IP4address, myLANbeacon, &currentByte);
+
+				puts("No IP addresses in correct format could be found in provided string (correct example: 192.168.178.1/24). Only raw string will be copied into summary. "); 
+				
+				break;
+*/
+
+
 			case '4':
 				;
-				char currentOctet[] = "\0\0\0\0\0\0";
+				char currentIP4Octet[] = "\0\0\0\0\0\0";
 				
-				size_t nmatch = 7;
-				regmatch_t pmatch[7];
-				int gefundeneAdressenAnzahl=0;
-				int reti;
-				pmatch[0].rm_so = 0;
-				pmatch[0].rm_eo = 0;
-				regcomp(&compiled_regex, "([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\/([1-3]?[1-9])", REG_EXTENDED);
-				char gefundeneAdressenStrings[10][5][5];
+				size_t IP4nmatch = 7;
+				regmatch_t IP4pmatch[7];
+				int gefundeneIP4AdressenAnzahl=0;
+				int IP4reti;
+				IP4pmatch[0].rm_so = 0;
+				IP4pmatch[0].rm_eo = 0;
+				IP4reti = regcomp(&compiled_regex, "([0-9.]{7,15})\\/([0-9]{1,2})", REG_EXTENDED);
+				printf ("%i\n",IP4reti);
+				char gefundeneAdressenStrings[10][2][20];
 				char bufferForLANbeacon[50] = "";
 				
-//				printf ("%zu\n", nmatch);
+//				printf ("%zu\n", IP4nmatch);
 				
 				int endOfLastString = 0;
 				for (int i=0;i<10;i++) {
-					endOfLastString += pmatch[0].rm_eo;
-					reti = regexec(&compiled_regex, &optarg[endOfLastString], nmatch, pmatch, 0);
-					if (!reti) {
-//						strncpy (gefundeneAdressenStrings[gefundeneAdressenAnzahl], &optarg[endOfLastString+pmatch[0].rm_so], 18); 
+					endOfLastString += IP4pmatch[0].rm_eo;
+					IP4reti = regexec(&compiled_regex, &optarg[endOfLastString], IP4nmatch, IP4pmatch, 0);
+					if (!IP4reti) {
+//						strncpy (gefundeneAdressenStrings[gefundeneIP4AdressenAnzahl], &optarg[endOfLastString+IP4pmatch[0].rm_so], 18); 
 						
-						for (int j = 1; j<6; j++) {
-							strncpy (gefundeneAdressenStrings[i][j], "\0\0\0\0\0", 5);
-//							printf ("current octett before assignment: %s\n", currentOctet);
-//							printf ("size: %i\n",pmatch[j].rm_eo - pmatch[j].rm_so);
-							strncpy (gefundeneAdressenStrings[i][j], &optarg[endOfLastString+pmatch[j].rm_so], pmatch[j].rm_eo - pmatch[j].rm_so); 
-//							printf ("current octett after assignment: %s\n", currentOctet);
+						for (int j = 1; j<=2; j++) {
+							strncpy (gefundeneAdressenStrings[i][j], "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 20);
+//							printf ("current octett before assignment: %s\n", currentIP4Octet);
+//							printf ("size: %i\n",IP4pmatch[j].rm_eo - IP4pmatch[j].rm_so);
+							strncpy (gefundeneAdressenStrings[i][j], &optarg[endOfLastString+IP4pmatch[j].rm_so], IP4pmatch[j].rm_eo - IP4pmatch[j].rm_so); 
+//							printf ("current octett after assignment: %s\n", currentIP4Octet);
+							
+							printf ("xxx   %s\n", gefundeneAdressenStrings[i][j]);
 						}
 						
-//						gefundeneAdressenStrings[gefundeneAdressenAnzahl++][18] = 0;
-						gefundeneAdressenAnzahl++;
+//						gefundeneAdressenStrings[gefundeneIP4AdressenAnzahl++][18] = 0;
+						gefundeneIP4AdressenAnzahl++;
 						strcat(bufferForLANbeacon, "#####");	// Buffer string to reserve space for binary representation in LANbeacon
 					}
-					else if (reti == REG_NOMATCH) { break; }
+					else if (IP4reti == REG_NOMATCH) { break; }
 				}
 				transferCombinedString ("IPv4: ", combinedString, optarg); 
 				transferCombinedBeacon (203, bufferForLANbeacon, myLANbeacon, &currentByte);
 				regfree(&compiled_regex);
 
 				//## transfer found addresses to combined beacon in binary format
-				if (1 > gefundeneAdressenAnzahl) {
+				if (1 > gefundeneIP4AdressenAnzahl) {
 					puts("No IP addresses in correct format could be found in provided string (correct example: 192.168.178.1/24). Only raw string will be copied into summary. "); 
 					break;
 				}
 				
-				int IPcurrentByte = currentByte; 
-				printf ("%i %i\n", IPcurrentByte, currentByte);
-				IPcurrentByte -=  gefundeneAdressenAnzahl*5;
-				for (int i = 0; i < gefundeneAdressenAnzahl; i++) {
-					for (int j = 1; j<6; j++) {
-						printf("%s ", gefundeneAdressenStrings[i][j]);
-						myLANbeacon[IPcurrentByte++] = (unsigned char) strtoul(gefundeneAdressenStrings[i][j],NULL,10);
-						 
-					}
-					puts("");
-/*	qqq				printf ("%s\n", gefundeneAdressenStrings[i]);
-					myLANbeacon[IPcurrentByte++] = 0;	// IP octet 1
-					myLANbeacon[IPcurrentByte++] = 0;	// IP octet 2
-					myLANbeacon[IPcurrentByte++] = 0;	// IP octet 3
-					myLANbeacon[IPcurrentByte++] = 0;	// IP octet 4
-					myLANbeacon[IPcurrentByte++] = 0;	// Length of subnetmast 
-*/				}
-				printf ("%i %i\n", IPcurrentByte, currentByte);
-				printf ("%i\n", gefundeneAdressenAnzahl);
 				
+				unsigned char IP4address[10]; // = &result;
+				struct in_addr result;
+				int IP4currentByte = currentByte - gefundeneIP4AdressenAnzahl*5;
+				
+				for (int i = 0; i < gefundeneIP4AdressenAnzahl; i++) {
+				
+					if (inet_pton(AF_INET, gefundeneAdressenStrings[i][1], IP4address) == 1) {
+						printf("%u\n",IP4address[0]); // success
+					}
+					else {
+						printf("Error Parsing IP4-address: %s\n", optarg);
+					}					
+					
+					for (int j = 0; j<4; j++) {
+//						printf("%s ", gefundeneAdressenStrings[i][j]);
+						myLANbeacon[IP4currentByte++] = IP4address[j];
+					}
+					
+					myLANbeacon[IP4currentByte++] = (unsigned char) strtoul(gefundeneAdressenStrings[i][2],NULL,10);
+					
+					puts("");
+				}
+				printf ("%i %i\n", IP4currentByte, currentByte);
+				printf ("%i\n", gefundeneIP4AdressenAnzahl);
 				
 //				transferToCombinedBeaconAndString(203, "IPv4: ", combinedString, optarg, myLANbeacon, &currentByte);
 				break;
 
+
 			case '6':
 				transferToCombinedBeaconAndString(204, "IPv6: ", combinedString, optarg, myLANbeacon, &currentByte);
+/*
+				const char *ipstr = "::2";
+				struct in_addr result;
+				if (inet_pton(AF_INET6, ip6str, &result) == 1) // success! {
+					
+				}
+*/
+
 				break;
 
 			case 'e':
