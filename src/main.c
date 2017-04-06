@@ -28,8 +28,10 @@ int main(int argc, char **argv) {
 	int LLDPDU_len;
 	char *LANbeaconCustomTLVs = mergedLANbeaconCreator(&argc, argv, &LLDPDU_len);
 	
-	int reti = sendLLDPrawSock (LLDPDU_len, LANbeaconCustomTLVs);
-
+	while (1) {
+		sendLLDPrawSock (LLDPDU_len, LANbeaconCustomTLVs);
+		sleep(5);
+	}
 	
 	// ###### SPIELWIESE ######
 	//	printf("\n\n##########\nSPIELWIESE\n##########\n\n\n");
