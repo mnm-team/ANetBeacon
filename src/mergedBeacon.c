@@ -19,14 +19,27 @@
 */
 
 // code based on https://github.com/ciil/nine-mens-morris/blob/master/src/config.c
-char *mergedLANbeaconCreator (int *argc, char **argv) {
+char *mergedLANbeaconCreator (int *argc, char **argv, int *LLDPDU_len) {
 	
 	char *myLANbeacon = malloc(1500);
 //	myLANbeacon->combinedBeacon = malloc(1500);		// old code:	malloc(sizeof(char)*(2+myLANbeacon->TLVlength));
 	int currentByte = 0;	//counter for current position in Array combinedBeacon, starting after TLV header
-	char *combinedString[5];	// Maximum of 5 strings in case they are longer than 507 bytes (TLV max)
+	char *combinedString[5];	// Maximum of 5 strings of combined human-readable text in case they are longer than 507 bytes (TLV max)
 	for(int i=0; i<5; i++) {combinedString[i] = malloc(507); strcpy(combinedString[i],"");}
 	
+	unsigned char chasisSubtype[9] = { 0x02, 0x07, 0x04, 0xbc, 0x5f, 0xf4, 0x14, 0x34, 0x6d };
+	memcpy(&myLANbeacon[currentByte], chasisSubtype, 9);
+	currentByte += 9;
+	
+	unsigned char PortSubtype[9] = { 0x04, 0x07, 0x03, 0xbc, 0x5f, 0xf4, 0x14, 0x34, 0x6d };
+	memcpy(&myLANbeacon[currentByte], PortSubtype, 9);
+	currentByte += 9;
+	
+	unsigned char TimeToLive[9] = { 0x06, 0x02, 0x00, 0x14 };
+	memcpy(&myLANbeacon[currentByte], TimeToLive, 4);
+	currentByte += 4;
+	
+	//## custom TLV arguments ##//
 	if(*argc == 1) printHelp();
 	int opt;
 	while((opt=getopt(*argc, argv, "i:n:c:4:6:e:d:r:h")) != -1) {
@@ -107,8 +120,7 @@ char *mergedLANbeaconCreator (int *argc, char **argv) {
 		if (0 < strlen(combinedString[i])) { transferCombinedBeacon(217, combinedString [i], myLANbeacon, &currentByte); }
 	}
 	
-	FILE *combined = fopen("testNewTransfer","w");
-	fwrite(myLANbeacon, currentByte, 1, combined);		// Two additional bytes for header (TLVtype and TLVlength)
+	*LLDPDU_len = currentByte;
 	
 	return myLANbeacon;
 }
@@ -141,7 +153,7 @@ void transferCombinedBeacon (unsigned char subtype, char *source, char *combined
 	combinedBeacon[*currentByte+5] = subtype;
 	
 	// transfer information to combinedBeacon
-	strncpy(&combinedBeacon[*currentByte+6], source, currentTLVlength);
+	memcpy(&combinedBeacon[*currentByte+6], source, currentTLVlength);
 	*currentByte = *currentByte + 6 + currentTLVlength;
 }
 
@@ -194,7 +206,7 @@ void IPparser (int IPv_4or6, char *optarg, char **combinedString, char *myLANbea
 		
 		if (!regex_return) {
 			for (int j = 1; j<=2; j++) {	// get entire IP and subnetwork
-				strncpy (gefundeneAdressenStrings[i][j], "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", IP_strlen);
+				memcpy (gefundeneAdressenStrings[i][j], "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", IP_strlen);
 				strncpy (gefundeneAdressenStrings[i][j], &optarg[endOfLastString+regex_matches_pointer[j].rm_so], regex_matches_pointer[j].rm_eo - regex_matches_pointer[j].rm_so); 
 				
 //				printf ("xxx   %s\n", gefundeneAdressenStrings[i][j]);		//debug

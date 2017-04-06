@@ -5,6 +5,7 @@
 #include "tools.h"
 #include "config.h"
 #include "mergedBeacon.h"
+#include "sendLLDPrawSock.h"
 
 /* 
 - to run enter:
@@ -24,10 +25,17 @@ configure lldp custom-tlv add oui cc,4d,55 subtype 217 oui-info xxxxxxxx
 
 int main(int argc, char **argv) {
 	
-	char *mergedLANbeacon = mergedLANbeaconCreator(&argc, argv);
+	int LLDPDU_len;
+	char *LANbeaconCustomTLVs = mergedLANbeaconCreator(&argc, argv, &LLDPDU_len);
+	
+	int reti = sendLLDPrawSock (LLDPDU_len, LANbeaconCustomTLVs);
+
 	
 	// ###### SPIELWIESE ######
 	//	printf("\n\n##########\nSPIELWIESE\n##########\n\n\n");
+	
+	printf ("LLDPDU_len: %i\n",LLDPDU_len);
+	FILE *combined = fopen("testNewTransfer","w"); fwrite(LANbeaconCustomTLVs, LLDPDU_len, 1, combined);
 	
 	return 0;
 }
