@@ -5,7 +5,10 @@
 #include "tools.h"
 #include "config.h"
 #include "mergedBeacon.h"
-#include "sendLLDPrawSock.h"
+#include "LLDPrawSock.h"
+#include "evaluateLANbeacon.h"
+
+#define BUF_SIZ		4000	// TODO
 
 /* 
 - to run enter:
@@ -25,19 +28,32 @@ configure lldp custom-tlv add oui cc,4d,55 subtype 217 oui-info xxxxxxxx
 
 int main(int argc, char **argv) {
 	
+	if (argc > 1 && strcmp("-r", argv[1]) == 0) {
+		unsigned char LLDPreceivedPayload[BUF_SIZ];
+		ssize_t payloadSize;
+		recLLDPrawSock(argc, argv, LLDPreceivedPayload, &payloadSize);
+		
+//		printf ("LLDPDU_len: %lu\n",payloadSize); FILE *combined = fopen("received_raw_beacon","w");	fwrite(LLDPreceivedPayload, payloadSize, 1, combined);
+		
+		evaluateLANbeacon(LLDPreceivedPayload, payloadSize);
+		
+		return 1;
+	}
+	
 	int LLDPDU_len;
 	char *LANbeaconCustomTLVs = mergedLANbeaconCreator(&argc, argv, &LLDPDU_len);
 	
 	while (1) {
 		sendLLDPrawSock (LLDPDU_len, LANbeaconCustomTLVs);
-		sleep(5);
+		sleep(2);
 	}
+	
+	
 	
 	// ###### SPIELWIESE ######
 	//	printf("\n\n##########\nSPIELWIESE\n##########\n\n\n");
 	
-	printf ("LLDPDU_len: %i\n",LLDPDU_len);
-	FILE *combined = fopen("testNewTransfer","w"); fwrite(LANbeaconCustomTLVs, LLDPDU_len, 1, combined);
+//	printf ("LLDPDU_len: %i\n",LLDPDU_len);	FILE *combined = fopen("testNewTransfer","w");	fwrite(LANbeaconCustomTLVs, LLDPDU_len, 1, combined);
 	
 	return 0;
 }
