@@ -12,9 +12,7 @@
 #define SUBTYPE_ROUTER 207
 #define SUBTYPE_COMBINED_STRING 217
 
-
 char *mergedLANbeaconCreator (int *argc, char **argv, int *LLDPDU_len) ;
-void StringTransfer (char *target, char *origin, int maxsize);
 void transferToCombinedBeaconAndString (unsigned char subtype, char *TLVdescription, char **combinedString, char *source, char *combinedBeacon, int *currentByte);
 void transferCombinedBeacon (unsigned char subtype, char *source, char *combinedBeacon, int *currentByte);
 void transferCombinedString (char *TLVdescription, char **combinedString, char *source);

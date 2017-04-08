@@ -43,17 +43,18 @@ int main(int argc, char **argv) {
 	int LLDPDU_len;
 	char *LANbeaconCustomTLVs = mergedLANbeaconCreator(&argc, argv, &LLDPDU_len);
 	
-	while (1) {
-		sendLLDPrawSock (LLDPDU_len, LANbeaconCustomTLVs);
-		sleep(2);
-	}
+//	while (1) {
+//		sendLLDPrawSock (LLDPDU_len, LANbeaconCustomTLVs);
+//		sleep(2);
+//	}
 	
 	
 	
 	// ###### SPIELWIESE ######
 	//	printf("\n\n##########\nSPIELWIESE\n##########\n\n\n");
 	
-//	printf ("LLDPDU_len: %i\n",LLDPDU_len);	FILE *combined = fopen("testNewTransfer","w");	fwrite(LANbeaconCustomTLVs, LLDPDU_len, 1, combined);
+//debug//
+	printf ("LLDPDU_len: %i\n",LLDPDU_len);	FILE *combined = fopen("testNewTransfer","w");	fwrite(LANbeaconCustomTLVs, LLDPDU_len, 1, combined);
 	
 	return 0;
 }
