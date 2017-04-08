@@ -215,11 +215,12 @@ void IPparser (int IPv_4or6, char *optarg, char **combinedString, char *myLANbea
 	for (int i = 0; i < gefundeneIPAdressenAnzahl; i++) {
 		if (inet_pton(IPv_4or6, gefundeneAdressenStrings[i][1], IP4address) != 1) 
 			printf("Error Parsing IP-address: %s\n", optarg);
-		
+
 		for (int j = 0; j < IP_binlen-1; j++) 
 			myLANbeacon[IPcurrentByte++] = IP4address[j];
 		
 		myLANbeacon[IPcurrentByte++] = (unsigned char) strtoul(gefundeneAdressenStrings[i][2],NULL,10);	// put subnet as 5th byte of 5-tuple
+	}
 	
 	return;
 }
