@@ -187,7 +187,7 @@ void recLLDPrawSock(int argc, char *argv[], unsigned char *LLDPreceivedPayload, 
 			close(sockfd[numInterfaces]);
 			exit(EXIT_FAILURE);
 		}
-		
+		printf("Number %i is interface %s\n", numInterfaces, interfaces->ifa_name);
 		numInterfaces++;
 	}
 	
@@ -196,6 +196,7 @@ void recLLDPrawSock(int argc, char *argv[], unsigned char *LLDPreceivedPayload, 
 	//		printf("listener: Waiting to recvfrom...\n");
 			*payloadSize = recvfrom(sockfd[i], LLDPreceivedPayload, BUF_SIZ, 0, NULL, NULL);
 	//		printf("listener: got packet %lu bytes\n", *payloadSize);
+printf("currently on %i\n",i);
 
 			/* Check if the packet was sent to the LLDP multicast MAC address */
 			if (!(eh->ether_dhost[0] == LLDP_DEST_MAC0 &&
@@ -206,7 +207,7 @@ void recLLDPrawSock(int argc, char *argv[], unsigned char *LLDPreceivedPayload, 
 					eh->ether_dhost[5] == LLDP_DEST_MAC5)) {
 				continue;
 			}
-//TODO printf("found on %i",i);
+printf("found on %i\n",i);
 			/* Print packet */
 	//		printf("\tData:");
 	//		for (i=0; i<*payloadSize; i++) printf("%02x:", LLDPreceivedPayload[i]);
