@@ -93,7 +93,8 @@ char *mergedLANbeaconCreator (int *argc, char **argv, int *LLDPDU_len) {
 	
 	//## transfer combined strings to TLVs, if one combined string exceeds 507 byte limit of TLV it will be in the next part of the array ##// 
 	for(int i = 0; i < 5; i++) {
-		if (0 < strlen(combinedString[i])) { transferCombinedBeacon(SUBTYPE_COMBINED_STRING, combinedString [i], myLANbeacon, &currentByte); }
+		if (0 < strlen(combinedString[i]))
+			transferCombinedBeacon(SUBTYPE_COMBINED_STRING, combinedString [i], myLANbeacon, &currentByte);
 	}
 	
 	*LLDPDU_len = currentByte;
@@ -228,7 +229,7 @@ void printHelp() {
 	printf("Usage: \t./LANbeacon [-i VLAN_ID] [-n VLAN_NAME] [-4 IPv4_SUBNETWORK (e.g. 192.168.178.133/24)] [-6 IPv6_SUBNETWORK] [-e EMAIL_CONTACTPERSON] [-d DHCP_TYPES] [-r ROUTER_INFORMATION] [-c CUSTOM_STRING]\n");
 	printf("\t./client -r\n");
 	printf("\t./client -h\n");
-	exit(EXIT_FAILURE);
+	exit(EXIT_SUCCESS);
 }
 
 
