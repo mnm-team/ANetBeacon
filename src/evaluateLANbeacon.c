@@ -86,8 +86,6 @@ void evaluateLANbeacon (unsigned char *LLDPreceivedPayload, ssize_t payloadSize)
 					char currentIP6[16] = "";
 					char currentIP6string[100] = "";
 					
-					const char *dadadebug;
-					
 					for (int i = 6; i < currentTLVsize; i += 17) {
 						memcpy (currentIP6, &LLDPreceivedPayload[currentPayloadByte+i], 16);	// get IP address
 						inet_ntop(AF_INET6, currentIP6, currentIP6string, 100);	// convert binary representation to string

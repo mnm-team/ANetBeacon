@@ -209,7 +209,6 @@ void IPparser (int IPv_4or6, char *optarg, char **combinedString, char *myLANbea
 	//## convert and transfer found addresses to combined beacon in binary format ##//
 	
 	unsigned char *IP4address = malloc(IP_binlen);	// Buffer string to reserve space for binary representation in LANbeacon
-	struct in_addr result;
 	int IPcurrentByte = *currentByte - gefundeneIPAdressenAnzahl*IP_binlen; 
 	
 	for (int i = 0; i < gefundeneIPAdressenAnzahl; i++) {
