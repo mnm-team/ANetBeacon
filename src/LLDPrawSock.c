@@ -14,18 +14,11 @@
 #include <sys/socket.h>
 #include <net/if.h>
 #include <netinet/ether.h>
-#define _GNU_SOURCE	 /* To get defns of NI_MAXSERV and NI_MAXHOST */
-#include <arpa/inet.h>
-#include <sys/socket.h>
 #include <netdb.h>
 #include <ifaddrs.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <linux/if_link.h>
-
-#include <linux/ip.h>
-#include <linux/udp.h>
+#define _GNU_SOURCE	 /* To get defns of NI_MAXSERV and NI_MAXHOST */
 
 #define LLDP_DEST_MAC0	0x01
 #define LLDP_DEST_MAC1	0x80
@@ -49,8 +42,6 @@ int sendLLDPrawSock (int LLDPDU_len, char *LANbeaconCustomTLVs)
 	char LLDPethernetFrame[BUF_SIZ];
 	struct ether_header *eh = (struct ether_header *) LLDPethernetFrame;
 	struct sockaddr_ll socket_address;
-	
-	
 	
 	/* Construct the Ethernet header */
 	memset(LLDPethernetFrame, 0, BUF_SIZ);
@@ -122,6 +113,7 @@ int sendLLDPrawSock (int LLDPDU_len, char *LANbeaconCustomTLVs)
 	while (1) {
 		sleep(2);
 		
+		// send packets on all interfaces
 		for(int i = 0; i < numInterfaces; i++) {
 
 			/* Ethernet header */
