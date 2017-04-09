@@ -30,7 +30,7 @@ puts("\n\n\n####PIdisplay: ####");
 	
 	for (int currentTLV = 0; currentTLV < PARSED_TLVS_MAX_NUMBER; currentTLV++) {
 		
-		for (currentPosInTLV = 0, currentLastSpace = 0; (parsedBeaconContents[currentTLV][currentPosInTLV] != 0) && (currentPIline < 13) ; currentPosInTLV++) {
+		for (currentPosInTLV = 0, currentLastSpace = 0; (parsedBeaconContents[currentTLV][currentPosInTLV] != 0) && (currentPIline < 10) ; currentPosInTLV++) {
 			
 			if ( parsedBeaconContents[currentTLV][currentPosInTLV+1] == (int) '\n' || parsedBeaconContents[currentTLV][currentPosInTLV+1] == 0 ) {
 				
