@@ -85,7 +85,7 @@ char ** evaluateLANbeacon (unsigned char *LLDPreceivedPayload, ssize_t payloadSi
 					for (int i = 6; i < currentTLVsize; i += 5) {
 						memcpy (currentIP4, &LLDPreceivedPayload[currentPayloadByte+i], 4);	// get IP address
 						inet_ntop(AF_INET, currentIP4, currentIP4string, 20);	// convert binary representation to string
-						sprintf(currentIP4string, "%s/%i, \n", currentIP4string, LLDPreceivedPayload[currentPayloadByte+i+4]);		// get IP address, then subNetwork
+						sprintf(currentIP4string, "%s/%i, ", currentIP4string, LLDPreceivedPayload[currentPayloadByte+i+4]);		// get IP address, then subNetwork
 						strcat (TLVstringbuffer, currentIP4string);
 					}
 					
@@ -103,7 +103,7 @@ char ** evaluateLANbeacon (unsigned char *LLDPreceivedPayload, ssize_t payloadSi
 						memcpy (currentIP6, &LLDPreceivedPayload[currentPayloadByte+i], 16);	// get IP address
 						inet_ntop(AF_INET6, currentIP6, currentIP6string, 100);	// convert binary representation to string
 						
-						sprintf(currentIP6string, "%s/%i, \n", currentIP6string, LLDPreceivedPayload[currentPayloadByte+i+16]);		// get IP address, then subNetwork
+						sprintf(currentIP6string, "%s/%i, ", currentIP6string, LLDPreceivedPayload[currentPayloadByte+i+16]);		// get IP address, then subNetwork
 						strcat (TLVstringbuffer, currentIP6string);
 					}
 					
