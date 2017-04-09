@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <regex.h>
+#include <getopt.h>
+
 
 //#include "beacon.h"
 //#include "tools.h"
