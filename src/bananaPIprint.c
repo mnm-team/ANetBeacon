@@ -32,6 +32,14 @@ puts("\n\n\n####PIdisplay: ####");
 		
 		currentPIline = 0;
 		
+		
+		#ifdef BANANAPI_SWITCH
+		TFT_init_board();
+		TFT_hard_reset();
+		RAIO_init();
+		RAIO_clear_screen();
+		#endif
+		
 		for (int currentTLV = 0; currentTLV < PARSED_TLVS_MAX_NUMBER; currentTLV++) {
 		
 			for (currentPosInTLV = 1, endOfLastPartialString = 0; parsedBeaconContents[currentTLV][currentPosInTLV-1] != 0 ; currentPosInTLV++) {
