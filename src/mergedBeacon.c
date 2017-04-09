@@ -5,9 +5,9 @@
 #include <arpa/inet.h>
 #include <regex.h>
 
-#include "beacon.h"
-#include "tools.h"
-#include "config.h"
+//#include "beacon.h"
+//#include "tools.h"
+//#include "config.h"
 #include "mergedBeacon.h"
 
 /* Howto adding new fields:
