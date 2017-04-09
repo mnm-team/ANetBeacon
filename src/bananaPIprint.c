@@ -19,7 +19,7 @@ void bananaPIprint (char **parsedBeaconContents) {
 	#endif
 	
 		
-	char buf[256];
+	unsigned char buf[256];
 	int c = 0;
 	int column;
 	
