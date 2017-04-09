@@ -48,15 +48,15 @@ char *mergedLANbeaconCreator (int *argc, char **argv, int *LLDPDU_len) {
 				unsigned short int VLAN_id = htons( (unsigned short int) strtoul(optarg,NULL,10) );
 				memcpy(&myLANbeacon[currentByte-2], &VLAN_id, 2);
 
-				transferCombinedString ("VLAN-ID:", combinedString, optarg); 
+				transferCombinedString ("VLAN-ID: ", combinedString, optarg); 
 				break;
 				
 			case 'n':
-				transferToCombinedBeaconAndString(SUBTYPE_NAME, "VLAN-Name:", combinedString, optarg, myLANbeacon, &currentByte);
+				transferToCombinedBeaconAndString(SUBTYPE_NAME, "VLAN-Name: ", combinedString, optarg, myLANbeacon, &currentByte);
 				break;
 				
 			case 'c':
-				transferToCombinedBeaconAndString(SUBTYPE_CUSTOM, "Freitext:", combinedString, optarg, myLANbeacon, &currentByte);
+				transferToCombinedBeaconAndString(SUBTYPE_CUSTOM, "Freitext: ", combinedString, optarg, myLANbeacon, &currentByte);
 				break;
 
 			case '4':
@@ -74,15 +74,15 @@ char *mergedLANbeaconCreator (int *argc, char **argv, int *LLDPDU_len) {
 				if (regexec(&compiled_regex, optarg, 0, NULL, 0) == REG_NOMATCH) {puts("Es gibt einen Fehler in der angegebenen Email-Adresse.");}
 				regfree(&compiled_regex);
 				
-				transferToCombinedBeaconAndString(SUBTYPE_EMAIL, "Email:", combinedString, optarg, myLANbeacon, &currentByte);
+				transferToCombinedBeaconAndString(SUBTYPE_EMAIL, "Email: ", combinedString, optarg, myLANbeacon, &currentByte);
 				break;
 
 			case 'd':
-				transferToCombinedBeaconAndString(SUBTYPE_DHCP, "DHCP:", combinedString, optarg, myLANbeacon, &currentByte);
+				transferToCombinedBeaconAndString(SUBTYPE_DHCP, "DHCP: ", combinedString, optarg, myLANbeacon, &currentByte);
 				break;
 
 			case 'r':
-				transferToCombinedBeaconAndString(SUBTYPE_ROUTER, "Router:", combinedString, optarg, myLANbeacon, &currentByte);
+				transferToCombinedBeaconAndString(SUBTYPE_ROUTER, "Router: ", combinedString, optarg, myLANbeacon, &currentByte);
 				break;
 
 			case 'h':
@@ -196,11 +196,11 @@ void IPparser (int IPv_4or6, char *optarg, char **combinedString, char *myLANbea
 	regfree(&compiled_regex);
 	
 	if (IPv_4or6 == AF_INET) {
-		transferCombinedString ("IPv4:", combinedString, optarg); 
+		transferCombinedString ("IPv4: ", combinedString, optarg); 
 		transferCombinedBeacon (SUBTYPE_IPV4, bufferForLANbeacon, myLANbeacon, currentByte);
 	}
 	else if (IPv_4or6 == AF_INET6) {
-		transferCombinedString ("IPv6:", combinedString, optarg); 
+		transferCombinedString ("IPv6: ", combinedString, optarg); 
 		transferCombinedBeacon (SUBTYPE_IPV6, bufferForLANbeacon, myLANbeacon, currentByte);
 	}
 	

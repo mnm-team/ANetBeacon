@@ -68,13 +68,13 @@ char ** evaluateLANbeacon (unsigned char *LLDPreceivedPayload, ssize_t payloadSi
 					VLAN_id = ntohs(VLAN_id);
 					
 					sprintf(TLVstringbuffer, "%hu", VLAN_id);
-					TLV_CUSTOM_COPY( "VLAN-ID: ", TLVstringbuffer, strlen(TLVstringbuffer));
+					TLV_CUSTOM_COPY( "VLAN-ID:", TLVstringbuffer, strlen(TLVstringbuffer));
 					
 				case SUBTYPE_NAME:
-					TLV_STRING_COPY("VLAN-Name: ");
+					TLV_STRING_COPY("VLAN-Name:");
 					
 				case SUBTYPE_CUSTOM:
-					TLV_STRING_COPY("Freitext: ");
+					TLV_STRING_COPY("Freitext:");
 					
 				case SUBTYPE_IPV4:
 					
@@ -91,7 +91,7 @@ char ** evaluateLANbeacon (unsigned char *LLDPreceivedPayload, ssize_t payloadSi
 					
 					TLVstringbuffer[strlen(TLVstringbuffer)-2] = 0;		// remove last comma and space
 					
-					TLV_CUSTOM_COPY( "IPv4: ", TLVstringbuffer, strlen(TLVstringbuffer));
+					TLV_CUSTOM_COPY( "IPv4:", TLVstringbuffer, strlen(TLVstringbuffer));
 					
 				case SUBTYPE_IPV6:
 					
@@ -109,19 +109,19 @@ char ** evaluateLANbeacon (unsigned char *LLDPreceivedPayload, ssize_t payloadSi
 					
 					TLVstringbuffer[strlen(TLVstringbuffer)-2] = 0;		// remove last comma and space
 					
-					TLV_CUSTOM_COPY( "IPv6: ", TLVstringbuffer, strlen(TLVstringbuffer));
+					TLV_CUSTOM_COPY( "IPv6:", TLVstringbuffer, strlen(TLVstringbuffer));
 					
 				case SUBTYPE_EMAIL:
-					TLV_STRING_COPY( "Email: ");
+					TLV_STRING_COPY( "Email:");
 					
 				case SUBTYPE_DHCP:
-					TLV_STRING_COPY( "DHCP: ");
+					TLV_STRING_COPY( "DHCP:");
 					
 				case SUBTYPE_ROUTER:
-					TLV_STRING_COPY( "Router: ");
+					TLV_STRING_COPY( "Router:");
 					
 				case SUBTYPE_COMBINED_STRING:
-					TLV_STRING_COPY( "Combined String: ");
+					TLV_STRING_COPY( "Combined String:");
 					
 			}
 			

@@ -112,7 +112,7 @@ int sendLLDPrawSock (int LLDPDU_len, char *LANbeaconCustomTLVs)
 	}
 	
 	while (1) {
-		sleep(2);
+		sleep(1);
 		
 		// send packets on all interfaces
 		for(int i = 0; i < numInterfaces; i++) {
@@ -142,7 +142,7 @@ int sendLLDPrawSock (int LLDPDU_len, char *LANbeaconCustomTLVs)
 
 
 // parts of code based on https://gist.github.com/austinmarton/2862515
-void recLLDPrawSock(int argc, char *argv[], unsigned char *LLDPreceivedPayload, ssize_t *payloadSize)
+void recLLDPrawSock(unsigned char *LLDPreceivedPayload, ssize_t *payloadSize)
 {
 	struct ether_header *eh = (struct ether_header *) LLDPreceivedPayload;
 	

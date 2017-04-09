@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
 	if (argc > 1 && strcmp("-r", argv[1]) == 0) {
 		unsigned char LLDPreceivedPayload[LLDP_BUF_SIZ];
 		ssize_t payloadSize;
-		recLLDPrawSock(argc, argv, LLDPreceivedPayload, &payloadSize);
+		recLLDPrawSock(LLDPreceivedPayload, &payloadSize);
 		
 //debug//		printf ("LLDPDU_len: %lu\n",payloadSize); FILE *combined = fopen("received_raw_beacon","w");	fwrite(LLDPreceivedPayload, payloadSize, 1, combined);
 		

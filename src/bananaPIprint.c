@@ -2,11 +2,13 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "tft.h"
 #include "RAIO8870.h"
 #include "define.h"
-
+#include "LLDPrawSock.h"
+#include "evaluateLANbeacon.h"
 
 
 void bananaPIprint (char **parsedBeaconContents) {
@@ -25,6 +27,7 @@ puts("\n\n\n####PIdisplay: ####");
 	
 	int currentPosInTLV, currentPIline, endOfLastPartialString;
 	
+	clock_t begin, end;
 	
 	int currentLastSpace = 0;
 	
@@ -72,7 +75,7 @@ puts("\n\n\n####PIdisplay: ####");
 					currentLastSpace = 0;
 				
 					if (currentPIline++ >= 14) {
-						sleep (2);
+						sleep (5);
 						currentPIline = 0;
 						
 						printf("\e[1;1H\e[2J");
@@ -84,8 +87,20 @@ puts("\n\n\n####PIdisplay: ####");
 				}
 			}
 		}
-	
-		if (currentPIline != 0)	sleep (2);	//if sleep (2) already has been executed, don't execute again
+		
+//		begin = clock();
+		
+		unsigned char LLDPreceivedPayload[LLDP_BUF_SIZ];
+		ssize_t payloadSize;
+		recLLDPrawSock(LLDPreceivedPayload, &payloadSize);
+		parsedBeaconContents = evaluateLANbeacon(LLDPreceivedPayload, payloadSize);
+		
+/*		end = clock();
+		double time_spent = ((double) (end - begin)) / CLOCKS_PER_SEC;
+		
+		printf ("Time spent: %f\n", time_spent); 
+*/		
+		if (currentPIline != 0)	sleep (5);	//if sleep (5) already has been executed, don't execute again
 	}
 	
 	return;
