@@ -35,7 +35,7 @@ void bananaPIprint (char **parsedBeaconContents) {
 		}
 		
 		buf[column] = (char) '\0';
-		puts(buf);
+	//	puts(buf);
 
 		#ifdef BANANAPI_SWITCH
 		RAIO_SetFontSizeFactor( 0 );
