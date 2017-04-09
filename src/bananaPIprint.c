@@ -85,7 +85,7 @@ puts("\n\n\n####PIdisplay: ####");
 			}
 		}
 	
-		sleep (2);
+		if (currentPIline != 0)	sleep (2);	//if sleep (2) already has been executed, don't execute again
 	}
 	
 	return;
