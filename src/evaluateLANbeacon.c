@@ -11,13 +11,19 @@
 #include "LLDPrawSock.h"
 #include "define.h"
 
+/*
+// copying TLV contents to collected parsed strings:
+#define TLV_CUSTOM_COPY(descriptor, TLV_parsed_content, makro_currentTLVcontentSize) \
+	sprintf(parsedTLVs [numberParsedTLVs], "%-10s", descriptor); \
+	currentLabelSize = strlen(parsedTLVs [numberParsedTLVs]); \
+	strncat(parsedTLVs [numberParsedTLVs], TLV_parsed_content, makro_currentTLVcontentSize); \
+	parsedTLVs [numberParsedTLVs++][makro_currentTLVcontentSize+currentLabelSize] = 0;	\
+	break;	
+*/
 
 // copying TLV contents to collected parsed strings:
 #define TLV_CUSTOM_COPY(descriptor, TLV_parsed_content, makro_currentTLVcontentSize) \
-	sprintf(parsedTLVs [numberParsedTLVs], "%-13s", descriptor); \
-	currentLabelSize = strlen(parsedTLVs [numberParsedTLVs]); \
-	strncat(parsedTLVs [numberParsedTLVs], TLV_parsed_content, makro_currentTLVcontentSize); \
-	parsedTLVs [numberParsedTLVs++][makro_currentTLVcontentSize+currentLabelSize] = 0;	/* -4 because 3 OUI and 1 subtype */   \
+	snprintf(parsedTLVs [numberParsedTLVs++], PARSED_TLVS_MAX_LENGTH, "%-10s%.*s", descriptor, (int) makro_currentTLVcontentSize, TLV_parsed_content); \
 	break;	
 
 // shortcut for transferring TLVs that only contain string
@@ -79,11 +85,11 @@ char ** evaluateLANbeacon (unsigned char *LLDPreceivedPayload, ssize_t payloadSi
 					for (int i = 6; i < currentTLVsize; i += 5) {
 						memcpy (currentIP4, &LLDPreceivedPayload[currentPayloadByte+i], 4);	// get IP address
 						inet_ntop(AF_INET, currentIP4, currentIP4string, 20);	// convert binary representation to string
-						sprintf(currentIP4string, "%s/%i, \n             ", currentIP4string, LLDPreceivedPayload[currentPayloadByte+i+4]);		// get IP address, then subNetwork
+						sprintf(currentIP4string, "%s/%i, \n", currentIP4string, LLDPreceivedPayload[currentPayloadByte+i+4]);		// get IP address, then subNetwork
 						strcat (TLVstringbuffer, currentIP4string);
 					}
 					
-					TLVstringbuffer[strlen(TLVstringbuffer)-2-1-13] = 0;		// remove last comma and space
+					TLVstringbuffer[strlen(TLVstringbuffer)-2-1] = 0;		// remove last comma and space
 					
 					TLV_CUSTOM_COPY( "IPv4: ", TLVstringbuffer, strlen(TLVstringbuffer));
 					
@@ -97,11 +103,11 @@ char ** evaluateLANbeacon (unsigned char *LLDPreceivedPayload, ssize_t payloadSi
 						memcpy (currentIP6, &LLDPreceivedPayload[currentPayloadByte+i], 16);	// get IP address
 						inet_ntop(AF_INET6, currentIP6, currentIP6string, 100);	// convert binary representation to string
 						
-						sprintf(currentIP6string, "%s/%i, \n             ", currentIP6string, LLDPreceivedPayload[currentPayloadByte+i+16]);		// get IP address, then subNetwork
+						sprintf(currentIP6string, "%s/%i, \n", currentIP6string, LLDPreceivedPayload[currentPayloadByte+i+16]);		// get IP address, then subNetwork
 						strcat (TLVstringbuffer, currentIP6string);
 					}
 					
-					TLVstringbuffer[strlen(TLVstringbuffer)-2-1-13] = 0;		// remove last comma and space
+					TLVstringbuffer[strlen(TLVstringbuffer)-2-1] = 0;		// remove last comma and space
 					
 					TLV_CUSTOM_COPY( "IPv6: ", TLVstringbuffer, strlen(TLVstringbuffer));
 					

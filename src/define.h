@@ -6,6 +6,8 @@
 
 #define LLDP_BUF_SIZ		4000
 
+#define DESCRIPTOR_WIDTH 10
+
 
 // Subtype numbers LANbeacon:
 #define SUBTYPE_VLAN_ID 200

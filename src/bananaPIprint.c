@@ -30,14 +30,19 @@ puts("\n\n\n####PIdisplay: ####");
 	
 	for (int currentTLV = 0; currentTLV < PARSED_TLVS_MAX_NUMBER; currentTLV++) {
 		
-		for (currentPosInTLV = 0, currentLastSpace = 0; (parsedBeaconContents[currentTLV][currentPosInTLV] != 0) && (currentPIline < 10) ; currentPosInTLV++) {
+		for (currentPosInTLV = 1, currentLastSpace = 0; (parsedBeaconContents[currentTLV][currentPosInTLV-1] != 0) && (currentPIline < PARSED_TLVS_MAX_NUMBER) ; currentPosInTLV++) {
 			
-			if ( parsedBeaconContents[currentTLV][currentPosInTLV+1] == (int) '\n' || parsedBeaconContents[currentTLV][currentPosInTLV+1] == 0 ) {
+			if ( parsedBeaconContents[currentTLV][currentPosInTLV] == '\n' || parsedBeaconContents[currentTLV][currentPosInTLV] == 0 || currentPosInTLV - currentLastSpace > 40) {
 				
-				printf("Line %i:\t", currentPIline);
+				printf("Line %i:  \t", currentPIline);
 				
-				strncpy(buf, &parsedBeaconContents[currentTLV][currentLastSpace], currentPosInTLV - currentLastSpace + 1);
-				buf[currentPosInTLV - currentLastSpace + 1] = 0;
+				if (currentLastSpace == 0) {
+					snprintf(buf, currentPosInTLV - currentLastSpace + 1, "%s", &parsedBeaconContents[currentTLV][currentLastSpace]);
+				}
+				else {
+					snprintf(buf, currentPosInTLV - currentLastSpace + 1 + DESCRIPTOR_WIDTH, "%*s%s", DESCRIPTOR_WIDTH, "", &parsedBeaconContents[currentTLV][currentLastSpace]);
+				}
+				
 				puts(buf);
 				
 				#ifdef BANANAPI_SWITCH
@@ -45,7 +50,7 @@ puts("\n\n\n####PIdisplay: ####");
 				RAIO_print_text( 0, 16*currentPIline, (unsigned char*) buf, COLOR_BLACK, COLOR_WHITE );
 				#endif
 				
-				currentLastSpace = currentPosInTLV + 2;
+				currentLastSpace = currentPosInTLV + 1;
 				
 				currentPIline++; 
 			}

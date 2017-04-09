@@ -20,13 +20,6 @@ clear && make && clear && ./LANbeacon -4 "192.168.178.133/24" -6 "2001:618:11:1:
 
 int main(int argc, char **argv) {
 	
-	#ifdef YOLO
-	puts("yolo");
-	return 1;
-	#endif
-	
-
-	
 	//## receiving LANbeacon ##//
 	if (argc > 1 && strcmp("-r", argv[1]) == 0) {
 		unsigned char LLDPreceivedPayload[LLDP_BUF_SIZ];
