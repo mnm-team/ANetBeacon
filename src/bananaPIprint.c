@@ -19,27 +19,29 @@ void bananaPIprint (char **parsedBeaconContents) {
 	#endif
 	
 		
-	unsigned char buf[256];
+	char buf[256];
 	int c = 0;
 	int column;
 	
 	for (int lines = 0; lines < 14; lines++) {
+		
+		strcpy(buf, parsedBeaconContents[lines]);
 		
 		for (column = 0; column < 40; column++) {
 /*			c = fgetc(  stdin );
 			if ( c == EOF || c == (int) '\n') break;
 			buf[column] = (char) c;
 */			
-			buf[column] = '#';
+//			buf[column] = '#';
 			
 		}
 		
-		buf[column] = (char) '\0';
-	//	puts(buf);
+		buf[column] = 0;
+		puts(buf);
 
 		#ifdef BANANAPI_SWITCH
 		RAIO_SetFontSizeFactor( 0 );
-		RAIO_print_text( 0, 16*lines, buf, COLOR_BLACK, COLOR_WHITE );
+		RAIO_print_text( 0, 16*lines, (unsigned char *) buf, COLOR_BLACK, COLOR_WHITE );
 		#endif
 
 		
