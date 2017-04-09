@@ -31,7 +31,7 @@ puts("\n\n\n####PIdisplay: ####");
 			
 			if ( parsedBeaconContents[lines][currentPosInTLV+1] == (int) '\n' || parsedBeaconContents[lines][currentPosInTLV+1] == 0 ) {
 				
-				strncpy(buf, &parsedBeaconContents[lines][currentLastSpace], currentPosInTLV - currentLastSpace + 1);
+				strncpy(buf, &parsedBeaconContents[lines][currentLastSpace], currentPosInTLV - currentLastSpace);
 				buf[currentPosInTLV - currentLastSpace + 1] = 0;
 				puts(buf);
 				
