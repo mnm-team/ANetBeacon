@@ -41,7 +41,7 @@ void bananaPIprint (char **parsedBeaconContents) {
 
 		#ifdef BANANAPI_SWITCH
 		RAIO_SetFontSizeFactor( 0 );
-//		RAIO_print_text( 0, 16*lines, (unsigned char *) buf, COLOR_BLACK, COLOR_WHITE );
+		RAIO_print_text( 0, 16*lines, (unsigned char *) buf, COLOR_BLACK, COLOR_WHITE );
 		#endif
 
 		
