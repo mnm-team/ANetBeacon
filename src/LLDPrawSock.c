@@ -13,6 +13,9 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <net/if.h>
+#include <linux/if.h>
+#include <net/if.h>
+#include <net/ethernet.h>
 #include <netinet/ether.h>
 #include <netdb.h>
 #include <ifaddrs.h>
@@ -28,6 +31,8 @@
 #define LLDP_DEST_MAC5	0x0e
 
 #define LLDP_ETHER_TYPE	0x88CC
+
+
 
 #define BUF_SIZ		2000
 
