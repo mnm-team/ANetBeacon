@@ -1,0 +1,21 @@
+#ifndef DEFINE_H
+#define DEFINE_H
+
+#define PARSED_TLVS_MAX_NUMBER	15
+#define PARSED_TLVS_MAX_LENGTH	510
+
+#define LLDP_BUF_SIZ		4000
+
+
+// Subtype numbers LANbeacon:
+#define SUBTYPE_VLAN_ID 200
+#define SUBTYPE_NAME 201
+#define SUBTYPE_CUSTOM 202
+#define SUBTYPE_IPV4 203
+#define SUBTYPE_IPV6 204
+#define SUBTYPE_EMAIL 205
+#define SUBTYPE_DHCP 206
+#define SUBTYPE_ROUTER 207
+#define SUBTYPE_COMBINED_STRING 217
+
+#endif
