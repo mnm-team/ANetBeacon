@@ -24,51 +24,56 @@ puts("\n\n\n####PIdisplay: ####");
 	int column;
 	
 	int currentPosInTLV, currentPIline, endOfLastPartialString;
-	currentPIline = 0;
+	
 	
 	int currentLastSpace = 0;
 	
-//	for (int lines = 0; lines < 14; lines++) {
-	
-	for (int currentTLV = 0; currentTLV < PARSED_TLVS_MAX_NUMBER; currentTLV++) {
+	while (1) {
 		
-		for (currentPosInTLV = 1, endOfLastPartialString = 0; parsedBeaconContents[currentTLV][currentPosInTLV-1] != 0 ; currentPosInTLV++) {
+		currentPIline = 0;
+		
+		for (int currentTLV = 0; currentTLV < PARSED_TLVS_MAX_NUMBER; currentTLV++) {
+		
+			for (currentPosInTLV = 1, endOfLastPartialString = 0; parsedBeaconContents[currentTLV][currentPosInTLV-1] != 0 ; currentPosInTLV++) {
 			
-			if (parsedBeaconContents[currentTLV][currentPosInTLV] == ' ') currentLastSpace = currentPosInTLV; 
+				if (parsedBeaconContents[currentTLV][currentPosInTLV] == ' ') currentLastSpace = currentPosInTLV; 
 			
-			if (parsedBeaconContents[currentTLV][currentPosInTLV] == 0
-			||	currentPosInTLV - endOfLastPartialString > (endOfLastPartialString == 0 ? 39 : 39 - DESCRIPTOR_WIDTH)) {
+				if (parsedBeaconContents[currentTLV][currentPosInTLV] == 0
+				||	currentPosInTLV - endOfLastPartialString > (endOfLastPartialString == 0 ? 39 : 39 - DESCRIPTOR_WIDTH)) {
 				
-				// avoid newline in the middle of word, in case there was a space character in the current string we will put the new line there
-				if (currentLastSpace != 0 
-				&& (currentPosInTLV - endOfLastPartialString > (endOfLastPartialString == 0 ? 39 : 39 - DESCRIPTOR_WIDTH))) 
-					currentPosInTLV = currentLastSpace + 1;
+					// avoid newline in the middle of word, in case there was a space character in the current string we will put the new line there
+					if (currentLastSpace != 0 
+					&& (currentPosInTLV - endOfLastPartialString > (endOfLastPartialString == 0 ? 39 : 39 - DESCRIPTOR_WIDTH))) 
+						currentPosInTLV = currentLastSpace + 1;
 				
-				printf("Line %i:  \t", currentPIline);
+					printf("Line %i:  \t", currentPIline);
 				
-				if (endOfLastPartialString == 0) {
-					snprintf(buf, currentPosInTLV - endOfLastPartialString + 1, "%s", &parsedBeaconContents[currentTLV][endOfLastPartialString]);
+					if (endOfLastPartialString == 0) {
+						snprintf(buf, currentPosInTLV - endOfLastPartialString + 1, "%s", &parsedBeaconContents[currentTLV][endOfLastPartialString]);
+					}
+					else {
+						snprintf(buf, currentPosInTLV - endOfLastPartialString + 1 + DESCRIPTOR_WIDTH, "%*s%s", DESCRIPTOR_WIDTH, "", &parsedBeaconContents[currentTLV][endOfLastPartialString]);
+					}
+				
+					puts(buf);
+				
+					#ifdef BANANAPI_SWITCH
+					RAIO_SetFontSizeFactor( 0 );
+					RAIO_print_text( 0, 16*currentPIline, (unsigned char*) buf, COLOR_BLACK, COLOR_WHITE );
+					#endif
+				
+					endOfLastPartialString = currentPosInTLV;
+					currentLastSpace = 0;
+				
+					if (currentPIline++ >= 14) {
+						sleep (2);
+						currentPIline = 0;
+					} 
 				}
-				else {
-					snprintf(buf, currentPosInTLV - endOfLastPartialString + 1 + DESCRIPTOR_WIDTH, "%*s%s", DESCRIPTOR_WIDTH, "", &parsedBeaconContents[currentTLV][endOfLastPartialString]);
-				}
-				
-				puts(buf);
-				
-				#ifdef BANANAPI_SWITCH
-				RAIO_SetFontSizeFactor( 0 );
-				RAIO_print_text( 0, 16*currentPIline, (unsigned char*) buf, COLOR_BLACK, COLOR_WHITE );
-				#endif
-				
-				endOfLastPartialString = currentPosInTLV;
-				currentLastSpace = 0;
-				
-				if (currentPIline++ >= 14) {
-					sleep (3);
-					currentPIline = 0;
-				} 
 			}
 		}
+	
+		sleep (2);
 	}
 	
 	return;
