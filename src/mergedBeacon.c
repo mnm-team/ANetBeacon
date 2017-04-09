@@ -56,7 +56,7 @@ char *mergedLANbeaconCreator (int *argc, char **argv, int *LLDPDU_len) {
 				break;
 				
 			case 'c':
-				transferToCombinedBeaconAndString(SUBTYPE_CUSTOM, "Custom-Text: ", combinedString, optarg, myLANbeacon, &currentByte);
+				transferToCombinedBeaconAndString(SUBTYPE_CUSTOM, "Freitext: ", combinedString, optarg, myLANbeacon, &currentByte);
 				break;
 
 			case '4':

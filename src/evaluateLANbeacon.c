@@ -66,7 +66,7 @@ char ** evaluateLANbeacon (unsigned char *LLDPreceivedPayload, ssize_t payloadSi
 					TLV_STRING_COPY("VLAN-Name: ");
 					
 				case SUBTYPE_CUSTOM:
-					TLV_STRING_COPY("Custom-Text: ");
+					TLV_STRING_COPY("Freitext: ");
 					
 				case SUBTYPE_IPV4:
 					
@@ -77,7 +77,7 @@ char ** evaluateLANbeacon (unsigned char *LLDPreceivedPayload, ssize_t payloadSi
 					for (int i = 6; i < currentTLVsize; i += 5) {
 						memcpy (currentIP4, &LLDPreceivedPayload[currentPayloadByte+i], 4);	// get IP address
 						inet_ntop(AF_INET, currentIP4, currentIP4string, 20);	// convert binary representation to string
-						sprintf(currentIP4string, "%s/%i, \n             ", currentIP4string, LLDPreceivedPayload[currentPayloadByte+i+4]);		// get subNetwork
+						sprintf(currentIP4string, "%s/%i, \n             ", currentIP4string, LLDPreceivedPayload[currentPayloadByte+i+4]);		// get IP address, then subNetwork
 						strcat (TLVstringbuffer, currentIP4string);
 					}
 					
@@ -95,7 +95,7 @@ char ** evaluateLANbeacon (unsigned char *LLDPreceivedPayload, ssize_t payloadSi
 						memcpy (currentIP6, &LLDPreceivedPayload[currentPayloadByte+i], 16);	// get IP address
 						inet_ntop(AF_INET6, currentIP6, currentIP6string, 100);	// convert binary representation to string
 						
-						sprintf(currentIP6string, "%s/%i, \n             ", currentIP6string, LLDPreceivedPayload[currentPayloadByte+i+16]);		// get subNetwork
+						sprintf(currentIP6string, "%s/%i, \n             ", currentIP6string, LLDPreceivedPayload[currentPayloadByte+i+16]);		// get IP address, then subNetwork
 						strcat (TLVstringbuffer, currentIP6string);
 					}
 					
