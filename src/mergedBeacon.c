@@ -5,15 +5,16 @@
 #include <arpa/inet.h>
 #include <regex.h>
 #include <getopt.h>
+#include "define.h"
+#include "mergedBeacon.h"
 
 
 //#include "beacon.h"
 //#include "tools.h"
 //#include "config.h"
-#include "mergedBeacon.h"
 
 /* Howto adding new fields:
-	1. Add defines for desired new field in Beacon.h
+	1. Add defines for desired new field in define.h
 	2. Add desired options in mergedLANbeaconCreator()
 */
 

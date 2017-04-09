@@ -21,6 +21,7 @@
 #include <ifaddrs.h>
 #include <unistd.h>
 #include <linux/if_link.h>
+#include "define.h"
 #define _GNU_SOURCE	 /* To get defns of NI_MAXSERV and NI_MAXHOST */
 
 #define LLDP_DEST_MAC0	0x01
@@ -32,11 +33,6 @@
 
 #define LLDP_ETHER_TYPE	0x88CC
 
-
-
-#define BUF_SIZ		2000
-
-
 // parts of code based on https://gist.github.com/austinmarton/1922600
 int sendLLDPrawSock (int LLDPDU_len, char *LANbeaconCustomTLVs)
 {
@@ -44,12 +40,12 @@ int sendLLDPrawSock (int LLDPDU_len, char *LANbeaconCustomTLVs)
 	struct ifreq if_idx[20];
 	struct ifreq if_mac[20];
 	int frameLength = 0;
-	char LLDPethernetFrame[BUF_SIZ];
+	char LLDPethernetFrame[LLDP_BUF_SIZ];
 	struct ether_header *eh = (struct ether_header *) LLDPethernetFrame;
 	struct sockaddr_ll socket_address;
 	
 	/* Construct the Ethernet header */
-	memset(LLDPethernetFrame, 0, BUF_SIZ);
+	memset(LLDPethernetFrame, 0, LLDP_BUF_SIZ);
 
 	eh->ether_dhost[0] = LLDP_DEST_MAC0;
 	eh->ether_dhost[1] = LLDP_DEST_MAC1;
@@ -192,14 +188,14 @@ void recLLDPrawSock(int argc, char *argv[], unsigned char *LLDPreceivedPayload, 
 			close(sockfd[numInterfaces]);
 			exit(EXIT_FAILURE);
 		}
-		printf("Number %i is interface %s\n", numInterfaces, interfaces->ifa_name);
+printf("Number %i is interface %s\n", numInterfaces, interfaces->ifa_name);
 		numInterfaces++;
 	}
 	
 	while (1) {
 		for (int i = 0; i < numInterfaces; i++) {
 	//		printf("listener: Waiting to recvfrom...\n");
-			*payloadSize = recvfrom(sockfd[i], LLDPreceivedPayload, BUF_SIZ, 0, NULL, NULL);
+			*payloadSize = recvfrom(sockfd[i], LLDPreceivedPayload, LLDP_BUF_SIZ, 0, NULL, NULL);
 	//		printf("listener: got packet %lu bytes\n", *payloadSize);
 printf("currently on %i\n",i);
 

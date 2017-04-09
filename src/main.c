@@ -7,8 +7,8 @@
 #include "mergedBeacon.h"
 #include "LLDPrawSock.h"
 #include "evaluateLANbeacon.h"
-
-#define BUF_SIZ		4000	// TODO
+#include "bananaPIprint.h"
+#include "define.h"
 
 /* 
 - to run enter:
@@ -20,15 +20,24 @@ clear && make && clear && ./LANbeacon -4 "192.168.178.133/24" -6 "2001:618:11:1:
 
 int main(int argc, char **argv) {
 	
+	#ifdef YOLO
+	puts("yolo");
+	return 1;
+	#endif
+	
+
+	
 	//## receiving LANbeacon ##//
 	if (argc > 1 && strcmp("-r", argv[1]) == 0) {
-		unsigned char LLDPreceivedPayload[BUF_SIZ];
+		unsigned char LLDPreceivedPayload[LLDP_BUF_SIZ];
 		ssize_t payloadSize;
 		recLLDPrawSock(argc, argv, LLDPreceivedPayload, &payloadSize);
 		
 //debug//		printf ("LLDPDU_len: %lu\n",payloadSize); FILE *combined = fopen("received_raw_beacon","w");	fwrite(LLDPreceivedPayload, payloadSize, 1, combined);
 		
-		evaluateLANbeacon(LLDPreceivedPayload, payloadSize);
+		char ** parsedBeaconContents = evaluateLANbeacon(LLDPreceivedPayload, payloadSize);
+		
+		bananaPIprint(parsedBeaconContents);
 		
 		return 1;
 	}

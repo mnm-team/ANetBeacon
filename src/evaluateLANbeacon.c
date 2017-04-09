@@ -2,14 +2,15 @@
 #include <unistd.h>
 #include <string.h>
 #include <arpa/inet.h>
+#include <stdlib.h>
+#include <errno.h>
 #include "beacon.h"
 #include "tools.h"
 #include "config.h"
 #include "mergedBeacon.h"
 #include "LLDPrawSock.h"
+#include "define.h"
 
-#include <errno.h>
-// printf("siz %i %s\n", makro_currentTLVcontentSize, TLV_parsed_content);
 
 // copying TLV contents to collected parsed strings:
 #define TLV_CUSTOM_COPY(descriptor, TLV_parsed_content, makro_currentTLVcontentSize) \
@@ -24,13 +25,17 @@
 	TLV_CUSTOM_COPY(descriptor, (char*) &LLDPreceivedPayload[currentPayloadByte+6], currentTLVsize-4);	/* +6 because header 2 + OUI 3 + Subtype 1 */	 /* -4 due to 3 OUI + 1 Subtype */
 	 
 
-void evaluateLANbeacon (unsigned char *LLDPreceivedPayload, ssize_t payloadSize) {
+char ** evaluateLANbeacon (unsigned char *LLDPreceivedPayload, ssize_t payloadSize) {
 	
-	unsigned int currentPayloadByte = 14;	// after headers and mandatory TLVs: 36, entire LLDPDU: 14
+//	char parsedTLVs [PARSED_TLVS_MAX_NUMBER][PARSED_TLVS_MAX_LENGTH];
+	char ** parsedTLVs = malloc(PARSED_TLVS_MAX_NUMBER * sizeof(char*));
+	for (int i =0 ; i < PARSED_TLVS_MAX_NUMBER; ++i)
+		parsedTLVs[i] = malloc(PARSED_TLVS_MAX_LENGTH * sizeof(char));
+
+
+	unsigned int currentPayloadByte = 14;	// position after headers and mandatory TLVs: 36, postition after Ethernet: 14
 	unsigned int currentTLVsize = 0;
-//	char currentTLVcontents[510] = "";
 	
-	char parsedTLVs [15][510];
 	unsigned int numberParsedTLVs = 0;
 	unsigned int currentLabelSize = 0;
 	char TLVstringbuffer[500] = "";
@@ -126,5 +131,5 @@ void evaluateLANbeacon (unsigned char *LLDPreceivedPayload, ssize_t payloadSize)
 	for (int i = 0; i < numberParsedTLVs; i++)
 		printf("%s#\n",parsedTLVs[i]);
 	
-	return;
+	return parsedTLVs;
 }
