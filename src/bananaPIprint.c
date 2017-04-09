@@ -32,7 +32,9 @@ puts("\n\n\n####PIdisplay: ####");
 		
 		for (currentPosInTLV = 1, currentLastSpace = 0; (parsedBeaconContents[currentTLV][currentPosInTLV-1] != 0) && (currentPIline < PARSED_TLVS_MAX_NUMBER) ; currentPosInTLV++) {
 			
-			if ( parsedBeaconContents[currentTLV][currentPosInTLV] == '\n' || parsedBeaconContents[currentTLV][currentPosInTLV] == 0 || currentPosInTLV - currentLastSpace > 38) {
+			if (parsedBeaconContents[currentTLV][currentPosInTLV] == '\n' 
+			||	parsedBeaconContents[currentTLV][currentPosInTLV] == 0 
+			||	currentPosInTLV - currentLastSpace > (currentLastSpace == 0 ? 40 : 40 - DESCRIPTOR_WIDTH)) {
 				
 				printf("Line %i:  \t", currentPIline);
 				
