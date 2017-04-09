@@ -70,6 +70,9 @@ puts("\n\n\n####PIdisplay: ####");
 						currentPIline = 0;
 						
 						#ifdef BANANAPI_SWITCH
+						TFT_init_board();
+						TFT_hard_reset();
+						RAIO_init();
 						RAIO_clear_screen();
 						#endif
 					} 
