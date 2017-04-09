@@ -68,6 +68,10 @@ puts("\n\n\n####PIdisplay: ####");
 					if (currentPIline++ >= 14) {
 						sleep (2);
 						currentPIline = 0;
+						
+						#ifdef BANANAPI_SWITCH
+						RAIO_clear_screen();
+						#endif
 					} 
 				}
 			}
