@@ -25,7 +25,7 @@ void bananaPIprint (char **parsedBeaconContents) {
 	
 	for (int lines = 0; lines < 14; lines++) {
 		
-		strcpy(buf, parsedBeaconContents[lines]);
+		strncpy(buf, parsedBeaconContents[lines],40);
 		
 		for (column = 0; column < 40; column++) {
 /*			c = fgetc(  stdin );
@@ -41,7 +41,7 @@ void bananaPIprint (char **parsedBeaconContents) {
 
 		#ifdef BANANAPI_SWITCH
 		RAIO_SetFontSizeFactor( 0 );
-		RAIO_print_text( 0, 16*lines, (unsigned char *) buf, COLOR_BLACK, COLOR_WHITE );
+//		RAIO_print_text( 0, 16*lines, (unsigned char *) buf, COLOR_BLACK, COLOR_WHITE );
 		#endif
 
 		
