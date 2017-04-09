@@ -32,6 +32,7 @@ puts("\n\n\n####PIdisplay: ####");
 		
 		currentPIline = 0;
 		
+		printf("\e[1;1H\e[2J");
 		
 		#ifdef BANANAPI_SWITCH
 		TFT_init_board();
@@ -77,6 +78,8 @@ puts("\n\n\n####PIdisplay: ####");
 						sleep (2);
 						currentPIline = 0;
 						
+						printf("\e[1;1H\e[2J");
+					
 						#ifdef BANANAPI_SWITCH
 						TFT_init_board();
 						TFT_hard_reset();
