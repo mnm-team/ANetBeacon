@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-#include "beacon.h"
-#include "tools.h"
-#include "config.h"
+//#include "beacon.h"
+//#include "tools.h"
+//#include "config.h"
 #include "mergedBeacon.h"
 #include "LLDPrawSock.h"
 #include "evaluateLANbeacon.h"
