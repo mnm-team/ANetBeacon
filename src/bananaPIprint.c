@@ -23,24 +23,31 @@ puts("\n\n\n####PIdisplay: ####");
 	int c = 0;
 	int column;
 	
-	int currentLastSpace;
+	int currentPosInTLV, currentPIline, currentLastSpace;
+	currentPIline = 1;
 	
-	for (int lines = 0; lines < 14; lines++) {
+//	for (int lines = 0; lines < 14; lines++) {
+	
+	for (int currentTLV = 0; currentTLV < PARSED_TLVS_MAX_NUMBER; currentTLV++) {
 		
-		for (int currentPosInTLV = 0, currentLastSpace = 0; parsedBeaconContents[lines][currentPosInTLV] != 0 ; currentPosInTLV++) {
+		for (currentPosInTLV = 0, currentLastSpace = 0; (parsedBeaconContents[currentTLV][currentPosInTLV] != 0) && (currentPIline < 13) ; currentPosInTLV++) {
 			
-			if ( parsedBeaconContents[lines][currentPosInTLV+1] == (int) '\n' || parsedBeaconContents[lines][currentPosInTLV+1] == 0 ) {
+			if ( parsedBeaconContents[currentTLV][currentPosInTLV+1] == (int) '\n' || parsedBeaconContents[currentTLV][currentPosInTLV+1] == 0 ) {
 				
-				strncpy(buf, &parsedBeaconContents[lines][currentLastSpace], currentPosInTLV - currentLastSpace);
+				printf("Line %i:\t", currentPIline);
+				
+				strncpy(buf, &parsedBeaconContents[currentTLV][currentLastSpace], currentPosInTLV - currentLastSpace + 1);
 				buf[currentPosInTLV - currentLastSpace + 1] = 0;
 				puts(buf);
 				
 				#ifdef BANANAPI_SWITCH
 				RAIO_SetFontSizeFactor( 0 );
-				RAIO_print_text( 0, 16*lines, (unsigned char *) buf, COLOR_BLACK, COLOR_WHITE );
+				RAIO_print_text( 0, 16*currentTLV, (unsigned char *) buf, COLOR_BLACK, COLOR_WHITE );
 				#endif
 				
-				currentLastSpace = currentPosInTLV;
+				currentLastSpace = currentPosInTLV + 2;
+				
+				currentPIline++; 
 			}
 		}
 	}

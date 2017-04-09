@@ -29,8 +29,10 @@ char ** evaluateLANbeacon (unsigned char *LLDPreceivedPayload, ssize_t payloadSi
 	
 //	char parsedTLVs [PARSED_TLVS_MAX_NUMBER][PARSED_TLVS_MAX_LENGTH];
 	char ** parsedTLVs = malloc(PARSED_TLVS_MAX_NUMBER * sizeof(char*));
-	for (int i =0 ; i < PARSED_TLVS_MAX_NUMBER; ++i)
+	for (int i =0 ; i < PARSED_TLVS_MAX_NUMBER; ++i) {
 		parsedTLVs[i] = malloc(PARSED_TLVS_MAX_LENGTH * sizeof(char));
+		parsedTLVs[i][0] = 0;
+	}
 
 
 	unsigned int currentPayloadByte = 14;	// position after headers and mandatory TLVs: 36, postition after Ethernet: 14
