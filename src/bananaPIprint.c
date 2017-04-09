@@ -35,9 +35,6 @@ puts("\n\n\n####PIdisplay: ####");
 		printf("\e[1;1H\e[2J");
 		
 		#ifdef BANANAPI_SWITCH
-		TFT_init_board();
-		TFT_hard_reset();
-		RAIO_init();
 		RAIO_clear_screen();
 		#endif
 		
@@ -81,9 +78,6 @@ puts("\n\n\n####PIdisplay: ####");
 						printf("\e[1;1H\e[2J");
 					
 						#ifdef BANANAPI_SWITCH
-						TFT_init_board();
-						TFT_hard_reset();
-						RAIO_init();
 						RAIO_clear_screen();
 						#endif
 					} 
