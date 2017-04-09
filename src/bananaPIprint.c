@@ -24,7 +24,7 @@ puts("\n\n\n####PIdisplay: ####");
 	int column;
 	
 	int currentPosInTLV, currentPIline, currentLastSpace;
-	currentPIline = 1;
+	currentPIline = 0;
 	
 //	for (int lines = 0; lines < 14; lines++) {
 	
@@ -42,7 +42,7 @@ puts("\n\n\n####PIdisplay: ####");
 				
 				#ifdef BANANAPI_SWITCH
 				RAIO_SetFontSizeFactor( 0 );
-				RAIO_print_text( 0, 16*currentTLV, buf, COLOR_BLACK, COLOR_WHITE );
+				RAIO_print_text( 0, 16*currentPIline, (unsigned char*) buf, COLOR_BLACK, COLOR_WHITE );
 				#endif
 				
 				currentLastSpace = currentPosInTLV + 2;
