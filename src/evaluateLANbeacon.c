@@ -89,7 +89,7 @@ char ** evaluateLANbeacon (unsigned char *LLDPreceivedPayload, ssize_t payloadSi
 						strcat (TLVstringbuffer, currentIP4string);
 					}
 					
-					TLVstringbuffer[strlen(TLVstringbuffer)-2-1] = 0;		// remove last comma and space
+					TLVstringbuffer[strlen(TLVstringbuffer)-2] = 0;		// remove last comma and space
 					
 					TLV_CUSTOM_COPY( "IPv4: ", TLVstringbuffer, strlen(TLVstringbuffer));
 					
@@ -107,7 +107,7 @@ char ** evaluateLANbeacon (unsigned char *LLDPreceivedPayload, ssize_t payloadSi
 						strcat (TLVstringbuffer, currentIP6string);
 					}
 					
-					TLVstringbuffer[strlen(TLVstringbuffer)-2-1] = 0;		// remove last comma and space
+					TLVstringbuffer[strlen(TLVstringbuffer)-2] = 0;		// remove last comma and space
 					
 					TLV_CUSTOM_COPY( "IPv6: ", TLVstringbuffer, strlen(TLVstringbuffer));
 					
