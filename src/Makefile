@@ -17,11 +17,5 @@ bananaLANbeacon: $(OBJECTS) $(BANANAOBJECTS)
 %.o: %.c
 		$(CC) $(CFLAGS) -c $<
 
-tft.o: tft.c tft.h
-	gcc -Os -c tft.c
-
-RAIO8870.o: RAIO8870.c RAIO8870.h
-	gcc -Os -c RAIO8870.c
-
 clean:
 		rm -rf *.o LANbeacon
