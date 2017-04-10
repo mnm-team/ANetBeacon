@@ -181,35 +181,35 @@ int sign_it(const unsigned char* msg, size_t mlen, unsigned char** sig, size_t* 
 	do
 	{
 		ctx = EVP_MD_CTX_create();
-		assert(ctx != NULL);
+//		assert(ctx != NULL);
 		if(ctx == NULL) {
 			printf("EVP_MD_CTX_create failed, error 0x%lx\n", ERR_get_error());
 			break; /* failed */
 		}
 		
 		const EVP_MD* md = EVP_get_digestbyname(hn);
-		assert(md != NULL);
+//		assert(md != NULL);
 		if(md == NULL) {
 			printf("EVP_get_digestbyname failed, error 0x%lx\n", ERR_get_error());
 			break; /* failed */
 		}
 		
 		int rc = EVP_DigestInit_ex(ctx, md, NULL);
-		assert(rc == 1);
+//		assert(rc == 1);
 		if(rc != 1) {
 			printf("EVP_DigestInit_ex failed, error 0x%lx\n", ERR_get_error());
 			break; /* failed */
 		}
 		
 		rc = EVP_DigestSignInit(ctx, NULL, md, NULL, pkey);
-		assert(rc == 1);
+//		assert(rc == 1);
 		if(rc != 1) {
 			printf("EVP_DigestSignInit failed, error 0x%lx\n", ERR_get_error());
 			break; /* failed */
 		}
 		
 		rc = EVP_DigestSignUpdate(ctx, msg, mlen);
-		assert(rc == 1);
+//		assert(rc == 1);
 		if(rc != 1) {
 			printf("EVP_DigestSignUpdate failed, error 0x%lx\n", ERR_get_error());
 			break; /* failed */
@@ -217,20 +217,20 @@ int sign_it(const unsigned char* msg, size_t mlen, unsigned char** sig, size_t* 
 		
 		size_t req = 0;
 		rc = EVP_DigestSignFinal(ctx, NULL, &req);
-		assert(rc == 1);
+//		assert(rc == 1);
 		if(rc != 1) {
 			printf("EVP_DigestSignFinal failed (1), error 0x%lx\n", ERR_get_error());
 			break; /* failed */
 		}
 		
-		assert(req > 0);
+//		assert(req > 0);
 		if(!(req > 0)) {
 			printf("EVP_DigestSignFinal failed (2), error 0x%lx\n", ERR_get_error());
 			break; /* failed */
 		}
 		
 		*sig = OPENSSL_malloc(req);
-		assert(*sig != NULL);
+//		assert(*sig != NULL);
 		if(*sig == NULL) {
 			printf("OPENSSL_malloc failed, error 0x%lx\n", ERR_get_error());
 			break; /* failed */
@@ -238,13 +238,13 @@ int sign_it(const unsigned char* msg, size_t mlen, unsigned char** sig, size_t* 
 		
 		*slen = req;
 		rc = EVP_DigestSignFinal(ctx, *sig, slen);
-		assert(rc == 1);
+//		assert(rc == 1);
 		if(rc != 1) {
 			printf("EVP_DigestSignFinal failed (3), return code %d, error 0x%lx\n", rc, ERR_get_error());
 			break; /* failed */
 		}
 		
-		assert(req == *slen);
+//		assert(req == *slen);
 		if(rc != 1) {
 			printf("EVP_DigestSignFinal failed, mismatched signature sizes %ld, %ld", req, *slen);
 			break; /* failed */

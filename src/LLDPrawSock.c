@@ -220,7 +220,8 @@ printf("found on %i\n",i);
 			
 			//## Verify signature ##//
 			
-			verifyLANbeacon(&LLDPreceivedPayload[14], *payloadSize - 2 - 14);	// - end of LLDPDU 2 - 14 Ethernet header
+			if (0 != verifyLANbeacon(&LLDPreceivedPayload[14], *payloadSize - 2 - 14))	// - end of LLDPDU 2 - 14 Ethernet header
+				continue;
 			
 		/*	EVP_PKEY *vkey = NULL;
 	
