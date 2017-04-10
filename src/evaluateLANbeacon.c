@@ -134,7 +134,7 @@ char ** evaluateLANbeacon (unsigned char *LLDPreceivedPayload, ssize_t payloadSi
 					memcpy (&zwischenSpeicherTimeStamp, &LLDPreceivedPayload[currentPayloadByte+6+4], 4); 
 					zwischenSpeicherTimeStamp = ntohl(zwischenSpeicherTimeStamp);
 					
-					sprintf(TLVstringbuffer, "Challenge: %ld Timestamp: %ld", zwischenSpeicherChallenge, zwischenSpeicherTimeStamp);
+					sprintf(TLVstringbuffer, "AUTHENTICATION SUCCESSFULL! Challenge: %ld Timestamp: %ld", zwischenSpeicherChallenge, zwischenSpeicherTimeStamp);
 					
 					printf("AuthTest %s\n", TLVstringbuffer);
 					
