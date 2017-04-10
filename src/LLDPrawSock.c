@@ -21,7 +21,9 @@
 #include <ifaddrs.h>
 #include <unistd.h>
 #include <linux/if_link.h>
+#include <openssl/evp.h>
 #include "define.h"
+#include "openssl_sign.h"
 #define _GNU_SOURCE	 /* To get defns of NI_MAXSERV and NI_MAXHOST */
 
 #define LLDP_DEST_MAC0	0x01
@@ -142,8 +144,8 @@ int sendLLDPrawSock (int LLDPDU_len, char *LANbeaconCustomTLVs)
 
 
 // parts of code based on https://gist.github.com/austinmarton/2862515
-void recLLDPrawSock(unsigned char *LLDPreceivedPayload, ssize_t *payloadSize)
-{
+void recLLDPrawSock(unsigned char *LLDPreceivedPayload, ssize_t *payloadSize) {
+	
 	struct ether_header *eh = (struct ether_header *) LLDPreceivedPayload;
 	
 	int sockfd[20];
@@ -213,9 +215,40 @@ printf("found on %i\n",i);
 	//		printf("\tData:");
 	//		for (i=0; i<*payloadSize; i++) printf("%02x:", LLDPreceivedPayload[i]);
 	//		printf("\n");
+			
+			
+			
+			//## Verify signature ##//
+			
+			verifyLANbeacon(&LLDPreceivedPayload[14], *payloadSize - 2 - 14);	// - end of LLDPDU 2 - 14 Ethernet header
+			
+		/*	EVP_PKEY *vkey = NULL;
+	
+			int rc = read_pubkey(&vkey);
+	
+			unsigned char* sig_buffer = malloc(260);
+			FILE*	 signatureFile = fopen("BeaconSignature","r");
+			size_t result = fread (sig_buffer,1,260,signatureFile);
+	
+			printf ("%zu bytes read\n",result);
+			OpenSSL_add_all_algorithms();
+	
+			rc = verify_it(&LLDPreceivedPayload[14], *payloadSize - 2, sig_buffer, result, vkey);
+	
+			if(rc == 0) {
+				printf("Verified signature on sender side\n");
+			} else {
+				printf("Failed to verify signature on sender side, return code %d\n", rc);
+			}
+		*/			
+			
+			
+			
 			return;
 		}
 	}
+	
+
 
 	close(sockfd[0]);	//TODO
 }

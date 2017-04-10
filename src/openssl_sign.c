@@ -30,8 +30,68 @@
 const char hn[] = "SHA256";
 const char* pcszPassphrase = "open sezamee";
 
-int signLANbeacon(unsigned char* sig, size_t* slen, const unsigned char* msg, size_t mlen)
+int verifyLANbeacon(const unsigned char* msg, size_t mlen)
 {
+	int rc;
+	
+	OpenSSL_add_all_algorithms();
+	
+	/* Sign and Verify HMAC keys */
+	EVP_PKEY *skey = NULL, *vkey = NULL;
+	
+	rc = read_keys(&skey, &vkey);
+	
+	assert(rc == 0);
+	if(rc != 0)
+		exit(1);
+	
+	assert(skey != NULL);
+	if(skey == NULL)
+		exit(1);
+	
+	assert(vkey != NULL);
+	if(vkey == NULL)
+		exit(1);
+	
+/*	unsigned char* sig_buffer = malloc(260);
+	FILE*	 signatureFile = fopen("BeaconSignature","r");
+	size_t result = fread (sig_buffer,1,260,signatureFile);
+	
+	print_it("Signature", sig_buffer, result);
+	
+	printf("sigSize read: %zu\nmlen rec: %zu\n", result, mlen);
+	
+	fclose(signatureFile);
+*/	
+
+	print_it("empfangene Version", &msg[mlen - 256], 256);
+
+	/* Using the vkey or verifying key */
+	rc = verify_it(msg, mlen - 262, &msg[mlen - 256], 256, vkey);
+	if(rc == 0) {
+		printf("Verified signature on receiver side\n");
+	} else {
+		printf("Failed to verify signature on receiver side, return code %d\n", rc);
+	}
+	
+	if(skey)
+		EVP_PKEY_free(skey);
+	
+	if(vkey)
+		EVP_PKEY_free(vkey);
+	
+//	if(sig_buffer)
+//		OPENSSL_free(sig_buffer);
+	
+	return 0;
+}
+
+/////////////////////
+
+int signLANbeacon(unsigned char** sig, size_t* slen, const unsigned char* msg, size_t mlen)
+{
+	int rc;
+	
 	printf("Testing RSA functions with EVP_DigestSign and EVP_DigestVerify\n");
 	
 	OpenSSL_add_all_algorithms();
@@ -39,47 +99,8 @@ int signLANbeacon(unsigned char* sig, size_t* slen, const unsigned char* msg, si
 	/* Sign and Verify HMAC keys */
 	EVP_PKEY *skey = NULL, *vkey = NULL;
 	
-	int rc;
-	
-	rc = make_keys(&skey, &vkey);
-	
-	
-	{/* Read the keys */
-	
-		FILE*	 pFile	= NULL;
-		int iRet;
-
-		if((pFile = fopen("privkey.pem","rt")) && 
-		   (skey = PEM_read_PrivateKey(pFile,NULL,passwd_callback,(void*)pcszPassphrase)))
-		{
-			fprintf(stderr,"Private key read.\n");
-		}
-		else
-		{
-			fprintf(stderr,"Cannot read \"privkey.pem\".\n");
-			ERR_print_errors_fp(stderr);
-			iRet = EXIT_FAILURE;
-		}
-		if(pFile)
-		{
-			fclose(pFile);
-			pFile = NULL;
-		}
-
-		if((pFile = fopen("pubkey.pem","rt")) && 
-		   (vkey = PEM_read_PUBKEY(pFile,NULL,NULL,NULL)))
-		{
-			fprintf(stderr,"Public key read.\n");
-		}
-		else
-		{
-			fprintf(stderr,"Cannot read \"pubkey.pem\".\n");
-			ERR_print_errors_fp(stderr);
-			iRet = EXIT_FAILURE;
-		}
-	rc = 0; 
-	}
-	
+//	rc = make_keys(&skey, &vkey);
+	rc = read_keys(&skey, &vkey);
 	
 	assert(rc == 0);
 	if(rc != 0)
@@ -94,7 +115,7 @@ int signLANbeacon(unsigned char* sig, size_t* slen, const unsigned char* msg, si
 		exit(1);
 	
 	/* Using the skey or signing key */
-	rc = sign_it(msg, mlen, &sig, slen, skey);
+	rc = sign_it(msg, mlen, sig, slen, skey);
 	assert(rc == 0);
 	if(rc == 0) {
 		printf("Created signature\n");
@@ -103,25 +124,22 @@ int signLANbeacon(unsigned char* sig, size_t* slen, const unsigned char* msg, si
 		exit(1); /* Should cleanup here */
 	}
 	
-	print_it("Signature", sig, *slen);
+	print_it("Signature", *sig, *slen);
 	
-	FILE*	 signature = fopen("BeaconSignature","w");
-	fwrite(sig, *slen, 1, signature);
+	printf("sigsize write%zu\n mlen send %zu\n", *slen, mlen);
 	
-#if 0
-	/* Tamper with signature */
-	printf("Tampering with signature\n");
-	sig[0] ^= 0x01;
-#endif
+	FILE*	 signatureFile = fopen("BeaconSignature","w");
+	fwrite(*sig, *slen, 1, signatureFile);
 	
-#if 0
-	/* Tamper with signature */
-	printf("Tampering with signature\n");
-	sig[slen - 1] ^= 0x01;
-#endif
+	fclose(signatureFile);
 	
-	//////////////////////////
-	///////////////////////////
+	/* Using the vkey or verifying key */
+	rc = verify_it(msg, mlen, *sig, *slen, vkey);
+	if(rc == 0) {
+		printf("Verified signature on sender side\n");
+	} else {
+		printf("Failed to verify signature on sender side, return code %d\n", rc);
+	}
 	
 //	if(skey)
 //		EVP_PKEY_free(skey);
@@ -129,26 +147,16 @@ int signLANbeacon(unsigned char* sig, size_t* slen, const unsigned char* msg, si
 //	if(vkey)
 //		EVP_PKEY_free(vkey);
 	
-	///////////////////////////
+//	if(sig)
+//		OPENSSL_free(sig);
+
+	print_it("dubdub Signature", *sig, *slen);
 	
+	print_it("qqqdubdub Signature", *sig, *slen);
 	
-	
-	
-	////////////////////////////
-	
-	/* Using the vkey or verifying key */
-	rc = verify_it(msg, mlen, sig, *slen, vkey);
-	if(rc == 0) {
-		printf("Verified signature\n");
-	} else {
-		printf("Failed to verify signature, return code %d\n", rc);
-	}
-	
-	
-	if(sig)
-		OPENSSL_free(sig);
-	
-	
+	printf ("%p\n", *sig);
+
+
 	return 0;
 }
 
@@ -258,7 +266,6 @@ int verify_it(const unsigned char* msg, size_t mlen, const unsigned char* sig, s
 {
 	/* Returned to caller */
 	int result = -1;
-	
 	if(!msg || !mlen || !sig || !slen || !pkey) {
 		assert(0);
 		return -1;
@@ -340,6 +347,64 @@ void print_it(const char* label, const unsigned char* buff, size_t len)
 	printf("\n");
 }
 
+int read_keys(EVP_PKEY** skey, EVP_PKEY** vkey) {
+	
+	FILE*	 pFile	= NULL;
+	int iRet;
+
+	if((pFile = fopen("privkey.pem","rt")) && 
+	   (*skey = PEM_read_PrivateKey(pFile,NULL,passwd_callback,(void*)pcszPassphrase)))
+	{
+		fprintf(stderr,"Private key read.\n");
+	}
+	else
+	{
+		fprintf(stderr,"Cannot read \"privkey.pem\".\n");
+		ERR_print_errors_fp(stderr);
+		iRet = EXIT_FAILURE;
+	}
+	if(pFile)
+	{
+		fclose(pFile);
+		pFile = NULL;
+	}
+
+	if((pFile = fopen("pubkey.pem","rt")) && 
+	   (*vkey = PEM_read_PUBKEY(pFile,NULL,NULL,NULL)))
+	{
+		fprintf(stderr,"Public key read.\n");
+	}
+	else
+	{
+		fprintf(stderr,"Cannot read \"pubkey.pem\".\n");
+		ERR_print_errors_fp(stderr);
+		iRet = EXIT_FAILURE;
+	}
+	return 0; 
+	
+}
+
+/*
+int read_pubkey(EVP_PKEY** vkey) {
+	
+	FILE*	 pFile	= NULL;
+	int iRet;
+	
+	if((pFile = fopen("pubkey.pem","rt")) && 
+	   (*vkey = PEM_read_PUBKEY(pFile,NULL,NULL,NULL)))
+	{
+		fprintf(stderr,"Public key read.\n");
+	}
+	else
+	{
+		fprintf(stderr,"Cannot read \"pubkey.pem\".\n");
+		ERR_print_errors_fp(stderr);
+		iRet = EXIT_FAILURE;
+	}
+	return 0; 
+	
+}
+*/
 int make_keys(EVP_PKEY** skey, EVP_PKEY** vkey)
 {
 	int result = -1;
