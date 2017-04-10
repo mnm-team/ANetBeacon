@@ -24,7 +24,7 @@ RAIO8870.o: RAIO8870.c RAIO8870.h
 	gcc -Os -c RAIO8870.c
 
 openssl_sign.o: openssl_sign.c openssl_sign.h
-	gcc -lcrypto -c openssl_sign.c
+	gcc -lcrypto -std=c11 -c openssl_sign.c
 
 clean:
 		rm -rf *.o LANbeacon
