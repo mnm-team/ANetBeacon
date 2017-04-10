@@ -123,6 +123,23 @@ char ** evaluateLANbeacon (unsigned char *LLDPreceivedPayload, ssize_t payloadSi
 				case SUBTYPE_COMBINED_STRING:
 					TLV_STRING_COPY( "Combined String:");
 					
+				case SUBTYPE_SIGNATURE:
+					
+					TLVstringbuffer[0] = 0;
+					
+					long zwischenSpeicherChallenge, zwischenSpeicherTimeStamp;
+					
+					memcpy (&zwischenSpeicherChallenge, &LLDPreceivedPayload[currentPayloadByte+6], 4);
+					zwischenSpeicherChallenge = ntohl(zwischenSpeicherChallenge);
+					memcpy (&zwischenSpeicherTimeStamp, &LLDPreceivedPayload[currentPayloadByte+6+4], 4); 
+					zwischenSpeicherTimeStamp = ntohl(zwischenSpeicherTimeStamp);
+					
+					sprintf(TLVstringbuffer, "Challenge: %ld Timestamp: %ld", zwischenSpeicherChallenge, zwischenSpeicherTimeStamp);
+					
+					printf("AuthTest %s\n", TLVstringbuffer);
+					
+					TLV_CUSTOM_COPY( "Auth:", TLVstringbuffer, strlen(TLVstringbuffer));
+					
 			}
 			
 			

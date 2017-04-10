@@ -8,6 +8,7 @@
 #include "define.h"
 #include "mergedBeacon.h"
 #include "openssl_sign.h"
+#include <time.h>
 
 
 //#include "beacon.h"
@@ -103,15 +104,27 @@ char *mergedLANbeaconCreator (int *argc, char **argv, int *LLDPDU_len) {
 	
 	
 	//## add signature verification ##//
+	
+	long challenge = 12345678; 
+	time_t asdf = time(NULL);
+	
+	char signaturePlaceholder[280] = "########################################################################################################################################################################################################################################################################";
+	transferCombinedBeacon (SUBTYPE_SIGNATURE, signaturePlaceholder, myLANbeacon, &currentByte);
+	
+	long zwischenSpeicher = htonl(challenge);
+	
+	memcpy(&myLANbeacon[currentByte-256-4-4], &zwischenSpeicher, 4);
+	
+	zwischenSpeicher = htonl(asdf);
+	
+	memcpy(&myLANbeacon[currentByte-256-4], &zwischenSpeicher, 4);
+	
 	unsigned char* sig = NULL;
 	size_t slen = 0;
-//	const unsigned char msg[] = "Now is the time for all good men to come to the aide of their country";
-	signLANbeacon(&sig, &slen, (const unsigned char *) myLANbeacon, (size_t) currentByte); 
+	
+	signLANbeacon(&sig, &slen, (const unsigned char *) myLANbeacon, (size_t) currentByte - 256); 
 //	signLANbeacon(sig, &slen, msg, sizeof(msg)); 
 	
-	char signaturePlaceholder[260] = "################################################################################################################################################################################################################################################################";
-	
-	transferCombinedBeacon (SUBTYPE_SIGNATURE, signaturePlaceholder, myLANbeacon, &currentByte);
 	
 	printf ("currentByte: %i siglen: %zu\n", currentByte, slen);
 

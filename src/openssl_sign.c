@@ -67,7 +67,7 @@ int verifyLANbeacon(const unsigned char* msg, size_t mlen)
 	print_it("empfangene Version", &msg[mlen - 256], 256);
 
 	/* Using the vkey or verifying key */
-	rc = verify_it(msg, mlen - 262, &msg[mlen - 256], 256, vkey);
+	rc = verify_it(msg, mlen - 256, &msg[mlen - 256], 256, vkey);
 	if(rc == 0) {
 		printf("Verified signature on receiver side\n");
 	} else {
