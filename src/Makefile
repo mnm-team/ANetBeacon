@@ -1,8 +1,8 @@
 CC = gcc
-OBJECTS = main.o mergedBeacon.o LLDPrawSock.o evaluateLANbeacon.o bananaPIprint.o 
+OBJECTS = main.o mergedBeacon.o LLDPrawSock.o evaluateLANbeacon.o bananaPIprint.o openssl_sign.o
 BANANAOBJECTS = tft.o RAIO8870.o
-LANbeacon:			CFLAGS = -Wall -Werror -g -std=c11 -Wno-unused-variable -Wno-unused-but-set-variable
-bananaLANbeacon:	CFLAGS = -Wall -Werror -g -std=c11 -Wno-unused-variable -Wno-unused-but-set-variable -DBANANAPI_SWITCH
+LANbeacon:			CFLAGS = -Wall -Werror -g -std=c11 -Wno-unused-variable -Wno-unused-but-set-variable -lcrypto
+bananaLANbeacon:	CFLAGS = -Wall -Werror -g -std=c11 -Wno-unused-variable -Wno-unused-but-set-variable -lcrypto -DBANANAPI_SWITCH
 
 LANbeacon: $(OBJECTS)
 		$(CC) $(CFLAGS) $(OBJECTS) -o LANbeacon
@@ -22,6 +22,9 @@ tft.o: tft.c tft.h
 
 RAIO8870.o: RAIO8870.c RAIO8870.h
 	gcc -Os -c RAIO8870.c
+
+openssl_sign.o: openssl_sign.c openssl_sign.h
+	gcc -lcrypto -c openssl_sign.c
 
 clean:
 		rm -rf *.o LANbeacon

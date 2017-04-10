@@ -7,6 +7,7 @@
 #include <getopt.h>
 #include "define.h"
 #include "mergedBeacon.h"
+#include "openssl_sign.h"
 
 
 //#include "beacon.h"
@@ -99,6 +100,14 @@ char *mergedLANbeaconCreator (int *argc, char **argv, int *LLDPDU_len) {
 		if (0 < strlen(combinedString[i]))
 			transferCombinedBeacon(SUBTYPE_COMBINED_STRING, combinedString [i], myLANbeacon, &currentByte);
 	}
+	
+	
+	//## add signature verification ##//
+	unsigned char* sig = NULL;
+	size_t slen = 0;
+	const unsigned char msg[] = "Now is the time for all good men to come to the aide of their country";
+	signLANbeacon(sig, &slen, (const unsigned char *) myLANbeacon, (size_t) currentByte); 
+//	signLANbeacon(sig, &slen, msg, sizeof(msg)); 
 	
 	*LLDPDU_len = currentByte;
 	
