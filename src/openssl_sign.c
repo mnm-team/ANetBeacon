@@ -313,7 +313,7 @@ int verify_it(const unsigned char* msg, size_t mlen, const unsigned char* sig, s
 		/* Clear any errors for the call below */
 		ERR_clear_error();
 		
-		rc = EVP_DigestVerifyFinal(ctx, sig, slen);
+		rc = EVP_DigestVerifyFinal(ctx, (unsigned char *) sig, slen);
 		assert(rc == 1);
 		if(rc != 1) {
 			printf("EVP_DigestVerifyFinal failed, error 0x%lx\n", ERR_get_error());
