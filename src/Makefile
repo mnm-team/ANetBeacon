@@ -18,12 +18,16 @@ bananaLANbeacon: $(OBJECTS) $(BANANAOBJECTS)
 %.o: %.c
 		$(CC) $(CFLAGS) -c $<
 
-tft.o: tft_cberry_includes/tft.c tft_cberry_includes/tft.h
+tft.o: tft.c tft.h
+	cd tft_cberry_includes/
 	gcc -Os -c tft_cberry_includes/tft.c
+	cd ..
 #	gcc -Os -c tft.c
 
-RAIO8870.o: tft_cberry_includes/RAIO8870.c tft_cberry_includes/RAIO8870.h
+RAIO8870.o: RAIO8870.c RAIO8870.h
+	cd tft_cberry_includes/
 	gcc -Os -c tft_cberry_includes/RAIO8870.c
+	cd ..
 #	gcc -Os -c RAIO8870.c
 
 openssl_sign.o: openssl_sign.c openssl_sign.h
