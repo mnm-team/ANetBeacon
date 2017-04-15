@@ -1,13 +1,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-//#include "beacon.h"
-//#include "tools.h"
-//#include "config.h"
 #include "sender.h"
 #include "rawsocket_LLDP.h"
 #include "receiver.h"
-//#include "bananaPIprint.h"
 #include "define.h"
 
 /* 
@@ -16,6 +12,45 @@ clear && make && clear && ./LANbeacon -4 "Gobi: 192.168.178.133/24 Arktis: 111.2
 
 - saving TCPdump: tcpdump -s 65535 -w meindump ether proto 0x88cc
 */
+
+/**
+ * @file main.c
+ * @author Dominik Bitzer
+ * @date 2017
+ * @brief TODO
+ * 
+ * TODO
+ */
+
+/**
+ * @brief TODO
+ * 
+ * TODO
+ * 
+ * @param argc Anzahl mitgegeben
+ * @param argv Inhalte mitgegeben
+ * @return Fehlermeldung
+ * 
+ */
+
+
+/*
+ * @verbatim 
+ * 
+ * @code
+ * BoxStruct *out = Box_The_Function_Name(param1, param2);
+ * printf("something...\n");
+ * @endcode
+ * 
+ * <b>be careful</b> 
+ * 
+ * @see Box_The_Last_One
+ * @see http://website/
+ * @note Something to note.
+ * @warning Warning.
+ * 
+ */
+
 
 int main(int argc, char **argv) {
 	
