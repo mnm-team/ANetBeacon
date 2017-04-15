@@ -55,8 +55,8 @@
 /*##############################################################*/
 
 #include <wiringPi.h>
-#include "RAIO8870.h"
-#include "tft.h"
+#include "cberry_includes_RAIO8870.h"
+#include "cberry_includes_tft.h"
 
 uint16_t txc = 0x00;        // character x position on screen
 uint16_t tyc = 0x00;        // character y position on screen

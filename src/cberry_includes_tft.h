@@ -54,7 +54,7 @@
 #define TFT_H
 
 #include <stdint.h>
-#include "RAIO8870.h"
+#include "cberry_includes_RAIO8870.h"
 
 
 // define pins on connector P1 using wiringPi numbering

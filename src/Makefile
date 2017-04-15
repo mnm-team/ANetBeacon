@@ -1,6 +1,6 @@
 CC = gcc
-OBJECTS = main.o mergedBeacon.o LLDPrawSock.o evaluateLANbeacon.o bananaPIprint.o openssl_sign.o
-BANANAOBJECTS = tft.o RAIO8870.o
+OBJECTS = main.o sender.o rawsocket_LLDP.o receiver.o openssl_sign.o
+BANANAOBJECTS = cberry_includes_tft.o cberry_includes_RAIO8870.o
 LANbeacon:			CFLAGS = -Wall -Werror -g -std=c11 -Wno-unused-variable -Wno-unused-but-set-variable -lcrypto
 bananaLANbeacon:	CFLAGS = -Wall -Werror -g -std=c11 -Wno-unused-variable -Wno-unused-but-set-variable -lcrypto -DBANANAPI_SWITCH
 
@@ -17,11 +17,11 @@ bananaLANbeacon: $(OBJECTS) $(BANANAOBJECTS)
 %.o: %.c
 		$(CC) $(CFLAGS) -c $<
 
-tft.o: tft.c tft.h
-	gcc -Os -c tft.c
+tft.o: cberry_includes_tft.c cberry_includes_tft.h
+	gcc -Os -c cberry_includes_tft.c
 
-RAIO8870.o: RAIO8870.c RAIO8870.h
-	gcc -Os -c RAIO8870.c
+RAIO8870.o: cberry_includes_RAIO8870.c cberry_includes_RAIO8870.h
+	gcc -Os -c cberry_includes_RAIO8870.c
 
 openssl_sign.o: openssl_sign.c openssl_sign.h
 	gcc -lcrypto -std=c11 -c openssl_sign.c

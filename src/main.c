@@ -4,10 +4,10 @@
 //#include "beacon.h"
 //#include "tools.h"
 //#include "config.h"
-#include "mergedBeacon.h"
-#include "LLDPrawSock.h"
-#include "evaluateLANbeacon.h"
-#include "bananaPIprint.h"
+#include "sender.h"
+#include "rawsocket_LLDP.h"
+#include "receiver.h"
+//#include "bananaPIprint.h"
 #include "define.h"
 
 /* 

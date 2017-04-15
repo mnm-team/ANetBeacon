@@ -54,8 +54,8 @@
 #include <stdint.h>
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
-#include "RAIO8870.h"
-#include "tft.h"
+#include "cberry_includes_RAIO8870.h"
+#include "cberry_includes_tft.h"
 
 int spi_fd;
 

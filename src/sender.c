@@ -6,7 +6,7 @@
 #include <regex.h>
 #include <getopt.h>
 #include "define.h"
-#include "mergedBeacon.h"
+#include "sender.h"
 #include "openssl_sign.h"
 #include <time.h>
 
