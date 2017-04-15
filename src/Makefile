@@ -6,12 +6,12 @@ bananaLANbeacon:	CFLAGS = -Wall -Werror -g -std=c11 -Wno-unused-variable -Wno-un
 
 LANbeacon: $(OBJECTS)
 		$(CC) $(CFLAGS) $(OBJECTS) -o LANbeacon
-#		rm -rf *.o
+		rm -rf *.o
 		rm -rf a.out
 
 bananaLANbeacon: $(OBJECTS) $(BANANAOBJECTS)
 		$(CC) $(CFLAGS) $(OBJECTS) $(BANANAOBJECTS) -lwiringPi -lrt -lm -o LANbeacon
-#		rm -rf *.o
+		rm -rf *.o
 		rm -rf a.out
 
 %.o: %.c
