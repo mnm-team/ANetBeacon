@@ -35,6 +35,8 @@
 
 #define LLDP_ETHER_TYPE	0x88CC
 
+//TODO gettext
+
 // parts of code based on https://gist.github.com/austinmarton/1922600
 int sendLLDPrawSock (int LLDPDU_len, char *LANbeaconCustomTLVs)
 {

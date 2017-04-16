@@ -1,15 +1,14 @@
-/*
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
 #include <libintl.h>
 #include <locale.h>
 #include <stdlib.h>     // getenv
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
 #include "sender.h"
 #include "rawsocket_LLDP.h"
 #include "receiver.h"
 #include "define.h"
-*/
+
 /* 
 - to run enter:
 clear && make && clear && ./LANbeacon -4 "Gobi: 192.168.178.133/24 Arktis: 111.222.111.222/16 Kalahari: 222.111.222.111/17" -6 "LRZ: 2001:618:11:1:1::1/127 MNM: 2001:cdba:0:0:0:0:3257:9652/33" -e "dominik.bitzer@mailbox.org" -d "DHCP info" -r "MAC: 00:04:4b:01:70:aa" -i 937 -n "MNM-VLAN Team IPsec" -c 'Das ist ein Beispiel fuer einen benutzerdefinierten String. Es kann beliebiger Text mitgegeben werden' && echo && xxd  -c 16 testNewTransfer
@@ -17,49 +16,7 @@ clear && make && clear && ./LANbeacon -4 "Gobi: 192.168.178.133/24 Arktis: 111.2
 - saving TCPdump: tcpdump -s 65535 -w meindump ether proto 0x88cc
 */
 
-/**
- * @file main.c
- * @author Dominik Bitzer
- * @date 2017
- * @brief TODO
- * 
- * TODO
- */
-
-/**
- * @brief TODO
- * 
- * TODO
- * 
- * @param argc Anzahl mitgegeben
- * @param argv Inhalte mitgegeben
- * @return Fehlermeldung
- * 
- *
-
-
-*
- * @verbatim 
- * blabla
- * @endverbatim
- * 
- * @code
- * BoxStruct *out = Box_The_Function_Name(param1, param2);
- * printf("something...\n");
- * @endcode
- * 
- * <b>be careful</b> 
- * 
- * @see recLLDPrawSock
- * @see http://website/
- * @note Something to note.
- * @warning Warning.
- * 
- */
-
-
 int main(int argc, char **argv) {
-	
 	setlocale (LC_ALL, "");
 	char currentL10nFolder[200];
 	sprintf(currentL10nFolder, "%s%s", getenv("PWD"), "/l10n");

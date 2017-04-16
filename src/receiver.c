@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <time.h>
+#include <libintl.h>
+#include <locale.h>
 
 #include "cberry_includes_tft.h"
 #include "cberry_includes_RAIO8870.h"
@@ -29,7 +31,7 @@
 
 // copying TLV contents to collected parsed strings:
 #define TLV_CUSTOM_COPY(descriptor, TLV_parsed_content, makro_currentTLVcontentSize) \
-	snprintf(parsedTLVs [numberParsedTLVs++], PARSED_TLVS_MAX_LENGTH, "%-9s:%.*s", descriptor, (int) makro_currentTLVcontentSize, TLV_parsed_content); \
+	snprintf(parsedTLVs [numberParsedTLVs++], PARSED_TLVS_MAX_LENGTH, "%-10s%.*s", descriptor, (int) makro_currentTLVcontentSize, TLV_parsed_content); \
 	break;	
 
 // shortcut for transferring TLVs that only contain string
@@ -140,11 +142,11 @@ char ** evaluateLANbeacon (unsigned char *LLDPreceivedPayload, ssize_t payloadSi
 					memcpy (&zwischenSpeicherTimeStamp, &LLDPreceivedPayload[currentPayloadByte+6+4], 4); 
 					zwischenSpeicherTimeStamp = ntohl(zwischenSpeicherTimeStamp);
 					
-					sprintf(TLVstringbuffer, "AUTHENTICATION SUCCESSFULL! Challenge: %ld Timestamp: %ld", zwischenSpeicherChallenge, zwischenSpeicherTimeStamp);
+					sprintf(TLVstringbuffer, _("AUTHENTICATION SUCCESSFULL! Challenge: %ld Timestamp: %ld"), zwischenSpeicherChallenge, zwischenSpeicherTimeStamp);
 					
 					printf("AuthTest %s\n", TLVstringbuffer);
 					
-					TLV_CUSTOM_COPY( "Auth:", TLVstringbuffer, strlen(TLVstringbuffer));
+					TLV_CUSTOM_COPY( DESCRIPTOR_SIGNATURE, TLVstringbuffer, strlen(TLVstringbuffer));
 					
 			}
 			
@@ -191,7 +193,7 @@ puts("\n\n\n####PIdisplay: ####");
 		
 		currentPIline = 0;
 		
-		printf("\e[1;1H\e[2J");
+		printf("\e[1;1H\e[2J"); //clear screen
 		
 		#ifdef BANANAPI_SWITCH
 		RAIO_clear_screen();
@@ -211,7 +213,7 @@ puts("\n\n\n####PIdisplay: ####");
 					&& (currentPosInTLV - endOfLastPartialString > (endOfLastPartialString == 0 ? 39 : 39 - DESCRIPTOR_WIDTH))) 
 						currentPosInTLV = currentLastSpace + 1;
 				
-					printf("Line %i:  \t", currentPIline);
+					printf(_("Line %i:  \t"), currentPIline);
 				
 					if (endOfLastPartialString == 0) {
 						snprintf(buf, currentPosInTLV - endOfLastPartialString + 1, "%s", &parsedBeaconContents[currentTLV][endOfLastPartialString]);
@@ -234,7 +236,7 @@ puts("\n\n\n####PIdisplay: ####");
 						sleep (5);
 						currentPIline = 0;
 						
-						printf("\e[1;1H\e[2J");
+						printf("\e[1;1H\e[2J"); //clear screen
 					
 						#ifdef BANANAPI_SWITCH
 						RAIO_clear_screen();

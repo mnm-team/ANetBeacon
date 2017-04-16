@@ -8,6 +8,8 @@
 
 /* gcc -g3 -O1 -Wall -std=c99 -I/usr/local/ssl/darwin/include t-rsa.c /usr/local/ssl/darwin/lib/libcrypto.a -o t-rsa.exe */
 /* gcc -g2 -Os -Wall -DNDEBUG=1 -std=c99 -I/usr/local/ssl/darwin/include t-rsa.c /usr/local/ssl/darwin/lib/libcrypto.a -o t-rsa.exe */
+
+// TODO gettext
  
 #include <stdlib.h>
 #include <stdio.h>

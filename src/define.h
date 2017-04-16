@@ -26,15 +26,15 @@
 #define SUBTYPE_COMBINED_STRING 217
 
 // Descriptors LANbeacon:
-#define DESCRIPTOR_VLAN_ID "VLAN-ID"
-#define DESCRIPTOR_NAME "VLAN-Name"
-#define DESCRIPTOR_CUSTOM "Freitext"
-#define DESCRIPTOR_IPV4 "IPv4"
-#define DESCRIPTOR_IPV6 "IPv6"
-#define DESCRIPTOR_EMAIL "Email"
-#define DESCRIPTOR_DHCP "DHCP"
-#define DESCRIPTOR_ROUTER "Router"
-#define DESCRIPTOR_SIGNATURE 216
-#define DESCRIPTOR_COMBINED_STRING "Combined String"
+#define DESCRIPTOR_VLAN_ID gettext("VLAN-ID:")
+#define DESCRIPTOR_NAME gettext("VLAN-Name:")
+#define DESCRIPTOR_CUSTOM gettext("Freitext:")
+#define DESCRIPTOR_IPV4 gettext("IPv4:")
+#define DESCRIPTOR_IPV6 gettext("IPv6:")
+#define DESCRIPTOR_EMAIL gettext("Email:")
+#define DESCRIPTOR_DHCP gettext("DHCP:")
+#define DESCRIPTOR_ROUTER gettext("Router:")
+#define DESCRIPTOR_SIGNATURE gettext("Authentication:")
+#define DESCRIPTOR_COMBINED_STRING gettext("Combined String:")
 
 #endif

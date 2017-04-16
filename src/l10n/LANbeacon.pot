@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-04-16 12:29+0200\n"
+"POT-Creation-Date: 2017-04-16 13:41+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,43 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: sender.c:90
+#: define.h:38
+msgid "Combined String"
+msgstr ""
+
+#: define.h:35
+msgid "DHCP"
+msgstr ""
+
+#: define.h:34
+msgid "Email"
+msgstr ""
+
+#: define.h:31
+msgid "Freitext"
+msgstr ""
+
+#: define.h:32
+msgid "IPv4"
+msgstr ""
+
+#: define.h:33
+msgid "IPv6"
+msgstr ""
+
+#: define.h:36
+msgid "Router"
+msgstr ""
+
+#: sender.c:93
 msgid "There is an error in the passed email-address. "
+msgstr ""
+
+#. Descriptors LANbeacon:
+#: define.h:29
+msgid "VLAN-ID"
+msgstr ""
+
+#: define.h:30
+msgid "VLAN-Name"
 msgstr ""
