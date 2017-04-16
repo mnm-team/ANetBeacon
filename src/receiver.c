@@ -29,7 +29,7 @@
 
 // copying TLV contents to collected parsed strings:
 #define TLV_CUSTOM_COPY(descriptor, TLV_parsed_content, makro_currentTLVcontentSize) \
-	snprintf(parsedTLVs [numberParsedTLVs++], PARSED_TLVS_MAX_LENGTH, "%-10s%.*s", descriptor, (int) makro_currentTLVcontentSize, TLV_parsed_content); \
+	snprintf(parsedTLVs [numberParsedTLVs++], PARSED_TLVS_MAX_LENGTH, "%-9s:%.*s", descriptor, (int) makro_currentTLVcontentSize, TLV_parsed_content); \
 	break;	
 
 // shortcut for transferring TLVs that only contain string
@@ -74,13 +74,13 @@ char ** evaluateLANbeacon (unsigned char *LLDPreceivedPayload, ssize_t payloadSi
 					VLAN_id = ntohs(VLAN_id);
 					
 					sprintf(TLVstringbuffer, "%hu", VLAN_id);
-					TLV_CUSTOM_COPY( "VLAN-ID:", TLVstringbuffer, strlen(TLVstringbuffer));
+					TLV_CUSTOM_COPY( DESCRIPTOR_VLAN_ID, TLVstringbuffer, strlen(TLVstringbuffer));
 					
 				case SUBTYPE_NAME:
-					TLV_STRING_COPY("VLAN-Name:");
+					TLV_STRING_COPY(DESCRIPTOR_NAME);
 					
 				case SUBTYPE_CUSTOM:
-					TLV_STRING_COPY("Freitext:");
+					TLV_STRING_COPY(DESCRIPTOR_CUSTOM);
 					
 				case SUBTYPE_IPV4:
 					
@@ -97,7 +97,7 @@ char ** evaluateLANbeacon (unsigned char *LLDPreceivedPayload, ssize_t payloadSi
 					
 					TLVstringbuffer[strlen(TLVstringbuffer)-2] = 0;		// remove last comma and space
 					
-					TLV_CUSTOM_COPY( "IPv4:", TLVstringbuffer, strlen(TLVstringbuffer));
+					TLV_CUSTOM_COPY( DESCRIPTOR_IPV4, TLVstringbuffer, strlen(TLVstringbuffer));
 					
 				case SUBTYPE_IPV6:
 					
@@ -115,19 +115,19 @@ char ** evaluateLANbeacon (unsigned char *LLDPreceivedPayload, ssize_t payloadSi
 					
 					TLVstringbuffer[strlen(TLVstringbuffer)-2] = 0;		// remove last comma and space
 					
-					TLV_CUSTOM_COPY( "IPv6:", TLVstringbuffer, strlen(TLVstringbuffer));
+					TLV_CUSTOM_COPY( DESCRIPTOR_IPV6, TLVstringbuffer, strlen(TLVstringbuffer));
 					
 				case SUBTYPE_EMAIL:
-					TLV_STRING_COPY( "Email:");
+					TLV_STRING_COPY( DESCRIPTOR_EMAIL);
 					
 				case SUBTYPE_DHCP:
-					TLV_STRING_COPY( "DHCP:");
+					TLV_STRING_COPY( DESCRIPTOR_DHCP);
 					
 				case SUBTYPE_ROUTER:
-					TLV_STRING_COPY( "Router:");
+					TLV_STRING_COPY( DESCRIPTOR_ROUTER);
 					
 				case SUBTYPE_COMBINED_STRING:
-					TLV_STRING_COPY( "Combined String:");
+					TLV_STRING_COPY( DESCRIPTOR_COMBINED_STRING);
 					
 				case SUBTYPE_SIGNATURE:
 					

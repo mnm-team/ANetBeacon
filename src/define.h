@@ -1,13 +1,17 @@
 #ifndef DEFINE_H
 #define DEFINE_H
 
+
+#define _(STRING) gettext(STRING)
+
+
 #define PARSED_TLVS_MAX_NUMBER	15
 #define PARSED_TLVS_MAX_LENGTH	510
 
 #define LLDP_BUF_SIZ		4000
 
-#define DESCRIPTOR_WIDTH 10
 
+#define DESCRIPTOR_WIDTH 10		//TODO: TLVcustomcopy
 
 // Subtype numbers LANbeacon:
 #define SUBTYPE_VLAN_ID 200
@@ -20,5 +24,17 @@
 #define SUBTYPE_ROUTER 207
 #define SUBTYPE_SIGNATURE 216
 #define SUBTYPE_COMBINED_STRING 217
+
+// Descriptors LANbeacon:
+#define DESCRIPTOR_VLAN_ID "VLAN-ID"
+#define DESCRIPTOR_NAME "VLAN-Name"
+#define DESCRIPTOR_CUSTOM "Freitext"
+#define DESCRIPTOR_IPV4 "IPv4"
+#define DESCRIPTOR_IPV6 "IPv6"
+#define DESCRIPTOR_EMAIL "Email"
+#define DESCRIPTOR_DHCP "DHCP"
+#define DESCRIPTOR_ROUTER "Router"
+#define DESCRIPTOR_SIGNATURE 216
+#define DESCRIPTOR_COMBINED_STRING "Combined String"
 
 #endif

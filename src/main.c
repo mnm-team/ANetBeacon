@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <libintl.h>
+#include <locale.h>
+#include <stdlib.h>     /* getenv */
 #include "sender.h"
 #include "rawsocket_LLDP.h"
 #include "receiver.h"
@@ -53,6 +56,12 @@ clear && make && clear && ./LANbeacon -4 "Gobi: 192.168.178.133/24 Arktis: 111.2
 
 
 int main(int argc, char **argv) {
+	
+	setlocale (LC_ALL, "");
+	char currentL10nFolder[200];
+	sprintf(currentL10nFolder, "%s%s", getenv("PWD"), "/l10n");
+	bindtextdomain ("LANbeacon", currentL10nFolder); // "/usr/share/locale/");
+	textdomain ("LANbeacon");
 	
 	//## receiving LANbeacon ##//
 	if (argc > 1 && strcmp("-r", argv[1]) == 0) {
