@@ -31,5 +31,12 @@ translations:
 		msgmerge --output-file=l10n/de/LANbeacon.po l10n/de/LANbeacon.po l10n/LANbeacon.pot
 		msgfmt --output-file=l10n/de/LC_MESSAGES/LANbeacon.mo l10n/de/LANbeacon.po
 
+doxygen:
+		cd ../doc/ && \
+		doxygen doxygenConfig_LANbeacon && \
+		cd latex/ && \
+		make && \
+		cp refman.pdf ../doxygen_LANbeacon.pdf
+
 clean:
 		rm -rf *.o LANbeacon

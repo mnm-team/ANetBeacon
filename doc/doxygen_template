@@ -22,6 +22,8 @@
 /*
  * @verbatim 
  * 
+ * @endverbatim
+ * 
  * @code
  * BoxStruct *out = Box_The_Function_Name(param1, param2);
  * printf("something...\n");
