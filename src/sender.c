@@ -115,9 +115,7 @@ char *mergedLANbeaconCreator (int *argc, char **argv, int *lldpdu_len) {
 			transferToCombinedBeacon(SUBTYPE_COMBINED_STRING, combinedString [i], myLANbeacon, &currentByte, strlen(combinedString [i]));
 	}
 	
-	
-	//TODO
-	//## add signature verification ##//
+	//## add signature ##//
 	
 	char signaturePlaceholder[280];
 	
@@ -126,31 +124,16 @@ char *mergedLANbeaconCreator (int *argc, char **argv, int *lldpdu_len) {
 	
 	challenge = htonl(challenge);
 	memcpy(&signaturePlaceholder[0], &challenge, 4);
-	
 	timeStamp = htonl(timeStamp);
 	memcpy(&signaturePlaceholder[4], &timeStamp, 4);
-	
 	transferToCombinedBeacon (SUBTYPE_SIGNATURE, signaturePlaceholder, myLANbeacon, &currentByte, 256 + 8);
 	
 	unsigned char* sig = NULL;
 	size_t slen = 0;
-	
 	signLANbeacon(&sig, &slen, (const unsigned char *) myLANbeacon, (size_t) currentByte - 256); 
-//	signLANbeacon(sig, &slen, msg, sizeof(msg)); 
-	
-printf ("currentByte: %i siglen: %zu\n", currentByte, slen);
-
-puts("Runde 2");
-
-printf ("%p\n", sig);
-
-print_it("printing signature again", sig, slen);
-	
 	memcpy(&myLANbeacon[currentByte-256], sig, slen);
 	
-	
 	*lldpdu_len = currentByte;
-	
 	return myLANbeacon;
 }
 
