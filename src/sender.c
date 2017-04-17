@@ -116,17 +116,15 @@ char *mergedLANbeaconCreator (int *argc, char **argv, int *lldpdu_len) {
 	}
 	
 	//## add signature ##//
-	
-	char signaturePlaceholder[280];
-	
-	long challenge = 12345678; 
+	long challenge = 12345678;	// TODO
 	time_t timeStamp = time(NULL);
 	
 	challenge = htonl(challenge);
-	memcpy(&signaturePlaceholder[0], &challenge, 4);
+	memcpy(&myLANbeacon[currentByte], &challenge, 4);
 	timeStamp = htonl(timeStamp);
-	memcpy(&signaturePlaceholder[4], &timeStamp, 4);
-	transferToCombinedBeacon (SUBTYPE_SIGNATURE, signaturePlaceholder, myLANbeacon, &currentByte, 256 + 8);
+	memcpy(&myLANbeacon[currentByte+4], &timeStamp, 4);
+	// add TLV-header using function, this overrides LANbeacon signature part with itself 
+	transferToCombinedBeacon (SUBTYPE_SIGNATURE, &myLANbeacon[currentByte], myLANbeacon, &currentByte, 256 + 8);
 	
 	unsigned char* sig = NULL;
 	size_t slen = 0;
@@ -141,7 +139,8 @@ char *mergedLANbeaconCreator (int *argc, char **argv, int *lldpdu_len) {
 
 
 //## shortcut for cases in which only a string is transferred ##//
-void transferToCombinedBeaconAndString (unsigned char subtype, char *TLVdescription, char **combinedString, char *source, char *combinedBeacon, int *currentByte) {
+void transferToCombinedBeaconAndString (unsigned char subtype, char *TLVdescription, 
+	char **combinedString, char *source, char *combinedBeacon, int *currentByte) {
 	transferToCombinedBeacon (subtype, source, combinedBeacon, currentByte, strlen(source));
 	if (!(combinedString == NULL))  transferToCombinedString (TLVdescription, combinedString, source); 
 }
