@@ -46,12 +46,9 @@ char *mergedLANbeaconCreator (int *argc, char **argv, int *lldpdu_len) {
 		switch(opt) {
 			
 			case 'i':	//## TLV VLAN ID ##//
-				// putting "xx" as placeholder for two byte header
-				transferToCombinedBeacon (SUBTYPE_VLAN_ID, "xx", myLANbeacon, &currentByte);	
-				unsigned short int vlan_id = htons( (unsigned short int) strtoul(optarg,NULL,10) );
-				memcpy(&myLANbeacon[currentByte-2], &vlan_id, 2);
-
 				transferToCombinedString (DESCRIPTOR_VLAN_ID, combinedString, optarg); 
+				unsigned short int vlan_id = htons( (unsigned short int) strtoul(optarg,NULL,10) );
+				transferToCombinedBeacon (SUBTYPE_VLAN_ID, &vlan_id, myLANbeacon, &currentByte, 2);	
 				break;
 				
 			case 'n':
@@ -115,28 +112,25 @@ char *mergedLANbeaconCreator (int *argc, char **argv, int *lldpdu_len) {
 	//## transfer combined strings to TLVs, each with a maximum size of 507 byte 
 	for(int i = 0; i < 5; i++) {
 		if (0 < strlen(combinedString[i]))
-			transferToCombinedBeacon(SUBTYPE_COMBINED_STRING, combinedString [i], myLANbeacon, &currentByte);
+			transferToCombinedBeacon(SUBTYPE_COMBINED_STRING, combinedString [i], myLANbeacon, &currentByte, strlen(combinedString [i]));
 	}
 	
 	
+	//TODO
 	//## add signature verification ##//
 	
+	char signaturePlaceholder[280];
+	
 	long challenge = 12345678; 
-	time_t asdf = time(NULL);
+	time_t timeStamp = time(NULL);
 	
-	char signaturePlaceholder[280] = "#######################################"
-	"###########################################################################"
-	"###########################################################################"
-	"###########################################################################";
-	transferToCombinedBeacon (SUBTYPE_SIGNATURE, signaturePlaceholder, myLANbeacon, &currentByte);
+	challenge = htonl(challenge);
+	memcpy(&signaturePlaceholder[0], &challenge, 4);
 	
-	long zwischenSpeicher = htonl(challenge);
+	timeStamp = htonl(timeStamp);
+	memcpy(&signaturePlaceholder[4], &timeStamp, 4);
 	
-	memcpy(&myLANbeacon[currentByte-256-4-4], &zwischenSpeicher, 4);
-	
-	zwischenSpeicher = htonl(asdf);
-	
-	memcpy(&myLANbeacon[currentByte-256-4], &zwischenSpeicher, 4);
+	transferToCombinedBeacon (SUBTYPE_SIGNATURE, signaturePlaceholder, myLANbeacon, &currentByte, 256 + 8);
 	
 	unsigned char* sig = NULL;
 	size_t slen = 0;
@@ -144,14 +138,13 @@ char *mergedLANbeaconCreator (int *argc, char **argv, int *lldpdu_len) {
 	signLANbeacon(&sig, &slen, (const unsigned char *) myLANbeacon, (size_t) currentByte - 256); 
 //	signLANbeacon(sig, &slen, msg, sizeof(msg)); 
 	
-	
-	printf ("currentByte: %i siglen: %zu\n", currentByte, slen);
+printf ("currentByte: %i siglen: %zu\n", currentByte, slen);
 
 puts("Runde 2");
 
-	printf ("%p\n", sig);
+printf ("%p\n", sig);
 
-	print_it("printing signature again", sig, slen);
+print_it("printing signature again", sig, slen);
 	
 	memcpy(&myLANbeacon[currentByte-256], sig, slen);
 	
@@ -166,27 +159,27 @@ puts("Runde 2");
 
 //## shortcut for cases in which only a string is transferred ##//
 void transferToCombinedBeaconAndString (unsigned char subtype, char *TLVdescription, char **combinedString, char *source, char *combinedBeacon, int *currentByte) {
-	transferToCombinedBeacon (subtype, source, combinedBeacon, currentByte);
+	transferToCombinedBeacon (subtype, source, combinedBeacon, currentByte, strlen(source));
 	if (!(combinedString == NULL))  transferToCombinedString (TLVdescription, combinedString, source); 
 }
 
 //## transferring the content of the field to the combined LANbeacon in binary format ##//
-void transferToCombinedBeacon (unsigned char subtype, char *source, char *combinedBeacon, int *currentByte) {
+void transferToCombinedBeacon (unsigned char subtype, void *source, char *combinedBeacon, int *currentByte, unsigned short int currentTLVlength) {
 	//## calculating TLV length without header, then combining TLV Header and transfering combined TLV Header to combined Beacon ##//
-	unsigned short int currentTLVlength = strlen(source);
-	unsigned char TLVtype = 127;
 	
 	if (1500 < (currentTLVlength + *currentByte + 6)) {
-		puts(_("Maximum of 1500 Bytes in LLDP-Packet exceeded, not all information will be transmitted. Please include less information.")); 
+		puts(_("Maximum of 1500 Bytes in LLDP-Packet exceeded, not all information "
+			"will be transmitted. Please include less information.")); 
 		return;
 	}
 	if (currentTLVlength > 507) {
-		printf(_("Warning, TLV is %i Bytes long, exceeding maximum of 507 characters in String. End of string will be cut off."), currentTLVlength);
+		printf(_("Warning, TLV is %i Bytes long, exceeding maximum of 507 characters "
+			"in String. End of string will be cut off."), currentTLVlength);
 		currentTLVlength = 507;
 	}
 	
 	// Shift der bits nach Rechts und anschließendes bitweises OR zur Kombination der 7+9 bit für subtype und Länge
-	unsigned short int TLVheader_combined = htons( (TLVtype * 0b1000000000) | (currentTLVlength+4) );	
+	unsigned short int TLVheader_combined = htons( (127 * 0b1000000000) | (currentTLVlength+4) );	
 	memcpy (&combinedBeacon[*currentByte], &TLVheader_combined, 2);
 	
 	// transfer OUI and OUI subtype to combined Beacon
@@ -223,51 +216,54 @@ void ipParser (int ip_V4or6, char *optarg, char **combinedString, char *myLANbea
 	
 	int IP_binaryLength = (ip_V4or6 == AF_INET) ? 5 : 17;
 	size_t ip_strlen = (ip_V4or6 == AF_INET) ? INET_ADDRSTRLEN : INET6_ADDRSTRLEN; 
-	char gefundeneAdressenStrings[10][2][ip_strlen];	// Max of 10 IPs, second field for subnet regex
-	char bufferForLANbeacon[200] = "";
 	
-	//## using regex to get IP-addresses from string input ##//
-	
-	regex_t compiled_regex;
-	regmatch_t regex_matches_pointer[3];
-	
-	if (ip_V4or6 == AF_INET) 		regcomp(&compiled_regex, "([0-9.]{7,15})\\/([0-9]{1,2})", REG_EXTENDED);
-	else if (ip_V4or6 == AF_INET6)	regcomp(&compiled_regex, "([a-fA-F0-9:]{4,45})\\/([0-9]{1,3})", REG_EXTENDED);
+	char foundAddress[ip_strlen];
+	char ip_AddressesInBinary[200] = "";
 	
 	// initializing to 0 to support first run of loop, since it expects some results from previous run 
-	int gefundeneIPAdressenAnzahl=0;
-	int endOfLastString = 0;
-	regex_matches_pointer[0].rm_so = 0;
-	regex_matches_pointer[0].rm_eo = 0;
+	int gefundeneIPAdressenAnzahl = 0, endOfLastString = 0;
+	regex_t compiled_regex;
+	regmatch_t regex_matches_pointer[3];
+	regex_matches_pointer[0].rm_so = regex_matches_pointer[0].rm_eo  = 0;
 	
-	for (int i=0;i<10;i++) {	// look for max 10 addresses
+	//## using regex to get IP-addresses from string input ##//
+	regcomp(&compiled_regex, ip_V4or6 == AF_INET ? 
+		"([0-9.]{7,15})\\/([0-9]{1,2})" 
+		: "([a-fA-F0-9:]{4,45})\\/([0-9]{1,3})", REG_EXTENDED);
+	
+	while (1) {	// look for max 10 addresses
 		endOfLastString += regex_matches_pointer[0].rm_eo;
 		
-		if (!regexec(&compiled_regex, &optarg[endOfLastString], 3, regex_matches_pointer, 0)) {
-			for (int j = 1; j<=2; j++) {	// get entire IP and subnetwork
-				memset(gefundeneAdressenStrings[i][j], 0, ip_strlen);
-				strncpy (gefundeneAdressenStrings[i][j], 
-					&optarg[endOfLastString+regex_matches_pointer[j].rm_so], 
-					regex_matches_pointer[j].rm_eo - regex_matches_pointer[j].rm_so);
-			}
-			gefundeneIPAdressenAnzahl++;
+		if ( gefundeneIPAdressenAnzahl < 10 &&
+			!regexec(&compiled_regex, &optarg[endOfLastString], 3, regex_matches_pointer, 0)) {
+				// convert found IP address to binary format
+				memset(foundAddress, 0, ip_strlen);
+				strncpy (foundAddress, 
+						&optarg[endOfLastString+regex_matches_pointer[1].rm_so], 
+						regex_matches_pointer[1].rm_eo - regex_matches_pointer[1].rm_so);
+				if (1 != inet_pton(ip_V4or6, foundAddress, 
+					&ip_AddressesInBinary[gefundeneIPAdressenAnzahl*IP_binaryLength])) 
+						printf(_("Error Parsing IP-address: %s\n"), optarg);
 			
-			// Buffer string to reserve space for binary representation in LANbeacon
-			if (ip_V4or6 == AF_INET) strcat(bufferForLANbeacon, "#####");
-			else if (ip_V4or6 == AF_INET6)	strcat(bufferForLANbeacon, "#################");
+				// put subnet as last byte of IP-tuple
+				memset(foundAddress, 0, ip_strlen);
+				strncpy (foundAddress, 
+						&optarg[endOfLastString+regex_matches_pointer[2].rm_so], 
+						regex_matches_pointer[2].rm_eo - regex_matches_pointer[2].rm_so);
+				ip_AddressesInBinary[gefundeneIPAdressenAnzahl*IP_binaryLength+IP_binaryLength-1] 
+					= (unsigned char) strtoul(foundAddress,NULL,10);	
+			
+				gefundeneIPAdressenAnzahl++;
 		}
+		
+		else break;
 	}
 	
-	regfree(&compiled_regex);
-	
-	if (ip_V4or6 == AF_INET) {
-		transferToCombinedString (DESCRIPTOR_IPV4, combinedString, optarg); 
-		transferToCombinedBeacon (SUBTYPE_IPV4, bufferForLANbeacon, myLANbeacon, currentByte);
-	}
-	else if (ip_V4or6 == AF_INET6) {
-		transferToCombinedString (DESCRIPTOR_IPV6, combinedString, optarg); 
-		transferToCombinedBeacon (SUBTYPE_IPV6, bufferForLANbeacon, myLANbeacon, currentByte);
-	}
+	//## transfer raw string to combined string TLV and put placeholder for binary representation
+	transferToCombinedString (ip_V4or6 == AF_INET ? DESCRIPTOR_IPV4 : DESCRIPTOR_IPV6, 
+		combinedString, optarg); 
+	transferToCombinedBeacon (ip_V4or6 == AF_INET ? SUBTYPE_IPV4 : SUBTYPE_IPV6, 
+		ip_AddressesInBinary, myLANbeacon, currentByte, gefundeneIPAdressenAnzahl*IP_binaryLength);
 	
 	if (gefundeneIPAdressenAnzahl < 1) {
 		printf(_("Exiting since no valid IP networks (format e.g. 192.168.178.1/24) "
@@ -275,32 +271,7 @@ void ipParser (int ip_V4or6, char *optarg, char **combinedString, char *myLANbea
 		exit(EXIT_FAILURE);
 	}
 	
-	//## convert and transfer found addresses to combined beacon in binary format ##//
-	unsigned char *ipAddress = malloc(IP_binaryLength);	// Buffer space for binary representation
-	int IPcurrentByte = *currentByte - gefundeneIPAdressenAnzahl*IP_binaryLength; 
-	
-/*	for (int i = 0; i < gefundeneIPAdressenAnzahl; i++) {
-		if (inet_pton(ip_V4or6, gefundeneAdressenStrings[i][1], ipAddress) != 1) 
-			printf(_("Error Parsing IP-address: %s\n"), optarg);
-
-		for (int j = 0; j < IP_binaryLength-1; j++) 
-			myLANbeacon[IPcurrentByte++] = ipAddress[j];
-		
-		// put subnet as 5th byte of 5-tuple
-		myLANbeacon[IPcurrentByte++] = (unsigned char) strtoul(gefundeneAdressenStrings[i][2],NULL,10);	
-	}
-*/
-	
-	for (int i = 0; i < gefundeneIPAdressenAnzahl; i++) {
-		if (inet_pton(ip_V4or6, gefundeneAdressenStrings[i][1], &myLANbeacon[IPcurrentByte]) != 1) 
-			printf(_("Error Parsing IP-address: %s\n"), optarg);
-		IPcurrentByte += IP_binaryLength - 1;
-		
-		// put subnet as last byte of IP-tuple
-		myLANbeacon[IPcurrentByte++] = (unsigned char) strtoul(gefundeneAdressenStrings[i][2],NULL,10);	
-	}
-
-	
+	regfree(&compiled_regex);
 	return;
 }
 

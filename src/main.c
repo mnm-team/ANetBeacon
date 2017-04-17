@@ -17,21 +17,23 @@ clear && make && clear && ./LANbeacon -4 "Gobi: 192.168.178.133/24 Arktis: 111.2
 */
 
 int main(int argc, char **argv) {
+	
+	//## gettext setup
 	setlocale (LC_ALL, "");
 	char currentL10nFolder[200];
 	sprintf(currentL10nFolder, "%s%s", getenv("PWD"), "/l10n");
 	bindtextdomain ("LANbeacon", currentL10nFolder); // "/usr/share/locale/");
 	textdomain ("LANbeacon");
 	
-	//## receiving LANbeacon ##//
+	//## receiving LANbeacon
 	if (argc > 1 && strcmp("-r", argv[1]) == 0) {
-		unsigned char LLDPreceivedPayload[LLDP_BUF_SIZ];
+		unsigned char lldpReceivedPayload[LLDP_BUF_SIZ];
 		ssize_t payloadSize;
-		recLLDPrawSock(LLDPreceivedPayload, &payloadSize);
+		recLLDPrawSock(lldpReceivedPayload, &payloadSize);
 		
-//debug//		printf ("LLDPDU_len: %lu\n",payloadSize); FILE *combined = fopen("received_raw_beacon","w");	fwrite(LLDPreceivedPayload, payloadSize, 1, combined);
+//debug//		printf ("LLDPDU_len: %lu\n",payloadSize); FILE *combined = fopen("received_raw_beacon","w");	fwrite(lldpReceivedPayload, payloadSize, 1, combined);
 		
-		char ** parsedBeaconContents = evaluateLANbeacon(LLDPreceivedPayload, payloadSize);
+		char ** parsedBeaconContents = evaluateLANbeacon(lldpReceivedPayload, payloadSize);
 		
 		bananaPIprint(parsedBeaconContents);
 		
@@ -40,16 +42,15 @@ int main(int argc, char **argv) {
 	
 	
 	//## creating and sending LANbeacon
-	int LLDPDU_len;
-	char *LANbeaconCustomTLVs = mergedLANbeaconCreator(&argc, argv, &LLDPDU_len);
+	int lldpdu_len;
+	char *lanBeaconCustomTLVs = mergedLANbeaconCreator(&argc, argv, &lldpdu_len);
 	
-	sendLLDPrawSock (LLDPDU_len, LANbeaconCustomTLVs);
+	sendLLDPrawSock (lldpdu_len, lanBeaconCustomTLVs);
 	
 	// ###### SPIELWIESE ######
 	//	printf("\n\n##########\nSPIELWIESE\n##########\n\n\n");
 	
-//debug//
-	printf ("LLDPDU_len: %i\n",LLDPDU_len);	FILE *combined = fopen("testNewTransfer","w");	fwrite(LANbeaconCustomTLVs, LLDPDU_len, 1, combined);
+//debug//	printf ("lldpdu_len: %i\n",lldpdu_len);	FILE *combined = fopen("testNewTransfer","w");	fwrite(lanBeaconCustomTLVs, lldpdu_len, 1, combined);
 	
 	return 0;
 }
