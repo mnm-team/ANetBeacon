@@ -101,7 +101,7 @@ int signLANbeacon(unsigned char** sig, size_t* slen, const unsigned char* msg, s
 	/* Sign and Verify HMAC keys */
 	EVP_PKEY *skey = NULL, *vkey = NULL;
 	
-//	rc = make_keys(&skey, &vkey);
+//	rc = make_keys(&skey, &vkey, lanbeacon_keys);
 	rc = read_keys(&skey, &vkey, lanbeacon_keys);
 	
 	assert(rc == 0);
@@ -354,7 +354,7 @@ int read_keys(EVP_PKEY** skey, EVP_PKEY** vkey, struct open_ssl_keys *lanbeacon_
 	FILE*	 pFile	= NULL;
 	int iRet;
 
-	if((pFile = fopen("privkey.pem","rt")) && 
+	if((pFile = fopen(lanbeacon_keys->path_To_Signing_Key,"rt")) && 
 	   (*skey = PEM_read_PrivateKey(pFile,NULL,passwd_callback,(void*)pcszPassphrase)))
 	{
 		fprintf(stderr,"Private key read.\n");
@@ -371,7 +371,7 @@ int read_keys(EVP_PKEY** skey, EVP_PKEY** vkey, struct open_ssl_keys *lanbeacon_
 		pFile = NULL;
 	}
 
-	if((pFile = fopen("pubkey.pem","rt")) && 
+	if((pFile = fopen(lanbeacon_keys->path_To_Verifying_Key,"rt")) && 
 	   (*vkey = PEM_read_PUBKEY(pFile,NULL,NULL,NULL)))
 	{
 		fprintf(stderr,"Public key read.\n");
@@ -392,7 +392,7 @@ int read_pubkey(EVP_PKEY** vkey) {
 	FILE*	 pFile	= NULL;
 	int iRet;
 	
-	if((pFile = fopen("pubkey.pem","rt")) && 
+	if((pFile = fopen(lanbeacon_keys->path_To_Verifying_Key,"rt")) && 
 	   (*vkey = PEM_read_PUBKEY(pFile,NULL,NULL,NULL)))
 	{
 		fprintf(stderr,"Public key read.\n");
@@ -407,7 +407,7 @@ int read_pubkey(EVP_PKEY** vkey) {
 	
 }
 */
-int make_keys(EVP_PKEY** skey, EVP_PKEY** vkey)
+int make_keys(EVP_PKEY** skey, EVP_PKEY** vkey, struct open_ssl_keys *lanbeacon_keys)
 {
 	int result = -1;
 	
@@ -483,7 +483,7 @@ int make_keys(EVP_PKEY** skey, EVP_PKEY** vkey)
 	
 	int iRet = EXIT_SUCCESS;
 		
-	if((pFile = fopen("privkey.pem","wt")) && (pCipher = EVP_aes_256_cbc()))
+	if((pFile = fopen(lanbeacon_keys->path_To_Signing_Key,"wt")) && (pCipher = EVP_aes_256_cbc()))
 	{
 
 		if(!PEM_write_PrivateKey(pFile,*skey,pCipher,
@@ -498,7 +498,7 @@ int make_keys(EVP_PKEY** skey, EVP_PKEY** vkey)
 		pFile = NULL;
 		if(iRet == EXIT_SUCCESS)
 		{
-			if((pFile = fopen("pubkey.pem","wt")) && PEM_write_PUBKEY(pFile,*vkey))
+			if((pFile = fopen(lanbeacon_keys->path_To_Verifying_Key,"wt")) && PEM_write_PUBKEY(pFile,*vkey))
 				fprintf(stderr,"Both keys saved.\n");
 			else
 			{

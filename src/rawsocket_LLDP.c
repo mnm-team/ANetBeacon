@@ -147,9 +147,11 @@ int sendLLDPrawSock (int LLDPDU_len, char *LANbeaconCustomTLVs)
 
 
 // parts of code based on https://gist.github.com/austinmarton/2862515
-void recLLDPrawSock(unsigned char *LLDPreceivedPayload, ssize_t *payloadSize, struct open_ssl_keys *lanbeacon_keys) {
+struct received_lldp_packet *my_received_lldp_packet recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys) {
 	
-	struct ether_header *eh = (struct ether_header *) LLDPreceivedPayload;
+	struct received_lldp_packet my_received_lldp_packet;
+	
+	struct ether_header *eh = (struct ether_header *) my_received_lldp_packet->LLDPreceivedPayload;
 	
 	int sockfd[20];
 	int sockopt[20];
@@ -200,8 +202,8 @@ printf("Number %i is interface %s\n", numInterfaces, interfaces->ifa_name);
 	while (1) {
 		for (int i = 0; i < numInterfaces; i++) {
 	//		printf("listener: Waiting to recvfrom...\n");
-			*payloadSize = recvfrom(sockfd[i], LLDPreceivedPayload, LLDP_BUF_SIZ, 0, NULL, NULL);
-	//		printf("listener: got packet %lu bytes\n", *payloadSize);
+			my_received_lldp_packet->payloadSize = recvfrom(sockfd[i], my_received_lldp_packet->LLDPreceivedPayload, LLDP_BUF_SIZ, 0, NULL, NULL);
+	//		printf("listener: got packet %lu bytes\n", my_received_lldp_packet->payloadSize);
 printf("currently on %i\n",i);
 
 			/* Check if the packet was sent to the LLDP multicast MAC address */
@@ -216,14 +218,14 @@ printf("currently on %i\n",i);
 printf("found on %i\n",i);
 			/* Print packet */
 	//		printf("\tData:");
-	//		for (i=0; i<*payloadSize; i++) printf("%02x:", LLDPreceivedPayload[i]);
+	//		for (i=0; i<my_received_lldp_packet->payloadSize; i++) printf("%02x:", my_received_lldp_packet->LLDPreceivedPayload[i]);
 	//		printf("\n");
 			
 			
 			
 			//## Verify signature ##//
 			
-			if (0 != verifyLANbeacon(&LLDPreceivedPayload[14], *payloadSize - 2 - 14, lanbeacon_keys))	// - end of LLDPDU 2 - 14 Ethernet header
+			if (0 != verifyLANbeacon(&my_received_lldp_packet->LLDPreceivedPayload[14], my_received_lldp_packet->payloadSize - 2 - 14, lanbeacon_keys))	// - end of LLDPDU 2 - 14 Ethernet header
 				continue;
 			
 		/*	EVP_PKEY *vkey = NULL;
@@ -237,7 +239,7 @@ printf("found on %i\n",i);
 			printf ("%zu bytes read\n",result);
 			OpenSSL_add_all_algorithms();
 	
-			rc = verify_it(&LLDPreceivedPayload[14], *payloadSize - 2, sig_buffer, result, vkey);
+			rc = verify_it(&my_received_lldp_packet->LLDPreceivedPayload[14], my_received_lldp_packet->payloadSize - 2, sig_buffer, result, vkey);
 	
 			if(rc == 0) {
 				printf("Verified signature on sender side\n");
@@ -248,7 +250,7 @@ printf("found on %i\n",i);
 			
 			
 			
-			return;
+			return &my_received_lldp_packet;
 		}
 	}
 	

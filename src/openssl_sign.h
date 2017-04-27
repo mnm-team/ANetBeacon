@@ -23,7 +23,7 @@ struct open_ssl_keys {
 };
 
 /* Returns 0 for success, non-0 otherwise */
-int make_keys(EVP_PKEY** skey, EVP_PKEY** vkey);
+int make_keys(EVP_PKEY** skey, EVP_PKEY** vkey, struct open_ssl_keys *lanbeacon_keys);
 
 /* Returns 0 for success, non-0 otherwise */
 int sign_it(const unsigned char* msg, size_t mlen, unsigned char** sig, size_t* slen, EVP_PKEY* pkey);
