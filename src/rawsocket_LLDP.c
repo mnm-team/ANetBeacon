@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <linux/if_link.h>
 #include <openssl/evp.h>
+#include "openssl_sign.h"
 #include "define.h"
 #include "openssl_sign.h"
 #define _GNU_SOURCE	 /* To get defns of NI_MAXSERV and NI_MAXHOST */
@@ -140,13 +141,13 @@ int sendLLDPrawSock (int LLDPDU_len, char *LANbeaconCustomTLVs)
 		}
 	}
 	
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 
 
 // parts of code based on https://gist.github.com/austinmarton/2862515
-void recLLDPrawSock(unsigned char *LLDPreceivedPayload, ssize_t *payloadSize) {
+void recLLDPrawSock(unsigned char *LLDPreceivedPayload, ssize_t *payloadSize, struct open_ssl_keys *lanbeacon_keys) {
 	
 	struct ether_header *eh = (struct ether_header *) LLDPreceivedPayload;
 	
@@ -222,7 +223,7 @@ printf("found on %i\n",i);
 			
 			//## Verify signature ##//
 			
-			if (0 != verifyLANbeacon(&LLDPreceivedPayload[14], *payloadSize - 2 - 14))	// - end of LLDPDU 2 - 14 Ethernet header
+			if (0 != verifyLANbeacon(&LLDPreceivedPayload[14], *payloadSize - 2 - 14, lanbeacon_keys))	// - end of LLDPDU 2 - 14 Ethernet header
 				continue;
 			
 		/*	EVP_PKEY *vkey = NULL;

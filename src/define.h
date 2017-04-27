@@ -10,6 +10,7 @@
 
 #define LLDP_BUF_SIZ		4000
 
+#define KEY_PATHLENGTH_MAX 500
 
 #define DESCRIPTOR_WIDTH 10		//TODO: TLVcustomcopy
 

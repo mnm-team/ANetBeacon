@@ -12,6 +12,7 @@
 #include <libintl.h>
 #include <locale.h>
 
+#include "openssl_sign.h"
 #include "cberry_includes_tft.h"
 #include "cberry_includes_RAIO8870.h"
 #include "rawsocket_LLDP.h"
@@ -169,7 +170,7 @@ char ** evaluateLANbeacon (unsigned char *LLDPreceivedPayload, ssize_t payloadSi
 
 
 
-void bananaPIprint (char **parsedBeaconContents) {
+void bananaPIprint (char **parsedBeaconContents, struct open_ssl_keys *lanbeacon_keys) {
 	
 	#ifdef BANANAPI_SWITCH
 	TFT_init_board();
@@ -177,7 +178,7 @@ void bananaPIprint (char **parsedBeaconContents) {
 	RAIO_init();
 	RAIO_clear_screen();
 	#endif
-	
+//printf("Ausgabe: %s\n",lanbeacon_keys->path_To_Verifying_Key);	
 puts("\n\n\n####PIdisplay: ####");	
 	char buf[800];
 	int c = 0;
@@ -250,7 +251,7 @@ puts("\n\n\n####PIdisplay: ####");
 		
 		unsigned char LLDPreceivedPayload[LLDP_BUF_SIZ];
 		ssize_t payloadSize;
-		recLLDPrawSock(LLDPreceivedPayload, &payloadSize);
+		recLLDPrawSock(LLDPreceivedPayload, &payloadSize, lanbeacon_keys);
 		parsedBeaconContents = evaluateLANbeacon(LLDPreceivedPayload, payloadSize);
 		
 /*		end = clock();

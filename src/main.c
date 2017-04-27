@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <getopt.h>
+#include "openssl_sign.h"
 #include "sender.h"
 #include "rawsocket_LLDP.h"
 #include "receiver.h"
@@ -25,32 +27,66 @@ int main(int argc, char **argv) {
 	bindtextdomain ("LANbeacon", currentL10nFolder); // "/usr/share/locale/");
 	textdomain ("LANbeacon");
 	
-	//## receiving LANbeacon
-	if (argc > 1 && strcmp("-r", argv[1]) == 0) {
+	
+	char listenerBool = 0;
+	
+	struct open_ssl_keys lanbeacon_keys = {.path_To_Verifying_Key = "pubkey.pem", .path_To_Signing_Key = "privkey.pem" };
+	
+//printf("%s\n%s\n", lanbeacon_keys.path_To_Verifying_Key, lanbeacon_keys.path_To_Signing_Key);
+	
+	char path_To_Verifying_Key[KEY_PATHLENGTH_MAX] = "pubkey.pem";
+	char path_To_Signing_Key[KEY_PATHLENGTH_MAX] = "privkey.pem";
+
+	// looking for listener flag and reading verifying key path
+	if (argc > 1 && ((strcmp("-l", argv[1]) == 0) || (argc > 2 && strcmp("-l", argv[2]) == 0))) {
+		
+		if (0 == strcmp("-v", argv[1])) {
+			if (strlen(argv[1]) > KEY_PATHLENGTH_MAX) {
+				puts(_("Passed path to verifying key too long. Exiting."));
+				return EXIT_FAILURE; 
+			}
+			strncpy(lanbeacon_keys.path_To_Verifying_Key, argv[1], KEY_PATHLENGTH_MAX);
+			lanbeacon_keys.path_To_Verifying_Key[strlen(argv[1])-1] = 0;
+		}
+		
+		if ((argc > 2) && (0 == strcmp("-v", argv[2]))) {
+			if (strlen(argv[2]) > KEY_PATHLENGTH_MAX) {
+				puts(_("Passed path to verifying key too long. Exiting."));
+				return EXIT_FAILURE; 
+			}
+			strncpy(lanbeacon_keys.path_To_Verifying_Key, argv[2], KEY_PATHLENGTH_MAX);
+			lanbeacon_keys.path_To_Verifying_Key[strlen(argv[2])-1] = 0;
+		}
+
+		//## receiving LANbeacon
 		unsigned char lldpReceivedPayload[LLDP_BUF_SIZ];
 		ssize_t payloadSize;
-		recLLDPrawSock(lldpReceivedPayload, &payloadSize);
-		
+	
+		recLLDPrawSock(lldpReceivedPayload, &payloadSize, &lanbeacon_keys);
+	
 //debug//		printf ("LLDPDU_len: %lu\n",payloadSize); FILE *combined = fopen("received_raw_beacon","w");	fwrite(lldpReceivedPayload, payloadSize, 1, combined);
 		
 		char ** parsedBeaconContents = evaluateLANbeacon(lldpReceivedPayload, payloadSize);
-		
-		bananaPIprint(parsedBeaconContents);
-		
-		return 1;
+	
+		bananaPIprint(parsedBeaconContents, &lanbeacon_keys);
+	
 	}
 	
+
 	
-	//## creating and sending LANbeacon
-	int lldpdu_len;
-	char *lanBeaconCustomTLVs = mergedLANbeaconCreator(&argc, argv, &lldpdu_len);
+	else {
+		//## creating and sending LANbeacon
+		int lldpdu_len;
+		char *lanBeaconCustomTLVs = mergedLANbeaconCreator(&argc, argv, &lldpdu_len, &lanbeacon_keys);
 	
-	sendLLDPrawSock (lldpdu_len, lanBeaconCustomTLVs);
+		sendLLDPrawSock (lldpdu_len, lanBeaconCustomTLVs);
+	}
+	
 	
 	// ###### SPIELWIESE ######
 	//	printf("\n\n##########\nSPIELWIESE\n##########\n\n\n");
 	
 //debug//	printf ("lldpdu_len: %i\n",lldpdu_len);	FILE *combined = fopen("testNewTransfer","w");	fwrite(lanBeaconCustomTLVs, lldpdu_len, 1, combined);
 	
-	return 0;
+	return EXIT_SUCCESS;
 }

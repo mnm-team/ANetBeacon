@@ -47,8 +47,11 @@ Default is one bit.
 [-d DHCP_TYPES]
 [-r ROUTER_INFORMATION]
 [-c CUSTOM_STRING]
+[-s SIGNING (PRIVATE) KEY]
 
-[-r]
+[-l]
+[-v VERIFYING (PUBLIC) KEY]
+
 [-h]
 
 

@@ -32,7 +32,7 @@
 const char hn[] = "SHA256";
 const char* pcszPassphrase = "open sezamee";
 
-int verifyLANbeacon(const unsigned char* msg, size_t mlen)
+int verifyLANbeacon(const unsigned char* msg, size_t mlen, struct open_ssl_keys *lanbeacon_keys)
 {
 	int rc;
 	
@@ -41,7 +41,7 @@ int verifyLANbeacon(const unsigned char* msg, size_t mlen)
 	/* Sign and Verify HMAC keys */
 	EVP_PKEY *skey = NULL, *vkey = NULL;
 	
-	rc = read_keys(&skey, &vkey);
+	rc = read_keys(&skey, &vkey, lanbeacon_keys);
 	
 	assert(rc == 0);
 	if(rc != 0)
@@ -85,12 +85,12 @@ int verifyLANbeacon(const unsigned char* msg, size_t mlen)
 //	if(sig_buffer)
 //		OPENSSL_free(sig_buffer);
 	
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 /////////////////////
 
-int signLANbeacon(unsigned char** sig, size_t* slen, const unsigned char* msg, size_t mlen)
+int signLANbeacon(unsigned char** sig, size_t* slen, const unsigned char* msg, size_t mlen, struct open_ssl_keys *lanbeacon_keys)
 {
 	int rc;
 	
@@ -102,7 +102,7 @@ int signLANbeacon(unsigned char** sig, size_t* slen, const unsigned char* msg, s
 	EVP_PKEY *skey = NULL, *vkey = NULL;
 	
 //	rc = make_keys(&skey, &vkey);
-	rc = read_keys(&skey, &vkey);
+	rc = read_keys(&skey, &vkey, lanbeacon_keys);
 	
 	assert(rc == 0);
 	if(rc != 0)
@@ -159,7 +159,7 @@ int signLANbeacon(unsigned char** sig, size_t* slen, const unsigned char* msg, s
 	printf ("%p\n", *sig);
 
 
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 int sign_it(const unsigned char* msg, size_t mlen, unsigned char** sig, size_t* slen, EVP_PKEY* pkey)
@@ -349,7 +349,7 @@ void print_it(const char* label, const unsigned char* buff, size_t len)
 	printf("\n");
 }
 
-int read_keys(EVP_PKEY** skey, EVP_PKEY** vkey) {
+int read_keys(EVP_PKEY** skey, EVP_PKEY** vkey, struct open_ssl_keys *lanbeacon_keys) {
 	
 	FILE*	 pFile	= NULL;
 	int iRet;
@@ -382,7 +382,7 @@ int read_keys(EVP_PKEY** skey, EVP_PKEY** vkey) {
 		ERR_print_errors_fp(stderr);
 		iRet = EXIT_FAILURE;
 	}
-	return 0; 
+	return EXIT_SUCCESS; 
 	
 }
 
@@ -403,7 +403,7 @@ int read_pubkey(EVP_PKEY** vkey) {
 		ERR_print_errors_fp(stderr);
 		iRet = EXIT_FAILURE;
 	}
-	return 0; 
+	return EXIT_SUCCESS; 
 	
 }
 */

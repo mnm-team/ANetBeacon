@@ -10,7 +10,7 @@
 #include <time.h>
 #include <libintl.h>
 #include <locale.h>
-
+#include "openssl_sign.h"
 #include "define.h"
 #include "sender.h"
 #include "openssl_sign.h"
@@ -21,7 +21,7 @@
 */
 
 // code loosely based on code from my Systempraktikum https://github.com/ciil/nine-mens-morris/blob/master/src/config.c
-char *mergedLANbeaconCreator (int *argc, char **argv, int *lldpdu_len) {
+char *mergedLANbeaconCreator (int *argc, char **argv, int *lldpdu_len, struct open_ssl_keys *lanbeacon_keys) {
 	
 	char *myLANbeacon = malloc(1500);
 	int currentByte = 0;	//counter for current position in Array combinedBeacon, starting after TLV header
@@ -42,7 +42,7 @@ char *mergedLANbeaconCreator (int *argc, char **argv, int *lldpdu_len) {
 	//## custom TLV arguments ##//
 	if(*argc == 1) printHelp();
 	int opt;
-	while((opt=getopt(*argc, argv, "i:n:c:4:6:e:d:r:h")) != -1) {
+	while((opt=getopt(*argc, argv, "i:n:c:4:6:e:d:r:s:h")) != -1) {
 		switch(opt) {
 			
 			case 'i':	//## TLV VLAN ID ##//
@@ -90,6 +90,14 @@ char *mergedLANbeaconCreator (int *argc, char **argv, int *lldpdu_len) {
 					combinedString, optarg, myLANbeacon, &currentByte);
 				break;
 
+			case 's':
+				if (strlen(optarg) > KEY_PATHLENGTH_MAX) {
+					puts(_("Passed path to signing key too long. Exiting."));
+				}
+			
+				strncpy(lanbeacon_keys->path_To_Signing_Key, optarg, KEY_PATHLENGTH_MAX);
+				break;
+
 			case 'd':
 				transferToCombinedBeaconAndString(SUBTYPE_DHCP, DESCRIPTOR_DHCP, 
 					combinedString, optarg, myLANbeacon, &currentByte);
@@ -128,7 +136,7 @@ char *mergedLANbeaconCreator (int *argc, char **argv, int *lldpdu_len) {
 	
 	unsigned char* sig = NULL;
 	size_t slen = 0;
-	signLANbeacon(&sig, &slen, (const unsigned char *) myLANbeacon, (size_t) currentByte - 256); 
+	signLANbeacon(&sig, &slen, (const unsigned char *) myLANbeacon, (size_t) currentByte - 256, lanbeacon_keys); 
 	memcpy(&myLANbeacon[currentByte-256], sig, slen);
 	
 	*lldpdu_len = currentByte;
