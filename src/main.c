@@ -28,14 +28,12 @@ int main(int argc, char **argv) {
 	textdomain ("LANbeacon");
 	
 	struct open_ssl_keys lanbeacon_keys = {.path_To_Verifying_Key = "pubkey.pem", .path_To_Signing_Key = "privkey.pem" };
-	
 //printf("%s\n%s\n", lanbeacon_keys.path_To_Verifying_Key, lanbeacon_keys.path_To_Signing_Key);
 	
-	// looking for listener flag and reading verifying key path
-	
+	int opt;
 	for (int current_arg = 1; current_arg < argc; current_arg++) {
 		if (strcmp("-l", argv[current_arg]) == 0) {
-			while((opt=getopt(*argc, argv, "lv:")) != -1) {
+			while((opt=getopt(argc, argv, "lv:")) != -1) {
 				switch(opt) {
 			
 					case 'l':
@@ -50,6 +48,9 @@ int main(int argc, char **argv) {
 						lanbeacon_keys.path_To_Verifying_Key[strlen(argv[current_arg])-1] = 0;
 						break;
 			
+					case 'h':
+						printHelp();
+			
 					default:
 						printHelp();
 				}
@@ -57,7 +58,7 @@ int main(int argc, char **argv) {
 		
 		//## receiving LANbeacon
 		struct received_lldp_packet *my_received_lldp_packet = recLLDPrawSock(&lanbeacon_keys);
-		char ** parsedBeaconContents = evaluateLANbeacon(&my_received_lldp_packet);
+		char ** parsedBeaconContents = evaluateLANbeacon(my_received_lldp_packet);
 		bananaPIprint(parsedBeaconContents, &lanbeacon_keys);
 		return EXIT_SUCCESS;
 		}

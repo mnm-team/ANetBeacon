@@ -37,7 +37,7 @@
 
 // shortcut for transferring TLVs that only contain string
 #define TLV_STRING_COPY(descriptor) \
-	TLV_CUSTOM_COPY(descriptor, (char*) &my_received_lldp_packet->LLDPreceivedPayload[currentPayloadByte+6], currentTLVsize-4);	/* +6 because header 2 + OUI 3 + Subtype 1 */	 /* -4 due to 3 OUI + 1 Subtype */
+	TLV_CUSTOM_COPY(descriptor, (char*) &my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+6], currentTLVsize-4);	/* +6 because header 2 + OUI 3 + Subtype 1 */	 /* -4 due to 3 OUI + 1 Subtype */
 	 
 
 char ** evaluateLANbeacon (struct received_lldp_packet *my_received_lldp_packet) {
@@ -59,21 +59,21 @@ char ** evaluateLANbeacon (struct received_lldp_packet *my_received_lldp_packet)
 	
 	while ( currentPayloadByte < my_received_lldp_packet->payloadSize - 2 ) {
 
-		currentTLVsize = my_received_lldp_packet->LLDPreceivedPayload[currentPayloadByte+1] + (0b100000000 * (my_received_lldp_packet->LLDPreceivedPayload[currentPayloadByte] & 1));
+		currentTLVsize = my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+1] + (0b100000000 * (my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte] & 1));
 		
-//		printf (" Pos: %i  	Type: %i   	Size: %i#\n", currentPayloadByte, (my_received_lldp_packet->LLDPreceivedPayload[currentPayloadByte] >> 1), currentTLVsize);
+//		printf (" Pos: %i  	Type: %i   	Size: %i#\n", currentPayloadByte, (my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte] >> 1), currentTLVsize);
 		
-		if (127 == (my_received_lldp_packet->LLDPreceivedPayload[currentPayloadByte] >> 1)
-		&& (my_received_lldp_packet->LLDPreceivedPayload[currentPayloadByte+2] == ( 'L' | 0b10000000)
-		&&  my_received_lldp_packet->LLDPreceivedPayload[currentPayloadByte+3] == 'M'
-		&&  my_received_lldp_packet->LLDPreceivedPayload[currentPayloadByte+4] == 'U'  ) ) {
+		if (127 == (my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte] >> 1)
+		&& (my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+2] == ( 'L' | 0b10000000)
+		&&  my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+3] == 'M'
+		&&  my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+4] == 'U'  ) ) {
 		
-			switch(my_received_lldp_packet->LLDPreceivedPayload[currentPayloadByte+5]) {		// Subtype
+			switch(my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+5]) {		// Subtype
 				case SUBTYPE_VLAN_ID:
 					
 					TLVstringbuffer[0] = 0;
 					unsigned short int VLAN_id;
-					memcpy (&VLAN_id, &my_received_lldp_packet->LLDPreceivedPayload[currentPayloadByte+6], 2);
+					memcpy (&VLAN_id, &my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+6], 2);
 					VLAN_id = ntohs(VLAN_id);
 					
 					sprintf(TLVstringbuffer, "%hu", VLAN_id);
@@ -92,9 +92,9 @@ char ** evaluateLANbeacon (struct received_lldp_packet *my_received_lldp_packet)
 					char currentIP4string[50] = "";
 					
 					for (int i = 6; i < currentTLVsize; i += 5) {
-						memcpy (currentIP4, &my_received_lldp_packet->LLDPreceivedPayload[currentPayloadByte+i], 4);	// get IP address
+						memcpy (currentIP4, &my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+i], 4);	// get IP address
 						inet_ntop(AF_INET, currentIP4, currentIP4string, 20);	// convert binary representation to string
-						sprintf(currentIP4string, "%s/%i, ", currentIP4string, my_received_lldp_packet->LLDPreceivedPayload[currentPayloadByte+i+4]);		// get IP address, then subNetwork
+						sprintf(currentIP4string, "%s/%i, ", currentIP4string, my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+i+4]);		// get IP address, then subNetwork
 						strcat (TLVstringbuffer, currentIP4string);
 					}
 					
@@ -109,10 +109,10 @@ char ** evaluateLANbeacon (struct received_lldp_packet *my_received_lldp_packet)
 					char currentIP6string[100] = "";
 					
 					for (int i = 6; i < currentTLVsize; i += 17) {
-						memcpy (currentIP6, &my_received_lldp_packet->LLDPreceivedPayload[currentPayloadByte+i], 16);	// get IP address
+						memcpy (currentIP6, &my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+i], 16);	// get IP address
 						inet_ntop(AF_INET6, currentIP6, currentIP6string, 100);	// convert binary representation to string
 						
-						sprintf(currentIP6string, "%s/%i, ", currentIP6string, my_received_lldp_packet->LLDPreceivedPayload[currentPayloadByte+i+16]);		// get IP address, then subNetwork
+						sprintf(currentIP6string, "%s/%i, ", currentIP6string, my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+i+16]);		// get IP address, then subNetwork
 						strcat (TLVstringbuffer, currentIP6string);
 					}
 					
@@ -138,9 +138,9 @@ char ** evaluateLANbeacon (struct received_lldp_packet *my_received_lldp_packet)
 					
 					long zwischenSpeicherChallenge, zwischenSpeicherTimeStamp;
 					
-					memcpy (&zwischenSpeicherChallenge, &my_received_lldp_packet->LLDPreceivedPayload[currentPayloadByte+6], 4);
+					memcpy (&zwischenSpeicherChallenge, &my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+6], 4);
 					zwischenSpeicherChallenge = ntohl(zwischenSpeicherChallenge);
-					memcpy (&zwischenSpeicherTimeStamp, &my_received_lldp_packet->LLDPreceivedPayload[currentPayloadByte+6+4], 4); 
+					memcpy (&zwischenSpeicherTimeStamp, &my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+6+4], 4); 
 					zwischenSpeicherTimeStamp = ntohl(zwischenSpeicherTimeStamp);
 					
 					sprintf(TLVstringbuffer, _("AUTHENTICATION SUCCESSFULL! Challenge: %ld Timestamp: %ld"), zwischenSpeicherChallenge, zwischenSpeicherTimeStamp);
@@ -153,7 +153,7 @@ char ** evaluateLANbeacon (struct received_lldp_packet *my_received_lldp_packet)
 			
 			
 			
-//			printf ("*Pos: %i  	Type: %i   	Size: %i  	Subtype: %i 	Content: %s#\n", currentPayloadByte, (my_received_lldp_packet->LLDPreceivedPayload[currentPayloadByte] >> 1), currentTLVsize, my_received_lldp_packet->LLDPreceivedPayload[currentPayloadByte+5], parsedTLVs [numberParsedTLVs-1]);	//	, &currentTLVcontents[4]
+//			printf ("*Pos: %i  	Type: %i   	Size: %i  	Subtype: %i 	Content: %s#\n", currentPayloadByte, (my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte] >> 1), currentTLVsize, my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+5], parsedTLVs [numberParsedTLVs-1]);	//	, &currentTLVcontents[4]
 			
 		}
 		
@@ -248,9 +248,9 @@ puts("\n\n\n####PIdisplay: ####");
 		}
 		
 		// TODO umstellen (loop vllt in main?!)
-		struct received_lldp_packet *my_received_lldp_packet = recLLDPrawSock(&lanbeacon_keys);
+		struct received_lldp_packet *my_received_lldp_packet = recLLDPrawSock(lanbeacon_keys);
 		
-		parsedBeaconContents = evaluateLANbeacon(&my_received_lldp_packet);
+		parsedBeaconContents = evaluateLANbeacon(my_received_lldp_packet);
 
 //		begin = clock();
 		
