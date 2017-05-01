@@ -22,6 +22,11 @@
 #include <unistd.h>
 #include <linux/if_link.h>
 #include <openssl/evp.h>
+#include <sys/select.h>
+#include <libintl.h>
+#include <locale.h>
+
+#include "rawsocket_LLDP.h"
 #include "receiver.h"
 #include "openssl_sign.h"
 #include "define.h"
@@ -35,23 +40,78 @@
 #define LLDP_DEST_MAC4	0x00
 #define LLDP_DEST_MAC5	0x0e
 
+#define CHALLENGE_ETHTYPE 0x88B5
 #define LLDP_ETHER_TYPE	0x88CC
+
+#define SEND_SOCKET 0
+#define REC_SOCKET 1
+
+#define SEND_FREQUENCY 2
+
+#define SET_SELECT_FDS FD_ZERO(&readfds); for (int i = 0; i < numInterfaces; i++) {FD_SET(sockfd[i], &readfds);}
 
 //TODO gettext
 
+void getInterfaces (int *sockfd, int *numInterfaces, unsigned short etherType, unsigned short sendOrReceive, struct ifreq *if_idx, struct ifreq *if_mac) {
+	
+	struct ifaddrs *interfaces;
+	if (getifaddrs(&interfaces) == -1) {
+		perror("getifaddrs");
+		exit(EXIT_FAILURE);
+	}
+	
+	if (sendOrReceive == SEND_SOCKET) {
+		for (; interfaces != NULL; interfaces = interfaces->ifa_next) {
+		
+			if (interfaces->ifa_addr == NULL)	continue;
+			if (!(interfaces->ifa_addr->sa_family == AF_PACKET))	continue; 
+		
+			/* Open RAW socket to send on */
+			if ((sockfd[*numInterfaces] = socket(AF_PACKET, SOCK_RAW, htons(etherType))) == -1) {	
+				perror("socket");
+			}
+		
+			/* Get the index of the interface to send on */
+			memset(&if_idx[*numInterfaces], 0, sizeof(struct ifreq));
+			memcpy(if_idx[*numInterfaces].ifr_name, interfaces->ifa_name, IFNAMSIZ-1);
+			if (ioctl(sockfd[*numInterfaces], SIOCGIFINDEX, &if_idx[*numInterfaces]) < 0)
+				perror("SIOCGIFINDEX");
+			/* Get the MAC address of the interface to send on */
+			memset(&if_mac[*numInterfaces], 0, sizeof(struct ifreq));
+			memcpy(if_mac[*numInterfaces].ifr_name, interfaces->ifa_name, IFNAMSIZ-1);
+			if (ioctl(sockfd[*numInterfaces], SIOCGIFHWADDR, &if_mac[*numInterfaces]) < 0)
+				perror("SIOCGIFHWADDR");
+		
+			printf("Number %i is interface %s\n", *numInterfaces, interfaces->ifa_name);
+			*numInterfaces = *numInterfaces + 1;
+		}
+	}
+	
+	if (sendOrReceive == REC_SOCKET) {
+		
+	}
+	
+	
+	return;
+}
+
+
+
 // parts of code based on https://gist.github.com/austinmarton/1922600
-int sendLLDPrawSock (int LLDPDU_len, char *LANbeaconCustomTLVs)
+int sendLLDPrawSock (int LLDPDU_len, char *LANbeaconCustomTLVs, struct open_ssl_keys *lanbeacon_keys)
 {
 	int sockfd[20];
 	struct ifreq if_idx[20];
 	struct ifreq if_mac[20];
+	int numInterfaces = 0;
 	int frameLength = 0;
-	char LLDPethernetFrame[LLDP_BUF_SIZ];
-	struct ether_header *eh = (struct ether_header *) LLDPethernetFrame;
+	char lldpEthernetFrame[LLDP_BUF_SIZ];
+	struct ether_header *eh = (struct ether_header *) lldpEthernetFrame;
 	struct sockaddr_ll socket_address;
+	unsigned long *receivedChallenge = calloc(sizeof(unsigned long), 1);
 	
 	/* Construct the Ethernet header */
-	memset(LLDPethernetFrame, 0, LLDP_BUF_SIZ);
+	memset(lldpEthernetFrame, 0, LLDP_BUF_SIZ);
 
 	eh->ether_dhost[0] = LLDP_DEST_MAC0;
 	eh->ether_dhost[1] = LLDP_DEST_MAC1;
@@ -65,12 +125,12 @@ int sendLLDPrawSock (int LLDPDU_len, char *LANbeaconCustomTLVs)
 	frameLength += sizeof(struct ether_header);
 	
 	/* Packet data */
-	memcpy(&LLDPethernetFrame[frameLength], LANbeaconCustomTLVs, LLDPDU_len);
+	memcpy(&lldpEthernetFrame[frameLength], LANbeaconCustomTLVs, LLDPDU_len);
 	frameLength += LLDPDU_len; 
 	
 	/* End of LLDPDU TLV */
-	LLDPethernetFrame[frameLength++] = 0x00;
-	LLDPethernetFrame[frameLength++] = 0x00;
+	lldpEthernetFrame[frameLength++] = 0x00;
+	lldpEthernetFrame[frameLength++] = 0x00;
 	
 	/* Address length*/
 	socket_address.sll_halen = ETH_ALEN;
@@ -83,13 +143,16 @@ int sendLLDPrawSock (int LLDPDU_len, char *LANbeaconCustomTLVs)
 	socket_address.sll_addr[5] = LLDP_DEST_MAC5;
 	
 	/* Get interfaces */
-	struct ifaddrs *interfaces;
-	int numInterfaces = 0;
+
+//	getInterfaces (sockfd, &numInterfaces, LLDP_ETHER_TYPE, SEND_SOCKET, if_idx, if_mac);
 	
+	//////////////////////////////////////////////////TODO HIER INTERFACES
+
+	struct ifaddrs *interfaces;
 	if (getifaddrs(&interfaces) == -1) {
 		perror("getifaddrs");
 		exit(EXIT_FAILURE);
-	}
+	}	
 	
 	for (; interfaces != NULL; interfaces = interfaces->ifa_next) {
 		
@@ -97,7 +160,7 @@ int sendLLDPrawSock (int LLDPDU_len, char *LANbeaconCustomTLVs)
 		if (!(interfaces->ifa_addr->sa_family == AF_PACKET))	continue; 
 		
 		/* Open RAW socket to send on */
-		if ((sockfd[numInterfaces] = socket(AF_PACKET, SOCK_RAW, htons(LLDP_ETHER_TYPE))) == -1) {	
+		if ((sockfd[numInterfaces] = socket(AF_PACKET, SOCK_RAW, htons(LLDP_ETHER_TYPE))) == -1) {	//TODO
 			perror("socket");
 		}
 		
@@ -117,9 +180,11 @@ int sendLLDPrawSock (int LLDPDU_len, char *LANbeaconCustomTLVs)
 		numInterfaces++;
 	}
 	
+	
+	//////////////////////////////////////////////////
+	
 	while (1) {
-		sleep(1);
-		
+	
 		// send packets on all interfaces
 		for(int i = 0; i < numInterfaces; i++) {
 
@@ -135,27 +200,48 @@ int sendLLDPrawSock (int LLDPDU_len, char *LANbeaconCustomTLVs)
 			socket_address.sll_ifindex = if_idx[i].ifr_ifindex;
 			
 			/* Send packet */
-			if (sendto(sockfd[i], LLDPethernetFrame, frameLength, 0, (struct sockaddr*)&socket_address, sizeof(struct sockaddr_ll)) < 0)
-				printf("Send failed on interface number %i\n", i);
+			if (sendto(sockfd[i], lldpEthernetFrame, frameLength, 0, (struct sockaddr*)&socket_address, sizeof(struct sockaddr_ll)) < 0)
+				printf(_("Send failed on interface number %i\n"), i);
 			else
-				printf("Successfully sent on interface number %i\n", i);
+				printf(_("Successfully sent on interface number %i\n"), i);
 		}
+		
+		if (*receivedChallenge == 0) {
+			*receivedChallenge = receiveChallenge();
+			*receivedChallenge = htonl(*receivedChallenge);
+			memcpy(&lldpEthernetFrame[frameLength-272+6], receivedChallenge, 4);
+		}
+		else
+			sleep(2);
+		
+		//## add signature ##//
+		time_t timeStamp = time(NULL);
+		timeStamp = htonl(timeStamp);
+		memcpy(&lldpEthernetFrame[frameLength-272+6+4], &timeStamp, 4);
+		unsigned char* sig = NULL;
+		size_t slen = 0;
+		signLANbeacon(&sig, &slen, (const unsigned char *) &lldpEthernetFrame[14], (size_t) LLDPDU_len - 256, lanbeacon_keys); 
+		memcpy(&lldpEthernetFrame[frameLength-272+6+4+4], sig, slen);
+		
 	}
 	
 	return EXIT_SUCCESS;
 }
 
 
-
 // parts of code based on https://gist.github.com/austinmarton/2862515
 struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys) {
 	
 	struct received_lldp_packet *my_received_lldp_packet = malloc(sizeof(struct received_lldp_packet));
-	
 	struct ether_header *eh = (struct ether_header *) my_received_lldp_packet->lldpReceivedPayload;
 	
 	int sockfd[20];
 	int sockopt[20];
+	
+	// parameters for select()
+	int maxSockFd = 0;
+	struct timeval tv;
+	fd_set readfds;
 	
 	int numInterfaces = 0;
 	struct ifaddrs *interfaces;
@@ -197,65 +283,311 @@ struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys
 			exit(EXIT_FAILURE);
 		}
 printf("Number %i is interface %s\n", numInterfaces, interfaces->ifa_name);
+		
 		numInterfaces++;
 	}
 	
-	while (1) {
-		for (int i = 0; i < numInterfaces; i++) {
-printf("currently on %i\n",i);
-	//		printf("listener: Waiting to recvfrom...\n");
-			my_received_lldp_packet->payloadSize = recvfrom(sockfd[i], my_received_lldp_packet->lldpReceivedPayload, LLDP_BUF_SIZ, 0, NULL, NULL);
-	//		printf("listener: got packet %lu bytes\n", my_received_lldp_packet->payloadSize);
+	for (int i = 0; i < numInterfaces; i++) {
+		if (sockfd[i] > maxSockFd)
+			maxSockFd = sockfd[i];
+	}
+	int challengeSentBool = 0;
+	int rv;
 
-			/* Check if the packet was sent to the LLDP multicast MAC address */
-			if (!(eh->ether_dhost[0] == LLDP_DEST_MAC0 &&
-					eh->ether_dhost[1] == LLDP_DEST_MAC1 &&
-					eh->ether_dhost[2] == LLDP_DEST_MAC2 &&
-					eh->ether_dhost[3] == LLDP_DEST_MAC3 &&
-					eh->ether_dhost[4] == LLDP_DEST_MAC4 &&
-					eh->ether_dhost[5] == LLDP_DEST_MAC5)) {
-				continue;
+	
+	// receive one LANbeacon frame, send a challenge to the source MAC and 
+	// then wait for the frame containing the challenge
+	while (1) {
+		SET_SELECT_FDS
+		rv = select(maxSockFd, &readfds, NULL, NULL, NULL);
+puts("YYYYYYYYYYYYYYYYYYYYYYYYY");	
+		if (rv == -1) perror("select"); // error occurred in select()
+		else if (rv == 0) printf("Timeout occurred! No data after %i seconds.\n", SEND_FREQUENCY);
+		else {
+			for (int i = 0; i < numInterfaces; i++) {
+				if (FD_ISSET(sockfd[i], &readfds)) {
+		
+					my_received_lldp_packet->payloadSize = recvfrom(sockfd[i], my_received_lldp_packet->lldpReceivedPayload, LLDP_BUF_SIZ, 0, NULL, NULL);
+
+	puts("neuTest");	
+					// Check if the packet was sent to the LLDP multicast MAC address
+					if (!(	eh->ether_dhost[0] == LLDP_DEST_MAC0 &&
+							eh->ether_dhost[1] == LLDP_DEST_MAC1 &&
+							eh->ether_dhost[2] == LLDP_DEST_MAC2 &&
+							eh->ether_dhost[3] == LLDP_DEST_MAC3 &&
+							eh->ether_dhost[4] == LLDP_DEST_MAC4 &&
+							eh->ether_dhost[5] == LLDP_DEST_MAC5)) {continue;}
+					
+					//## Verify signature ##//
+					if (0 != verifyLANbeacon(&my_received_lldp_packet->lldpReceivedPayload[14], my_received_lldp_packet->payloadSize - 2 - 14, lanbeacon_keys)) {	// - end of LLDPDU 2 - 14 Ethernet header
+						puts("problem with verification");
+						continue;
+					}
+				
+				
+				
+					// delete received packet, send challenge and flush buffer,
+					// but only after first received packet
+					if (0 == challengeSentBool++) {
+						memset (my_received_lldp_packet->lldpReceivedPayload, 0, LLDP_BUF_SIZ);
+
+						sendChallenge (eh->ether_shost, 65534);
+
+					//	SET_SELECT_FDS
+						while (1) {
+							tv.tv_sec = 0;
+puts("uuuuuuuuuuuuuuuuuuuuu"); //sleep(3);
+							SET_SELECT_FDS
+							rv = select(maxSockFd, &readfds, NULL, NULL, &tv);
+							if (rv == -1) perror("select"); // error occurred in select()
+							else if (rv == 0) {
+								printf("Timeout occurred! All data flushed.\n");
+								break;
+							}
+							else {
+								for (int j = 0; j < numInterfaces; j++) {
+									if (FD_ISSET(sockfd[j], &readfds)) {
+										recvfrom(sockfd[j], NULL, 1500, 0, NULL, NULL);
+									}
+								}
+							}
+						}
+						break;
+					}
+				
+					break;
+				}
 			}
+			break;
+		}
+	}
+puts("sssssss"); sleep(3);	
+	for (int i = 0; i < numInterfaces; i++) 
+		close(sockfd[i]);
+	
+	return my_received_lldp_packet;
+}
+
+
+
+void sendChallenge (unsigned char *destination_mac, unsigned long challenge) {
+	
+	int challenge_len = 4;
+	
+//printf("ChallengeSize: %zu\n",sizeof(long));
+	
+	challenge = htonl(challenge);
+	
+	int sockfd[20];
+	struct ifreq if_idx[20];
+	struct ifreq if_mac[20];
+	int frameLength = 0;
+	char lldpEthernetFrame[LLDP_BUF_SIZ];
+	struct ether_header *eh = (struct ether_header *) lldpEthernetFrame;
+	struct sockaddr_ll socket_address;
+	
+	/* Construct the Ethernet header */
+	memset(lldpEthernetFrame, 0, LLDP_BUF_SIZ);
+	
+	memcpy(eh->ether_dhost, destination_mac, 6);
+	
+	/* Ethertype field */
+	eh->ether_type = htons(CHALLENGE_ETHTYPE);		// TODO
+	frameLength += sizeof(struct ether_header);
+	
+	/* Packet data */
+	memcpy(&lldpEthernetFrame[frameLength], &challenge, challenge_len);
+	frameLength += challenge_len; 
+	
+//	/* End of LLDPDU TLV */
+//	lldpEthernetFrame[frameLength++] = 0x00;
+//	lldpEthernetFrame[frameLength++] = 0x00;
+	
+	/* Address length*/
+	socket_address.sll_halen = ETH_ALEN;
+	/* Destination MAC */
+	memcpy(socket_address.sll_addr, destination_mac, 6);
+	
+	/* Get interfaces */
+	struct ifaddrs *interfaces;
+	int numInterfaces = 0;
+	
+	if (getifaddrs(&interfaces) == -1) {
+		perror("getifaddrs");
+		exit(EXIT_FAILURE);
+	}
+	
+	for (; interfaces != NULL; interfaces = interfaces->ifa_next) {
+		
+		if (interfaces->ifa_addr == NULL)	continue;
+		if (!(interfaces->ifa_addr->sa_family == AF_PACKET))	continue; 
+		
+		/* Open RAW socket to send on */
+		if ((sockfd[numInterfaces] = socket(AF_PACKET, SOCK_RAW, htons(CHALLENGE_ETHTYPE))) == -1) {	//TODO
+			perror("socket");
+		}
+		
+		/* Get the index of the interface to send on */
+		memset(&if_idx[numInterfaces], 0, sizeof(struct ifreq));
+		memcpy(if_idx[numInterfaces].ifr_name, interfaces->ifa_name, IFNAMSIZ-1);
+		if (ioctl(sockfd[numInterfaces], SIOCGIFINDEX, &if_idx[numInterfaces]) < 0)
+			perror("SIOCGIFINDEX");
+		/* Get the MAC address of the interface to send on */
+		memset(&if_mac[numInterfaces], 0, sizeof(struct ifreq));
+		memcpy(if_mac[numInterfaces].ifr_name, interfaces->ifa_name, IFNAMSIZ-1);
+		if (ioctl(sockfd[numInterfaces], SIOCGIFHWADDR, &if_mac[numInterfaces]) < 0)
+			perror("SIOCGIFHWADDR");
+		
+		printf("Number %i is interface %s\n", numInterfaces, interfaces->ifa_name);
+		
+		numInterfaces++;
+	}
+	
+	for (int i = 0; i<3; i++) {
+		sleep(1);
+		
+//		struct timespec ts;
+//		ts.tv_nsec = 200000000L;
+
+//		nanosleep(&ts, null);
+		
+		// send packets on all interfaces
+		for(int i = 0; i < numInterfaces; i++) {
+
+			/* Ethernet header */
+			eh->ether_shost[0] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[0];
+			eh->ether_shost[1] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[1];
+			eh->ether_shost[2] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[2];
+			eh->ether_shost[3] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[3];
+			eh->ether_shost[4] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[4];
+			eh->ether_shost[5] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[5];
+
+			/* Index of the network device */
+			socket_address.sll_ifindex = if_idx[i].ifr_ifindex;
+			
+			/* Send packet */
+			if (sendto(sockfd[i], lldpEthernetFrame, frameLength, 0, (struct sockaddr*)&socket_address, sizeof(struct sockaddr_ll)) < 0)
+				printf("Send failed on interface number %i\n", i);
+			else
+				printf("Successfully sent CHALLENGE on interface number %i\n", i);
+			
+		}
+		
+		sleep(1);
+		
+	}
+	
+	return;
+}
+
+
+// parts of code based on https://gist.github.com/austinmarton/2862515
+unsigned long receiveChallenge() {
+	
+	unsigned char *receiveBuf = calloc(300, 1);
+	int receivedSize;
+	unsigned long *receivedChallenge = calloc(sizeof(unsigned long), 1);
+	
+	struct ether_header *eh = (struct ether_header *) receiveBuf;
+	int sockfd[20];
+	int sockopt[20];
+	
+	// parameters for select()
+	int maxSockFd = 0;
+	struct timeval tv;
+	tv.tv_sec = SEND_FREQUENCY;
+	fd_set readfds;
+//	FD_ZERO(&readfds);
+	
+	int numInterfaces = 0;
+	struct ifaddrs *interfaces;
+	
+	if (getifaddrs(&interfaces) == -1) {
+		perror("getifaddrs");
+		exit(EXIT_FAILURE);
+	}
+	
+	for ( ;interfaces != NULL; interfaces = interfaces->ifa_next) {
+//TODO printf("%s\n",interfaces->ifa_name);
+		
+		// Skip if interface is not in use or wrong type
+		if (interfaces->ifa_addr == NULL)	continue;
+		if (!(interfaces->ifa_addr->sa_family == AF_PACKET))	continue; 
+		
+		/* Open PF_PACKET socket, listening for EtherType 0x88CC */
+		if ((sockfd[numInterfaces] = socket(PF_PACKET, SOCK_RAW, htons(CHALLENGE_ETHTYPE))) == -1) {
+			perror("listener: socket");	
+		}
+
+		/* Set interface to promiscuous mode */
+		struct ifreq ifopts;
+		memcpy(ifopts.ifr_name, interfaces->ifa_name, IFNAMSIZ-1);
+		ioctl(sockfd[numInterfaces], SIOCGIFFLAGS, &ifopts);
+		ifopts.ifr_flags |= IFF_PROMISC;
+		ioctl(sockfd[numInterfaces], SIOCSIFFLAGS, &ifopts);
+	
+		/* Allow the socket to be reused - incase connection is closed prematurely */
+		if (setsockopt(sockfd[numInterfaces], SOL_SOCKET, SO_REUSEADDR, &sockopt[numInterfaces], sizeof sockopt) == -1) {
+			perror("setsockopt");
+			close(sockfd[numInterfaces]);
+			exit(EXIT_FAILURE);
+		}
+		/* Bind to device */
+		if (setsockopt(sockfd[numInterfaces], SOL_SOCKET, SO_BINDTODEVICE, interfaces->ifa_name, IFNAMSIZ-1) == -1)	{
+			perror("SO_BINDTODEVICE");
+			close(sockfd[numInterfaces]);
+			exit(EXIT_FAILURE);
+		}
+printf("Number %i is interface %s\n", numInterfaces, interfaces->ifa_name);
+		
+//		FD_SET(sockfd[numInterfaces], &readfds);
+		
+		numInterfaces++;
+	}
+	
+SET_SELECT_FDS
+//	FD_ZERO(&readfds); 
+//	for (int i = 0; i < numInterfaces; i++) {FD_SET(sockfd[i], &readfds);}
+	
+	for (int i = 0; i < numInterfaces; i++) {
+		if (sockfd[i] > maxSockFd)
+			maxSockFd = sockfd[i];
+	}
+	
+	int rv = select(maxSockFd, &readfds, NULL, NULL, &tv);
+puts("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+puts("baba");
+	if (rv == -1) perror("select"); // error occurred in select()
+	else if (rv == 0) printf("Timeout occurred! No data after %i seconds.\n", SEND_FREQUENCY);
+	else {
+		for (int i = 0; i < numInterfaces; i++) {
+			if (FD_ISSET(sockfd[i], &readfds)) {
+				
+printf("currently on %i\n",i);
+				receivedSize = recvfrom(sockfd[i], receiveBuf, 300, 0, NULL, NULL);
+
+//				/* Check if the packet was sent to the LLDP multicast MAC address */
+//				if (!(eh->ether_dhost[0] == LLDP_DEST_MAC0 &&
+//						eh->ether_dhost[1] == LLDP_DEST_MAC1 &&
+//						eh->ether_dhost[2] == LLDP_DEST_MAC2 &&
+//						eh->ether_dhost[3] == LLDP_DEST_MAC3 &&
+//						eh->ether_dhost[4] == LLDP_DEST_MAC4 &&
+//						eh->ether_dhost[5] == LLDP_DEST_MAC5)) {
+//					continue;
+//				}
 printf("found on %i\n",i);
-			/* Print packet */
-	//		printf("\tData:");
-	//		for (i=0; i<my_received_lldp_packet->payloadSize; i++) printf("%02x:", my_received_lldp_packet->lldpReceivedPayload[i]);
-	//		printf("\n");
-			
-			
-			
-			//## Verify signature ##//
-			
-			if (0 != verifyLANbeacon(&my_received_lldp_packet->lldpReceivedPayload[14], my_received_lldp_packet->payloadSize - 2 - 14, lanbeacon_keys))	// - end of LLDPDU 2 - 14 Ethernet header
-				continue;
-			
-		/*	EVP_PKEY *vkey = NULL;
-	
-			int rc = read_pubkey(&vkey);
-	
-			unsigned char* sig_buffer = malloc(260);
-			FILE*	 signatureFile = fopen("BeaconSignature","r");
-			size_t result = fread (sig_buffer,1,260,signatureFile);
-	
-			printf ("%zu bytes read\n",result);
-			OpenSSL_add_all_algorithms();
-	
-			rc = verify_it(&my_received_lldp_packet->lldpReceivedPayload[14], my_received_lldp_packet->payloadSize - 2, sig_buffer, result, vkey);
-	
-			if(rc == 0) {
-				printf("Verified signature on sender side\n");
-			} else {
-				printf("Failed to verify signature on sender side, return code %d\n", rc);
+				
+				memcpy(receivedChallenge, &receiveBuf[14], 4);
+				*receivedChallenge = ntohl(*receivedChallenge);
+				printf("Empfangene challenge: %lu\n", *receivedChallenge);
+				
+				break;
 			}
-		*/			
-			
-			
-			
-			return my_received_lldp_packet;
 		}
 	}
 	
-
-
-	close(sockfd[0]);	//TODO
+	for (int i = 0; i < numInterfaces; i++) 
+		close(sockfd[i]);
+	
+	return *receivedChallenge;
 }

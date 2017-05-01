@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
 	int lldpdu_len;
 	char *lanBeaconCustomTLVs = mergedLANbeaconCreator(&argc, argv, &lldpdu_len, &lanbeacon_keys);
 
-	sendLLDPrawSock (lldpdu_len, lanBeaconCustomTLVs);
+	sendLLDPrawSock (lldpdu_len, lanBeaconCustomTLVs, &lanbeacon_keys);
 	
 	
 	//	###### SPIELWIESE ######

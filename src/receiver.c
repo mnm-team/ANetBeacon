@@ -248,9 +248,9 @@ puts("\n\n\n####PIdisplay: ####");
 		}
 		
 		// TODO umstellen (loop vllt in main?!)
-		struct received_lldp_packet *my_received_lldp_packet = recLLDPrawSock(lanbeacon_keys);
+//		struct received_lldp_packet *my_received_lldp_packet = recLLDPrawSock(lanbeacon_keys);
 		
-		parsedBeaconContents = evaluateLANbeacon(my_received_lldp_packet);
+//		parsedBeaconContents = evaluateLANbeacon(my_received_lldp_packet);
 
 //		begin = clock();
 		

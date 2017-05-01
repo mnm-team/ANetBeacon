@@ -1,8 +1,8 @@
 CC = gcc
 OBJECTS = main.o sender.o rawsocket_LLDP.o receiver.o openssl_sign.o
 BANANAOBJECTS = cberry_includes_tft.o cberry_includes_RAIO8870.o
-LANbeacon:			CFLAGS = -Wall -Werror -g -std=c11 -Wno-unused-variable -Wno-unused-but-set-variable -lcrypto
-bananaLANbeacon:	CFLAGS = -Wall -Werror -g -std=c11 -Wno-unused-variable -Wno-unused-but-set-variable -lcrypto -DBANANAPI_SWITCH
+LANbeacon:			CFLAGS = -Wall -Werror -g -std=c11 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-value -lcrypto
+bananaLANbeacon:	CFLAGS = -Wall -Werror -g -std=c11 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-value -lcrypto -DBANANAPI_SWITCH
 
 LANbeacon: $(OBJECTS)
 		$(CC) $(CFLAGS) $(OBJECTS) -o LANbeacon
