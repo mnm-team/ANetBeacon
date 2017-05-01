@@ -272,45 +272,37 @@ puts("neuTest");
 						puts("problem with verification");
 						continue;
 					}
-					
-					
-					
-					// delete received packet, send challenge and flush buffer,
-					// but only after first received packet
-					if (0 == challengeSentBool++) {
-						memset (my_received_lldp_packet->lldpReceivedPayload, 0, LLDP_BUF_SIZ);
-	
-						sendChallenge (eh->ether_shost, 65534);
-	
-					//	SET_SELECT_FDS
-						tv.tv_sec = 0;
-						while (1) {
-							SET_SELECT_FDS
-							rv = select(maxSockFd, &readfds, NULL, NULL, &tv);
-puts("neuneuneu");//sleep(1);
-							if (rv == -1) perror("select"); // error occurred in select()
-							else if (rv == 0) {
-								printf("Timeout occurred! No data after %i seconds.\n", SEND_FREQUENCY);
-								break;
-							}
-							else {
-								for (int i = 0; i < numInterfaces; i++) {
-									if (FD_ISSET(sockfd[i], &readfds)) {
-puts("Deleted something");
-										recvfrom(sockfd[i], NULL, 1500, 0, NULL, NULL);
-									}
-								}
-							}
-						}
-					}
-					
 					break;
 				}
 			}
 		}
 	}
 	
+	// delete received packet, send challenge and flush buffer
+	memset (my_received_lldp_packet->lldpReceivedPayload, 0, LLDP_BUF_SIZ);
 	
+	sendChallenge (eh->ether_shost, 65534);
+	
+//	SET_SELECT_FDS
+	tv.tv_sec = 0;
+	while (1) {
+		SET_SELECT_FDS
+		rv = select(maxSockFd, &readfds, NULL, NULL, &tv);
+puts("neuneuneu");//sleep(1);
+		if (rv == -1) perror("select"); // error occurred in select()
+		else if (rv == 0) {
+			printf("Timeout occurred! No data after %i seconds.\n", SEND_FREQUENCY);
+			break;
+		}
+		else {
+			for (int i = 0; i < numInterfaces; i++) {
+				if (FD_ISSET(sockfd[i], &readfds)) {
+puts("Deleted something");
+					recvfrom(sockfd[i], NULL, 1500, 0, NULL, NULL);
+				}
+			}
+		}
+	}
 	
 	
 	
