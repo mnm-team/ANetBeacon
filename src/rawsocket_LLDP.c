@@ -144,44 +144,7 @@ int sendLLDPrawSock (int LLDPDU_len, char *LANbeaconCustomTLVs, struct open_ssl_
 	
 	/* Get interfaces */
 
-//	getInterfaces (sockfd, &numInterfaces, LLDP_ETHER_TYPE, SEND_SOCKET, if_idx, if_mac);
-	
-	//////////////////////////////////////////////////TODO HIER INTERFACES
-
-	struct ifaddrs *interfaces;
-	if (getifaddrs(&interfaces) == -1) {
-		perror("getifaddrs");
-		exit(EXIT_FAILURE);
-	}
-	
-	for (; interfaces != NULL; interfaces = interfaces->ifa_next) {
-		
-		if (interfaces->ifa_addr == NULL)	continue;
-		if (!(interfaces->ifa_addr->sa_family == AF_PACKET))	continue; 
-		
-		/* Open RAW socket to send on */
-		if ((sockfd[numInterfaces] = socket(AF_PACKET, SOCK_RAW, htons(LLDP_ETHER_TYPE))) == -1) {	//TODO
-			perror("socket");
-		}
-		
-		/* Get the index of the interface to send on */
-		memset(&if_idx[numInterfaces], 0, sizeof(struct ifreq));
-		memcpy(if_idx[numInterfaces].ifr_name, interfaces->ifa_name, IFNAMSIZ-1);
-		if (ioctl(sockfd[numInterfaces], SIOCGIFINDEX, &if_idx[numInterfaces]) < 0)
-			perror("SIOCGIFINDEX");
-		/* Get the MAC address of the interface to send on */
-		memset(&if_mac[numInterfaces], 0, sizeof(struct ifreq));
-		memcpy(if_mac[numInterfaces].ifr_name, interfaces->ifa_name, IFNAMSIZ-1);
-		if (ioctl(sockfd[numInterfaces], SIOCGIFHWADDR, &if_mac[numInterfaces]) < 0)
-			perror("SIOCGIFHWADDR");
-		
-		printf("Number %i is interface %s\n", numInterfaces, interfaces->ifa_name);
-		
-		numInterfaces++;
-	}
-	
-	
-	//////////////////////////////////////////////////
+	getInterfaces (sockfd, &numInterfaces, LLDP_ETHER_TYPE, SEND_SOCKET, if_idx, if_mac);
 	
 	while (1) {
 	
@@ -481,6 +444,7 @@ void sendChallenge (unsigned char *destination_mac, unsigned long challenge) {
 	struct ifreq if_idx[20];
 	struct ifreq if_mac[20];
 	int frameLength = 0;
+	int numInterfaces = 0;
 	char lldpEthernetFrame[LLDP_BUF_SIZ];
 	struct ether_header *eh = (struct ether_header *) lldpEthernetFrame;
 	struct sockaddr_ll socket_address;
@@ -508,8 +472,10 @@ void sendChallenge (unsigned char *destination_mac, unsigned long challenge) {
 	memcpy(socket_address.sll_addr, destination_mac, 6);
 	
 	/* Get interfaces */
+	
+//	getInterfaces (sockfd, &numInterfaces, CHALLENGE_ETHTYPE, SEND_SOCKET, if_idx, if_mac);
+	
 	struct ifaddrs *interfaces;
-	int numInterfaces = 0;
 	
 	if (getifaddrs(&interfaces) == -1) {
 		perror("getifaddrs");
@@ -521,17 +487,17 @@ void sendChallenge (unsigned char *destination_mac, unsigned long challenge) {
 		if (interfaces->ifa_addr == NULL)	continue;
 		if (!(interfaces->ifa_addr->sa_family == AF_PACKET))	continue; 
 		
-		/* Open RAW socket to send on */
+		// Open RAW socket to send on 
 		if ((sockfd[numInterfaces] = socket(AF_PACKET, SOCK_RAW, htons(CHALLENGE_ETHTYPE))) == -1) {	//TODO
 			perror("socket");
 		}
 		
-		/* Get the index of the interface to send on */
+		// Get the index of the interface to send on 
 		memset(&if_idx[numInterfaces], 0, sizeof(struct ifreq));
 		memcpy(if_idx[numInterfaces].ifr_name, interfaces->ifa_name, IFNAMSIZ-1);
 		if (ioctl(sockfd[numInterfaces], SIOCGIFINDEX, &if_idx[numInterfaces]) < 0)
 			perror("SIOCGIFINDEX");
-		/* Get the MAC address of the interface to send on */
+		// Get the MAC address of the interface to send on 
 		memset(&if_mac[numInterfaces], 0, sizeof(struct ifreq));
 		memcpy(if_mac[numInterfaces].ifr_name, interfaces->ifa_name, IFNAMSIZ-1);
 		if (ioctl(sockfd[numInterfaces], SIOCGIFHWADDR, &if_mac[numInterfaces]) < 0)
