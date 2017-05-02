@@ -60,16 +60,17 @@ void getInterfaces (int *sockfd, int *numInterfaces, unsigned short etherType, u
 		exit(EXIT_FAILURE);
 	}
 	
-	if (sendOrReceive == SEND_SOCKET) {
-		for (; interfaces != NULL; interfaces = interfaces->ifa_next) {
+	for (; interfaces != NULL; interfaces = interfaces->ifa_next) {
+	
+		if (interfaces->ifa_addr == NULL)	continue;
+		if (!(interfaces->ifa_addr->sa_family == AF_PACKET))	continue; 
+	
+		/* Open RAW socket to send on */
+		if ((sockfd[*numInterfaces] = socket(PF_PACKET, SOCK_RAW, htons(etherType))) == -1) {	
+			perror("socket");
+		}
 		
-			if (interfaces->ifa_addr == NULL)	continue;
-			if (!(interfaces->ifa_addr->sa_family == AF_PACKET))	continue; 
-		
-			/* Open RAW socket to send on */
-			if ((sockfd[*numInterfaces] = socket(AF_PACKET, SOCK_RAW, htons(etherType))) == -1) {	
-				perror("socket");
-			}
+		if (sendOrReceive == SEND_SOCKET) {
 		
 			/* Get the index of the interface to send on */
 			memset(&if_idx[*numInterfaces], 0, sizeof(struct ifreq));
@@ -81,33 +82,17 @@ void getInterfaces (int *sockfd, int *numInterfaces, unsigned short etherType, u
 			memcpy(if_mac[*numInterfaces].ifr_name, interfaces->ifa_name, IFNAMSIZ-1);
 			if (ioctl(sockfd[*numInterfaces], SIOCGIFHWADDR, &if_mac[*numInterfaces]) < 0)
 				perror("SIOCGIFHWADDR");
-		
-			printf("Number %i is interface %s\n", *numInterfaces, interfaces->ifa_name);
-			*numInterfaces = *numInterfaces + 1;
 		}
-	}
-	
-	if (sendOrReceive == REC_SOCKET) {
 		
-		for ( ;interfaces != NULL; interfaces = interfaces->ifa_next) {
-	//TODO printf("%s\n",interfaces->ifa_name);
+		if (sendOrReceive == REC_SOCKET) {
 		
-			// Skip if interface is not in use or wrong type
-			if (interfaces->ifa_addr == NULL)	continue;
-			if (!(interfaces->ifa_addr->sa_family == AF_PACKET))	continue; 
-		
-			/* Open PF_PACKET socket, listening for EtherType 0x88CC */
-			if ((sockfd[*numInterfaces] = socket(PF_PACKET, SOCK_RAW, htons(etherType))) == -1) {
-				perror("listener: socket");	
-			}
-
 			/* Set interface to promiscuous mode */
 			struct ifreq ifopts;
 			memcpy(ifopts.ifr_name, interfaces->ifa_name, IFNAMSIZ-1);
 			ioctl(sockfd[*numInterfaces], SIOCGIFFLAGS, &ifopts);
 			ifopts.ifr_flags |= IFF_PROMISC;
 			ioctl(sockfd[*numInterfaces], SIOCSIFFLAGS, &ifopts);
-	
+
 			/* Allow the socket to be reused - incase connection is closed prematurely */
 			if (setsockopt(sockfd[*numInterfaces], SOL_SOCKET, SO_REUSEADDR, &sockopt[*numInterfaces], sizeof sockopt) == -1) {
 				perror("setsockopt");
@@ -120,10 +105,12 @@ void getInterfaces (int *sockfd, int *numInterfaces, unsigned short etherType, u
 				close(sockfd[*numInterfaces]);
 				exit(EXIT_FAILURE);
 			}
-	printf("Number %i is interface %s\n", *numInterfaces, interfaces->ifa_name);
 		
-			*numInterfaces = *numInterfaces + 1;
 		}
+		
+		printf("Number %i is interface %s\n", *numInterfaces, interfaces->ifa_name);
+		*numInterfaces = *numInterfaces + 1;
+	
 	}
 	
 	return;
