@@ -461,6 +461,7 @@ void sendChallenge (unsigned char *destination_mac, unsigned long challenge) {
 	
 	challenge = htonl(challenge);
 	
+	
 	int sockfd[20];
 	struct ifreq if_idx[20];
 	struct ifreq if_mac[20];
@@ -565,6 +566,10 @@ void sendChallenge (unsigned char *destination_mac, unsigned long challenge) {
 	
 	return;
 }
+
+//void sendRawSocket (unsigned char *destination_mac, unsigned long challenge, int payloadLen, unsigned short etherType) {
+	
+//}
 
 
 // parts of code based on https://gist.github.com/austinmarton/2862515
