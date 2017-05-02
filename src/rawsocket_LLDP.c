@@ -48,7 +48,7 @@
 
 #define SEND_FREQUENCY 2
 
-#define SET_SELECT_FDS FD_ZERO(&readfds); for (int i = 0; i < numInterfaces; i++) {FD_SET(sockfd[i], &readfds);}
+#define SET_SELECT_FDS FD_ZERO(&readfds); for (int x = 0; x < numInterfaces; x++) {FD_SET(sockfd[x], &readfds);}
 
 //TODO gettext
 
@@ -338,40 +338,39 @@ puts("neuTest");
 					puts("problem with verification");
 				}
 				
-				if (0 == challengeSentBool++) {
-					// delete received packet, send challenge and flush buffer
-					memset (my_received_lldp_packet->lldpReceivedPayload, 0, LLDP_BUF_SIZ);
-	
-					sendChallenge (eh->ether_shost, 65534);
-	
-				//	SET_SELECT_FDS
-					tv.tv_sec = 0;
-					while (1) {
-						FD_ZERO(&readfds); for (int i = 0; i < numInterfaces; i++) {FD_SET(sockfd[i], &readfds);}
-						rv = select(maxSockFd, &readfds, NULL, NULL, &tv);
-				puts("neuneuneu");//sleep(1);
-						if (rv == -1) perror("select"); // error occurred in select()
-						else if (rv == 0) {
-							printf("Timeout occurred! All data flushed.\n");
-							break;
-						}
-						else {
-							for (int j = 0; j < numInterfaces; j++) {
-								if (FD_ISSET(sockfd[j], &readfds)) {
-				puts("Deleted something");
-									recvfrom(sockfd[j], NULL, 1500, 0, NULL, NULL);
-								}
-							}
-						}
-					}
-					break;
-				}
-				
 				break;
 			}
 		}
 	}
 	
+	if (0 == challengeSentBool++) {
+		// delete received packet, send challenge and flush buffer
+		memset (my_received_lldp_packet->lldpReceivedPayload, 0, LLDP_BUF_SIZ);
+	
+		sendChallenge (eh->ether_shost, 65534);
+	
+	//	SET_SELECT_FDS
+		tv.tv_sec = 0;
+		while (1) {
+			SET_SELECT_FDS
+			rv = select(maxSockFd, &readfds, NULL, NULL, &tv);
+	puts("neuneuneu");//sleep(1);
+			if (rv == -1) perror("select"); // error occurred in select()
+			else if (rv == 0) {
+				printf("Timeout occurred! All data flushed.\n");
+				break;
+			}
+			else {
+				for (int j = 0; j < numInterfaces; j++) {
+					if (FD_ISSET(sockfd[j], &readfds)) {
+	puts("Deleted something");
+						recvfrom(sockfd[j], NULL, 1500, 0, NULL, NULL);
+					}
+				}
+			}
+		}
+//	break;
+	}
 	
 	
 	
