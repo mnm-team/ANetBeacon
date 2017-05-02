@@ -330,14 +330,15 @@ puts("neuTest");
 						eh->ether_dhost[3] == LLDP_DEST_MAC3 &&
 						eh->ether_dhost[4] == LLDP_DEST_MAC4 &&
 						eh->ether_dhost[5] == LLDP_DEST_MAC5)) {
-//*neu DER BLOCK MUSS RAUS					
-					//## Verify signature ##//
-					if (0 != verifyLANbeacon(&my_received_lldp_packet->lldpReceivedPayload[14], my_received_lldp_packet->payloadSize - 2 - 14, lanbeacon_keys)) {	// - end of LLDPDU 2 - 14 Ethernet header
-						puts("problem with verification");
-						continue;
-					}
-					break;
+					continue;
 				}
+
+				//## Verify signature ##//
+				if (0 != verifyLANbeacon(&my_received_lldp_packet->lldpReceivedPayload[14], my_received_lldp_packet->payloadSize - 2 - 14, lanbeacon_keys)) {	// - end of LLDPDU 2 - 14 Ethernet header
+					puts("problem with verification");
+				}
+				
+				break;
 			}
 		}
 	}
@@ -382,9 +383,10 @@ puts("neuTest");
 	else {
 		for (int i = 0; i < numInterfaces; i++) {
 			if (FD_ISSET(sockfd[i], &readfds)) {
-		
+	
 				my_received_lldp_packet->payloadSize = recvfrom(sockfd[i], my_received_lldp_packet->lldpReceivedPayload, LLDP_BUF_SIZ, 0, NULL, NULL);
 
+puts("neuTest");	
 				// Check if the packet was sent to the LLDP multicast MAC address
 				if (!(	eh->ether_dhost[0] == LLDP_DEST_MAC0 &&
 						eh->ether_dhost[1] == LLDP_DEST_MAC1 &&
@@ -392,14 +394,15 @@ puts("neuTest");
 						eh->ether_dhost[3] == LLDP_DEST_MAC3 &&
 						eh->ether_dhost[4] == LLDP_DEST_MAC4 &&
 						eh->ether_dhost[5] == LLDP_DEST_MAC5)) {
-//*neu DER BLOCK MUSS RAUS					
-					//## Verify signature ##//
-					if (0 != verifyLANbeacon(&my_received_lldp_packet->lldpReceivedPayload[14], my_received_lldp_packet->payloadSize - 2 - 14, lanbeacon_keys)) {	// - end of LLDPDU 2 - 14 Ethernet header
-						puts("problem with verification");
-						continue;
-					}
-					break;
+					continue;
 				}
+
+				//## Verify signature ##//
+				if (0 != verifyLANbeacon(&my_received_lldp_packet->lldpReceivedPayload[14], my_received_lldp_packet->payloadSize - 2 - 14, lanbeacon_keys)) {	// - end of LLDPDU 2 - 14 Ethernet header
+					puts("problem with verification");
+				}
+				
+				break;
 			}
 		}
 	}
