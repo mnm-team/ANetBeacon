@@ -52,7 +52,7 @@
 
 //TODO gettext
 
-void getInterfaces (int *sockfd, int *numInterfaces, unsigned short etherType, unsigned short sendOrReceive, struct ifreq *if_idx, struct ifreq *if_mac) {
+void getInterfaces (int *sockfd, int *numInterfaces, unsigned short etherType, unsigned short sendOrReceive, struct ifreq *if_idx, struct ifreq *if_mac, int *sockopt) {
 	
 	struct ifaddrs *interfaces;
 	if (getifaddrs(&interfaces) == -1) {
@@ -89,8 +89,42 @@ void getInterfaces (int *sockfd, int *numInterfaces, unsigned short etherType, u
 	
 	if (sendOrReceive == REC_SOCKET) {
 		
-	}
+		for ( ;interfaces != NULL; interfaces = interfaces->ifa_next) {
+	//TODO printf("%s\n",interfaces->ifa_name);
+		
+			// Skip if interface is not in use or wrong type
+			if (interfaces->ifa_addr == NULL)	continue;
+			if (!(interfaces->ifa_addr->sa_family == AF_PACKET))	continue; 
+		
+			/* Open PF_PACKET socket, listening for EtherType 0x88CC */
+			if ((sockfd[*numInterfaces] = socket(PF_PACKET, SOCK_RAW, htons(etherType))) == -1) {
+				perror("listener: socket");	
+			}
+
+			/* Set interface to promiscuous mode */
+			struct ifreq ifopts;
+			memcpy(ifopts.ifr_name, interfaces->ifa_name, IFNAMSIZ-1);
+			ioctl(sockfd[*numInterfaces], SIOCGIFFLAGS, &ifopts);
+			ifopts.ifr_flags |= IFF_PROMISC;
+			ioctl(sockfd[*numInterfaces], SIOCSIFFLAGS, &ifopts);
 	
+			/* Allow the socket to be reused - incase connection is closed prematurely */
+			if (setsockopt(sockfd[*numInterfaces], SOL_SOCKET, SO_REUSEADDR, &sockopt[*numInterfaces], sizeof sockopt) == -1) {
+				perror("setsockopt");
+				close(sockfd[*numInterfaces]);
+				exit(EXIT_FAILURE);
+			}
+			/* Bind to device */
+			if (setsockopt(sockfd[*numInterfaces], SOL_SOCKET, SO_BINDTODEVICE, interfaces->ifa_name, IFNAMSIZ-1) == -1)	{
+				perror("SO_BINDTODEVICE");
+				close(sockfd[*numInterfaces]);
+				exit(EXIT_FAILURE);
+			}
+	printf("Number %i is interface %s\n", *numInterfaces, interfaces->ifa_name);
+		
+			*numInterfaces = *numInterfaces + 1;
+		}
+	}
 	
 	return;
 }
@@ -144,7 +178,7 @@ int sendLLDPrawSock (int LLDPDU_len, char *LANbeaconCustomTLVs, struct open_ssl_
 	
 	/* Get interfaces */
 
-	getInterfaces (sockfd, &numInterfaces, LLDP_ETHER_TYPE, SEND_SOCKET, if_idx, if_mac);
+	getInterfaces (sockfd, &numInterfaces, LLDP_ETHER_TYPE, SEND_SOCKET, if_idx, if_mac, NULL);
 	
 	while (1) {
 	
@@ -205,10 +239,10 @@ struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys
 	int maxSockFd = 0;
 	struct timeval tv;
 	fd_set readfds;
-	
-
-	
 	int numInterfaces = 0;
+	
+	getInterfaces (sockfd, &numInterfaces, LLDP_ETHER_TYPE, REC_SOCKET, NULL, NULL, sockopt);	
+/*	
 	struct ifaddrs *interfaces;
 	
 	if (getifaddrs(&interfaces) == -1) {
@@ -223,25 +257,25 @@ struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys
 		if (interfaces->ifa_addr == NULL)	continue;
 		if (!(interfaces->ifa_addr->sa_family == AF_PACKET))	continue; 
 		
-		/* Open PF_PACKET socket, listening for EtherType 0x88CC */
+		// Open PF_PACKET socket, listening for EtherType 0x88CC //
 		if ((sockfd[numInterfaces] = socket(PF_PACKET, SOCK_RAW, htons(LLDP_ETHER_TYPE))) == -1) {
 			perror("listener: socket");	
 		}
 
-		/* Set interface to promiscuous mode */
+		// Set interface to promiscuous mode
 		struct ifreq ifopts;
 		memcpy(ifopts.ifr_name, interfaces->ifa_name, IFNAMSIZ-1);
 		ioctl(sockfd[numInterfaces], SIOCGIFFLAGS, &ifopts);
 		ifopts.ifr_flags |= IFF_PROMISC;
 		ioctl(sockfd[numInterfaces], SIOCSIFFLAGS, &ifopts);
 	
-		/* Allow the socket to be reused - incase connection is closed prematurely */
+		// Allow the socket to be reused - incase connection is closed prematurely
 		if (setsockopt(sockfd[numInterfaces], SOL_SOCKET, SO_REUSEADDR, &sockopt[numInterfaces], sizeof sockopt) == -1) {
 			perror("setsockopt");
 			close(sockfd[numInterfaces]);
 			exit(EXIT_FAILURE);
 		}
-		/* Bind to device */
+		// Bind to device
 		if (setsockopt(sockfd[numInterfaces], SOL_SOCKET, SO_BINDTODEVICE, interfaces->ifa_name, IFNAMSIZ-1) == -1)	{
 			perror("SO_BINDTODEVICE");
 			close(sockfd[numInterfaces]);
@@ -256,11 +290,11 @@ printf("Number %i is interface %s\n", numInterfaces, interfaces->ifa_name);
 		
 		numInterfaces++;
 	}
-	/*neu
+*/	
 	for (int i = 0; i < numInterfaces; i++) {
 		if (sockfd[i] > maxSockFd)
 			maxSockFd = sockfd[i];
-	}*/
+	}
 	
 	/////////////////HIER GEHT DER NEUE TEIL LOS
 	///////ASGFKHÖSALKHGÖSAGHSGÖSA
@@ -473,8 +507,8 @@ void sendChallenge (unsigned char *destination_mac, unsigned long challenge) {
 	
 	/* Get interfaces */
 	
-//	getInterfaces (sockfd, &numInterfaces, CHALLENGE_ETHTYPE, SEND_SOCKET, if_idx, if_mac);
-	
+	getInterfaces (sockfd, &numInterfaces, CHALLENGE_ETHTYPE, SEND_SOCKET, if_idx, if_mac, NULL);
+/*	
 	struct ifaddrs *interfaces;
 	
 	if (getifaddrs(&interfaces) == -1) {
@@ -507,7 +541,7 @@ void sendChallenge (unsigned char *destination_mac, unsigned long challenge) {
 		
 		numInterfaces++;
 	}
-	
+*/	
 	for (int i = 0; i<2; i++) {
 		sleep(1);
 		
@@ -562,53 +596,12 @@ unsigned long receiveChallenge() {
 	struct timeval tv;
 	tv.tv_sec = SEND_FREQUENCY;
 	fd_set readfds;
-	FD_ZERO(&readfds);
 	
 	int numInterfaces = 0;
-	struct ifaddrs *interfaces;
 	
-	if (getifaddrs(&interfaces) == -1) {
-		perror("getifaddrs");
-		exit(EXIT_FAILURE);
-	}
+	getInterfaces (sockfd, &numInterfaces, CHALLENGE_ETHTYPE, REC_SOCKET, NULL, NULL, sockopt);	
 	
-	for ( ;interfaces != NULL; interfaces = interfaces->ifa_next) {
-//TODO printf("%s\n",interfaces->ifa_name);
-		
-		// Skip if interface is not in use or wrong type
-		if (interfaces->ifa_addr == NULL)	continue;
-		if (!(interfaces->ifa_addr->sa_family == AF_PACKET))	continue; 
-		
-		/* Open PF_PACKET socket, listening for EtherType 0x88CC */
-		if ((sockfd[numInterfaces] = socket(PF_PACKET, SOCK_RAW, htons(CHALLENGE_ETHTYPE))) == -1) {
-			perror("listener: socket");	
-		}
-
-		/* Set interface to promiscuous mode */
-		struct ifreq ifopts;
-		memcpy(ifopts.ifr_name, interfaces->ifa_name, IFNAMSIZ-1);
-		ioctl(sockfd[numInterfaces], SIOCGIFFLAGS, &ifopts);
-		ifopts.ifr_flags |= IFF_PROMISC;
-		ioctl(sockfd[numInterfaces], SIOCSIFFLAGS, &ifopts);
-	
-		/* Allow the socket to be reused - incase connection is closed prematurely */
-		if (setsockopt(sockfd[numInterfaces], SOL_SOCKET, SO_REUSEADDR, &sockopt[numInterfaces], sizeof sockopt) == -1) {
-			perror("setsockopt");
-			close(sockfd[numInterfaces]);
-			exit(EXIT_FAILURE);
-		}
-		/* Bind to device */
-		if (setsockopt(sockfd[numInterfaces], SOL_SOCKET, SO_BINDTODEVICE, interfaces->ifa_name, IFNAMSIZ-1) == -1)	{
-			perror("SO_BINDTODEVICE");
-			close(sockfd[numInterfaces]);
-			exit(EXIT_FAILURE);
-		}
-printf("Number %i is interface %s\n", numInterfaces, interfaces->ifa_name);
-		
-		FD_SET(sockfd[numInterfaces], &readfds);
-		
-		numInterfaces++;
-	}
+	SET_SELECT_FDS
 	
 	for (int i = 0; i < numInterfaces; i++) {
 		if (sockfd[i] > maxSockFd)
