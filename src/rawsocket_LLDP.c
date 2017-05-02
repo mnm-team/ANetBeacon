@@ -361,10 +361,10 @@ puts("neuTest");
 				break;
 			}
 			else {
-				for (int i = 0; i < numInterfaces; i++) {
-					if (FD_ISSET(sockfd[i], &readfds)) {
+				for (int j = 0; j < numInterfaces; j++) {
+					if (FD_ISSET(sockfd[j], &readfds)) {
 	puts("Deleted something");
-						recvfrom(sockfd[i], NULL, 1500, 0, NULL, NULL);
+						recvfrom(sockfd[j], NULL, 1500, 0, NULL, NULL);
 					}
 				}
 			}
