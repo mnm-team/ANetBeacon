@@ -60,6 +60,13 @@ int main(int argc, char **argv) {
 		struct received_lldp_packet *my_received_lldp_packet = recLLDPrawSock(&lanbeacon_keys);
 		char ** parsedBeaconContents = evaluatelanbeacon(my_received_lldp_packet);
 		bananaPIprint(parsedBeaconContents, &lanbeacon_keys);
+		
+		for (int i = 0 ; i < PARSED_TLVS_MAX_NUMBER; ++i) {
+			free(parsedBeaconContents[i]);
+		}
+		free(parsedBeaconContents);
+		free(my_received_lldp_packet);
+		
 		return EXIT_SUCCESS;
 		}
 	}

@@ -130,6 +130,7 @@ int sendLLDPrawSock (int LLDPDU_len, char *lanbeaconCustomTLVs, struct open_ssl_
 	struct ether_header *eh = (struct ether_header *) lldpEthernetFrame;
 	struct sockaddr_ll socket_address;
 	unsigned long *receivedChallenge = calloc(sizeof(unsigned long), 1);
+	if(!receivedChallenge) puts(_("calloc error of \"receivedChallenge\" in sendLLDPrawSock"))
 	
 	/* Construct the Ethernet header */
 	memset(lldpEthernetFrame, 0, LLDP_BUF_SIZ);
@@ -206,8 +207,10 @@ int sendLLDPrawSock (int LLDPDU_len, char *lanbeaconCustomTLVs, struct open_ssl_
 		size_t slen = 0;
 		signlanbeacon(&sig, &slen, (const unsigned char *) &lldpEthernetFrame[14], (size_t) LLDPDU_len - 256, lanbeacon_keys); 
 		memcpy(&lldpEthernetFrame[frameLength-272+6+4+4], sig, slen);
-		
+		free(sig);
 	}
+	
+	free(receivedChallenge);
 	
 	return EXIT_SUCCESS;
 }
@@ -217,6 +220,7 @@ int sendLLDPrawSock (int LLDPDU_len, char *lanbeaconCustomTLVs, struct open_ssl_
 struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys) {
 	
 	struct received_lldp_packet *my_received_lldp_packet = malloc(sizeof(struct received_lldp_packet));
+	if(!my_received_lldp_packet) puts(_("malloc error of \"my_received_lldp_packet\" in recLLDPrawSock"))
 	struct ether_header *eh = (struct ether_header *) my_received_lldp_packet->lldpReceivedPayload;
 	
 	int sockfd[20];
@@ -224,7 +228,7 @@ struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys
 	
 	// parameters for select()
 	int maxSockFd = 0;
-	struct timeval tv;
+	struct timeval tv = {1, 0};
 	fd_set readfds;
 	int numInterfaces = 0;
 	
@@ -576,16 +580,18 @@ void sendChallenge (unsigned char *destination_mac, unsigned long challenge) {
 unsigned long receiveChallenge() {
 	
 	unsigned char *receiveBuf = calloc(300, 1);
+	if(!receiveBuf) puts(_("calloc error of \"receiveBuf\" in receiveChallenge"))
 	int receivedSize;
 	unsigned long *receivedChallenge = calloc(sizeof(unsigned long), 1);
-	
+	if(!receivedChallenge) puts(_("calloc error of \"receivedChallenge\" in receiveChallenge"))
+		
 	struct ether_header *eh = (struct ether_header *) receiveBuf;
 	int sockfd[20];
 	int sockopt[20];
 	
 	// parameters for select()
 	int maxSockFd = 0;
-	struct timeval tv;
+	struct timeval tv = {1, 0};
 	tv.tv_sec = SEND_FREQUENCY;
 	fd_set readfds;
 	
@@ -633,6 +639,8 @@ printf("found on %i\n",i);
 	
 	for (int i = 0; i < numInterfaces; i++) 
 		close(sockfd[i]);
+	
+	free(receiveBuf);
 	
 	return *receivedChallenge;
 }

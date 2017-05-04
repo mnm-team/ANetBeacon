@@ -44,9 +44,10 @@ char ** evaluatelanbeacon (struct received_lldp_packet *my_received_lldp_packet)
 	
 //	char parsedTLVs [PARSED_TLVS_MAX_NUMBER][PARSED_TLVS_MAX_LENGTH];
 	char ** parsedTLVs = malloc(PARSED_TLVS_MAX_NUMBER * sizeof(char*));
+	if(!parsedTLVs) puts(_("malloc error of \"parsedTLVs\" in evaluatelanbeacon"))
 	for (int i =0 ; i < PARSED_TLVS_MAX_NUMBER; ++i) {
-		parsedTLVs[i] = malloc(PARSED_TLVS_MAX_LENGTH * sizeof(char));
-		parsedTLVs[i][0] = 0;
+		parsedTLVs[i] = calloc(PARSED_TLVS_MAX_LENGTH, sizeof(char));
+		if(!parsedTLVs[i]) puts(_("malloc error of \"parsedTLVs\" in evaluatelanbeacon"))
 	}
 
 
