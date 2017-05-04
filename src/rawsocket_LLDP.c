@@ -31,7 +31,7 @@
 #include "openssl_sign.h"
 #include "define.h"
 #include "openssl_sign.h"
-#define _GNU_SOURCE	 /* To get defns of NI_MAXSERV and NI_MAXHOST */
+#define _GNU_SOURCE	 // To get defns of NI_MAXSERV and NI_MAXHOST
 
 #define LLDP_DEST_MAC0	0x01
 #define LLDP_DEST_MAC1	0x80
@@ -73,31 +73,31 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 		if(!receivedChallenge) puts(_("calloc error of \"receivedChallenge\" in sendLLDPrawSock"));
 	}
 	
-	/* Construct the Ethernet header */
+	// Construct the Ethernet header
 	memset(lldpEthernetFrame, 0, LLDP_BUF_SIZ);
 	
 	memcpy(eh->ether_dhost, destination_mac, 6);
 	
-	/* Ethertype field */
+	// Ethertype field
 	eh->ether_type = htons(etherType);
 	frameLength += sizeof(struct ether_header);
 	
-	/* Packet data */
+	// Packet data
 	memcpy(&lldpEthernetFrame[frameLength], &payload, payloadLen);
 	frameLength += payloadLen; 
 	
 	if (etherType == LLDP_ETHER_TYPE) {
-		/* End of LLDPDU TLV */
+		// End of LLDPDU TLV
 		lldpEthernetFrame[frameLength++] = 0x00;
 		lldpEthernetFrame[frameLength++] = 0x00;
 	}
 	
 	/* Address length*/
 	socket_address.sll_halen = ETH_ALEN;
-	/* Destination MAC */
+	// Destination MAC
 	memcpy(socket_address.sll_addr, destination_mac, 6);
 	
-	/* Get interfaces */
+	// Get interfaces
 	getInterfaces (sockfd, &numInterfaces, etherType, SEND_SOCKET, if_idx, if_mac, NULL, NULL);
 	
 	for (int i = 0; i<7; ) {
@@ -105,7 +105,7 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 		// send packets on all interfaces
 		for(int i = 0; i < numInterfaces; i++) {
 
-			/* Ethernet header */
+			// Ethernet header
 			eh->ether_shost[0] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[0];
 			eh->ether_shost[1] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[1];
 			eh->ether_shost[2] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[2];
@@ -113,10 +113,10 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 			eh->ether_shost[4] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[4];
 			eh->ether_shost[5] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[5];
 
-			/* Index of the network device */
+			// Index of the network device
 			socket_address.sll_ifindex = if_idx[i].ifr_ifindex;
 			
-			/* Send packet */
+			// Send packet
 			if (sendto(sockfd[i], lldpEthernetFrame, frameLength, 0, (struct sockaddr*)&socket_address, sizeof(struct sockaddr_ll)) < 0)
 				printf(_("Send failed on interface number %i\n"), i);
 			else
@@ -227,7 +227,10 @@ void getInterfaces (int *sockfd, int *numInterfaces, unsigned short etherType, u
 // parts of code based on https://gist.github.com/austinmarton/1922600
 int sendLLDPrawSock (int LLDPDU_len, char *lanbeaconCustomTLVs, struct open_ssl_keys *lanbeacon_keys)
 {
-	int sockfd[20];
+	void sendRawSocket (const unsigned char[]){{LLDP_DEST_MAC0, LLDP_DEST_MAC1, LLDP_DEST_MAC2, LLDP_DEST_MAC3, LLDP_DEST_MAC4, LLDP_DEST_MAC5}}, lanbeaconCustomTLVs, LLDPDU_len, LLDP_ETHER_TYPE, lanbeacon_keys)
+	
+	
+/*	int sockfd[20];
 	struct ifreq if_idx[20];
 	struct ifreq if_mac[20];
 	int numInterfaces = 0;
@@ -238,7 +241,7 @@ int sendLLDPrawSock (int LLDPDU_len, char *lanbeaconCustomTLVs, struct open_ssl_
 	unsigned long *receivedChallenge = calloc(sizeof(unsigned long), 1);
 	if(!receivedChallenge) puts(_("calloc error of \"receivedChallenge\" in sendLLDPrawSock"));
 	
-	/* Construct the Ethernet header */
+	// Construct the Ethernet header
 	memset(lldpEthernetFrame, 0, LLDP_BUF_SIZ);
 
 	eh->ether_dhost[0] = LLDP_DEST_MAC0;
@@ -248,21 +251,21 @@ int sendLLDPrawSock (int LLDPDU_len, char *lanbeaconCustomTLVs, struct open_ssl_
 	eh->ether_dhost[4] = LLDP_DEST_MAC4;
 	eh->ether_dhost[5] = LLDP_DEST_MAC5;
 	
-	/* Ethertype field */
+	// Ethertype field
 	eh->ether_type = htons(LLDP_ETHER_TYPE);
 	frameLength += sizeof(struct ether_header);
 	
-	/* Packet data */
+	// Packet data
 	memcpy(&lldpEthernetFrame[frameLength], lanbeaconCustomTLVs, LLDPDU_len);
 	frameLength += LLDPDU_len; 
 	
-	/* End of LLDPDU TLV */
+	// End of LLDPDU TLV
 	lldpEthernetFrame[frameLength++] = 0x00;
 	lldpEthernetFrame[frameLength++] = 0x00;
 	
-	/* Address length*/
+	// Address length
 	socket_address.sll_halen = ETH_ALEN;
-	/* Destination MAC */
+	// Destination MAC
 	socket_address.sll_addr[0] = LLDP_DEST_MAC0;
 	socket_address.sll_addr[1] = LLDP_DEST_MAC1;
 	socket_address.sll_addr[2] = LLDP_DEST_MAC2;
@@ -270,7 +273,7 @@ int sendLLDPrawSock (int LLDPDU_len, char *lanbeaconCustomTLVs, struct open_ssl_
 	socket_address.sll_addr[4] = LLDP_DEST_MAC4;
 	socket_address.sll_addr[5] = LLDP_DEST_MAC5;
 	
-	/* Get interfaces */
+	// Get interfaces
 
 	getInterfaces (sockfd, &numInterfaces, LLDP_ETHER_TYPE, SEND_SOCKET, if_idx, if_mac, NULL, NULL);
 	
@@ -279,7 +282,7 @@ int sendLLDPrawSock (int LLDPDU_len, char *lanbeaconCustomTLVs, struct open_ssl_
 		// send packets on all interfaces
 		for(int i = 0; i < numInterfaces; i++) {
 
-			/* Ethernet header */
+			// Ethernet header
 			eh->ether_shost[0] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[0];
 			eh->ether_shost[1] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[1];
 			eh->ether_shost[2] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[2];
@@ -287,10 +290,10 @@ int sendLLDPrawSock (int LLDPDU_len, char *lanbeaconCustomTLVs, struct open_ssl_
 			eh->ether_shost[4] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[4];
 			eh->ether_shost[5] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[5];
 
-			/* Index of the network device */
+			// Index of the network device
 			socket_address.sll_ifindex = if_idx[i].ifr_ifindex;
 			
-			/* Send packet */
+			// Send packet
 			if (sendto(sockfd[i], lldpEthernetFrame, frameLength, 0, (struct sockaddr*)&socket_address, sizeof(struct sockaddr_ll)) < 0)
 				printf(_("Send failed on interface number %i\n"), i);
 			else
@@ -317,8 +320,10 @@ int sendLLDPrawSock (int LLDPDU_len, char *lanbeaconCustomTLVs, struct open_ssl_
 	}
 	
 	free(receivedChallenge);
+*/
 	
 	return EXIT_SUCCESS;
+
 }
 
 
@@ -436,29 +441,29 @@ void sendChallenge (unsigned char *destination_mac, unsigned long challenge) {
 	struct ether_header *eh = (struct ether_header *) lldpEthernetFrame;
 	struct sockaddr_ll socket_address;
 	
-	/* Construct the Ethernet header */
+	// Construct the Ethernet header
 	memset(lldpEthernetFrame, 0, LLDP_BUF_SIZ);
 	
 	memcpy(eh->ether_dhost, destination_mac, 6);
 	
-	/* Ethertype field */
+	// Ethertype field
 	eh->ether_type = htons(CHALLENGE_ETHTYPE);		// TODO
 	frameLength += sizeof(struct ether_header);
 	
-	/* Packet data */
+	// Packet data
 	memcpy(&lldpEthernetFrame[frameLength], &challenge, challenge_len);
 	frameLength += challenge_len; 
 	
-//	/* End of LLDPDU TLV */
+//	// End of LLDPDU TLV
 //	lldpEthernetFrame[frameLength++] = 0x00;
 //	lldpEthernetFrame[frameLength++] = 0x00;
 	
 	/* Address length*/
 	socket_address.sll_halen = ETH_ALEN;
-	/* Destination MAC */
+	// Destination MAC
 	memcpy(socket_address.sll_addr, destination_mac, 6);
 	
-	/* Get interfaces */
+	// Get interfaces
 	
 	getInterfaces (sockfd, &numInterfaces, CHALLENGE_ETHTYPE, SEND_SOCKET, if_idx, if_mac, NULL, NULL);
 	
@@ -468,7 +473,7 @@ void sendChallenge (unsigned char *destination_mac, unsigned long challenge) {
 		// send packets on all interfaces
 		for(int i = 0; i < numInterfaces; i++) {
 
-			/* Ethernet header */
+			// Ethernet header
 			eh->ether_shost[0] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[0];
 			eh->ether_shost[1] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[1];
 			eh->ether_shost[2] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[2];
@@ -476,10 +481,10 @@ void sendChallenge (unsigned char *destination_mac, unsigned long challenge) {
 			eh->ether_shost[4] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[4];
 			eh->ether_shost[5] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[5];
 
-			/* Index of the network device */
+			// Index of the network device
 			socket_address.sll_ifindex = if_idx[i].ifr_ifindex;
 			
-			/* Send packet */
+			// Send packet
 			if (sendto(sockfd[i], lldpEthernetFrame, frameLength, 0, (struct sockaddr*)&socket_address, sizeof(struct sockaddr_ll)) < 0)
 				printf("Send failed on interface number %i\n", i);
 			else
