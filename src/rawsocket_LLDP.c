@@ -52,10 +52,8 @@
 
 //TODO gettext
 
-
 void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLen, unsigned short etherType, struct open_ssl_keys *lanbeacon_keys) {
 	if (etherType == CHALLENGE_ETHTYPE) * (unsigned long *) payload = htonl(*(unsigned long *) payload);
-
 
 	int sockfd[20];
 	struct ifreq if_idx[20];
@@ -66,7 +64,7 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 	struct ether_header *eh = (struct ether_header *) lldpEthernetFrame;
 	struct sockaddr_ll socket_address;
 	
-	unsigned long *receivedChallenge; 
+	unsigned long *receivedChallenge = NULL;
 	
 	if (etherType == LLDP_ETHER_TYPE) {
 		receivedChallenge = calloc(sizeof(unsigned long), 1);
@@ -75,7 +73,6 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 	
 	// Construct the Ethernet header
 	memset(lldpEthernetFrame, 0, LLDP_BUF_SIZ);
-	
 	memcpy(eh->ether_dhost, destination_mac, 6);
 	
 	// Ethertype field
@@ -83,7 +80,7 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 	frameLength += sizeof(struct ether_header);
 	
 	// Packet data
-	memcpy(&lldpEthernetFrame[frameLength], &payload, payloadLen);
+	memcpy(&lldpEthernetFrame[frameLength], payload, payloadLen);
 	frameLength += payloadLen; 
 	
 	if (etherType == LLDP_ETHER_TYPE) {
@@ -150,7 +147,7 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 
 	}
 	
-	free(receivedChallenge);
+	//free(receivedChallenge);
 	
 	return;
 }
@@ -227,103 +224,8 @@ void getInterfaces (int *sockfd, int *numInterfaces, unsigned short etherType, u
 // parts of code based on https://gist.github.com/austinmarton/1922600
 int sendLLDPrawSock (int LLDPDU_len, char *lanbeaconCustomTLVs, struct open_ssl_keys *lanbeacon_keys)
 {
-	void sendRawSocket (const unsigned char[]){{LLDP_DEST_MAC0, LLDP_DEST_MAC1, LLDP_DEST_MAC2, LLDP_DEST_MAC3, LLDP_DEST_MAC4, LLDP_DEST_MAC5}}, lanbeaconCustomTLVs, LLDPDU_len, LLDP_ETHER_TYPE, lanbeacon_keys)
-	
-	
-/*	int sockfd[20];
-	struct ifreq if_idx[20];
-	struct ifreq if_mac[20];
-	int numInterfaces = 0;
-	int frameLength = 0;
-	char lldpEthernetFrame[LLDP_BUF_SIZ];
-	struct ether_header *eh = (struct ether_header *) lldpEthernetFrame;
-	struct sockaddr_ll socket_address;
-	unsigned long *receivedChallenge = calloc(sizeof(unsigned long), 1);
-	if(!receivedChallenge) puts(_("calloc error of \"receivedChallenge\" in sendLLDPrawSock"));
-	
-	// Construct the Ethernet header
-	memset(lldpEthernetFrame, 0, LLDP_BUF_SIZ);
-
-	eh->ether_dhost[0] = LLDP_DEST_MAC0;
-	eh->ether_dhost[1] = LLDP_DEST_MAC1;
-	eh->ether_dhost[2] = LLDP_DEST_MAC2;
-	eh->ether_dhost[3] = LLDP_DEST_MAC3;
-	eh->ether_dhost[4] = LLDP_DEST_MAC4;
-	eh->ether_dhost[5] = LLDP_DEST_MAC5;
-	
-	// Ethertype field
-	eh->ether_type = htons(LLDP_ETHER_TYPE);
-	frameLength += sizeof(struct ether_header);
-	
-	// Packet data
-	memcpy(&lldpEthernetFrame[frameLength], lanbeaconCustomTLVs, LLDPDU_len);
-	frameLength += LLDPDU_len; 
-	
-	// End of LLDPDU TLV
-	lldpEthernetFrame[frameLength++] = 0x00;
-	lldpEthernetFrame[frameLength++] = 0x00;
-	
-	// Address length
-	socket_address.sll_halen = ETH_ALEN;
-	// Destination MAC
-	socket_address.sll_addr[0] = LLDP_DEST_MAC0;
-	socket_address.sll_addr[1] = LLDP_DEST_MAC1;
-	socket_address.sll_addr[2] = LLDP_DEST_MAC2;
-	socket_address.sll_addr[3] = LLDP_DEST_MAC3;
-	socket_address.sll_addr[4] = LLDP_DEST_MAC4;
-	socket_address.sll_addr[5] = LLDP_DEST_MAC5;
-	
-	// Get interfaces
-
-	getInterfaces (sockfd, &numInterfaces, LLDP_ETHER_TYPE, SEND_SOCKET, if_idx, if_mac, NULL, NULL);
-	
-	while (1) {
-	
-		// send packets on all interfaces
-		for(int i = 0; i < numInterfaces; i++) {
-
-			// Ethernet header
-			eh->ether_shost[0] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[0];
-			eh->ether_shost[1] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[1];
-			eh->ether_shost[2] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[2];
-			eh->ether_shost[3] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[3];
-			eh->ether_shost[4] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[4];
-			eh->ether_shost[5] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[5];
-
-			// Index of the network device
-			socket_address.sll_ifindex = if_idx[i].ifr_ifindex;
-			
-			// Send packet
-			if (sendto(sockfd[i], lldpEthernetFrame, frameLength, 0, (struct sockaddr*)&socket_address, sizeof(struct sockaddr_ll)) < 0)
-				printf(_("Send failed on interface number %i\n"), i);
-			else
-				printf(_("Successfully sent on interface number %i\n"), i);
-		}
-		
-		if (*receivedChallenge == 0) {
-			*receivedChallenge = receiveChallenge();
-			*receivedChallenge = htonl(*receivedChallenge);
-			memcpy(&lldpEthernetFrame[frameLength-272+6], receivedChallenge, 4);
-		}
-		else
-			sleep(2);
-		
-		//## add signature ##//
-		time_t timeStamp = time(NULL);
-		timeStamp = htonl(timeStamp);
-		memcpy(&lldpEthernetFrame[frameLength-272+6+4], &timeStamp, 4);
-		unsigned char* sig = NULL;
-		size_t slen = 0;
-		signlanbeacon(&sig, &slen, (const unsigned char *) &lldpEthernetFrame[14], (size_t) LLDPDU_len - 256, lanbeacon_keys); 
-		memcpy(&lldpEthernetFrame[frameLength-272+6+4+4], sig, slen);
-		free(sig);
-	}
-	
-	free(receivedChallenge);
-*/
-	
+	sendRawSocket ((unsigned char[6]){LLDP_DEST_MAC0, LLDP_DEST_MAC1, LLDP_DEST_MAC2, LLDP_DEST_MAC3, LLDP_DEST_MAC4, LLDP_DEST_MAC5}, lanbeaconCustomTLVs, LLDPDU_len, LLDP_ETHER_TYPE, lanbeacon_keys);
 	return EXIT_SUCCESS;
-
 }
 
 
@@ -388,7 +290,9 @@ struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys
 			// delete received packet, send challenge and flush buffer
 			memset (my_received_lldp_packet->lldpReceivedPayload, 0, LLDP_BUF_SIZ);
 	
-			sendChallenge (eh->ether_shost, 65534);
+			unsigned long challenge = 65534;
+			sendRawSocket (eh->ether_shost, &challenge, 4, CHALLENGE_ETHTYPE, NULL);
+			
 	
 		//	SET_SELECT_FDS
 			tv.tv_sec = 0;
@@ -420,80 +324,6 @@ struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys
 	return my_received_lldp_packet;
 }
 
-
-#define CHALLENGE_ETHTYPE 0x88B5
-
-void sendChallenge (unsigned char *destination_mac, unsigned long challenge) {
-	
-	int challenge_len = 4;
-	
-//printf("ChallengeSize: %zu\n",sizeof(long));
-	
-	challenge = htonl(challenge);
-	
-	
-	int sockfd[20];
-	struct ifreq if_idx[20];
-	struct ifreq if_mac[20];
-	int frameLength = 0;
-	int numInterfaces = 0;
-	char lldpEthernetFrame[LLDP_BUF_SIZ];
-	struct ether_header *eh = (struct ether_header *) lldpEthernetFrame;
-	struct sockaddr_ll socket_address;
-	
-	// Construct the Ethernet header
-	memset(lldpEthernetFrame, 0, LLDP_BUF_SIZ);
-	
-	memcpy(eh->ether_dhost, destination_mac, 6);
-	
-	// Ethertype field
-	eh->ether_type = htons(CHALLENGE_ETHTYPE);		// TODO
-	frameLength += sizeof(struct ether_header);
-	
-	// Packet data
-	memcpy(&lldpEthernetFrame[frameLength], &challenge, challenge_len);
-	frameLength += challenge_len; 
-	
-//	// End of LLDPDU TLV
-//	lldpEthernetFrame[frameLength++] = 0x00;
-//	lldpEthernetFrame[frameLength++] = 0x00;
-	
-	/* Address length*/
-	socket_address.sll_halen = ETH_ALEN;
-	// Destination MAC
-	memcpy(socket_address.sll_addr, destination_mac, 6);
-	
-	// Get interfaces
-	
-	getInterfaces (sockfd, &numInterfaces, CHALLENGE_ETHTYPE, SEND_SOCKET, if_idx, if_mac, NULL, NULL);
-	
-	for (int i = 0; i<7; i++) {
-		usleep(170000);
-		
-		// send packets on all interfaces
-		for(int i = 0; i < numInterfaces; i++) {
-
-			// Ethernet header
-			eh->ether_shost[0] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[0];
-			eh->ether_shost[1] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[1];
-			eh->ether_shost[2] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[2];
-			eh->ether_shost[3] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[3];
-			eh->ether_shost[4] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[4];
-			eh->ether_shost[5] = ((uint8_t *)&if_mac[i].ifr_hwaddr.sa_data)[5];
-
-			// Index of the network device
-			socket_address.sll_ifindex = if_idx[i].ifr_ifindex;
-			
-			// Send packet
-			if (sendto(sockfd[i], lldpEthernetFrame, frameLength, 0, (struct sockaddr*)&socket_address, sizeof(struct sockaddr_ll)) < 0)
-				printf("Send failed on interface number %i\n", i);
-			else
-				printf("Successfully sent CHALLENGE on interface number %i\n", i);
-		}
-	}
-	
-	return;
-}
 
 // parts of code based on https://gist.github.com/austinmarton/2862515
 unsigned long receiveChallenge() {
