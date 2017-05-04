@@ -6,14 +6,14 @@ bin_PROGRAMS = lanbeacon
 lanbeacon_SOURCES = main.c sender.c sender.h rawsocket_LLDP.c rawsocket_LLDP.h receiver.c receiver.h openssl_sign.c openssl_sign.h cberry_includes_tft.c cberry_includes_tft.h cberry_includes_RAIO8870.c cberry_includes_RAIO8870.h
 
 lanbeacon:			CFLAGS = -Wall -Werror -g -std=c11 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-value -lcrypto
-bananaLANbeacon:	CFLAGS = -Wall -Werror -g -std=c11 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-value -lcrypto -DBANANAPI_SWITCH
+bananalanbeacon:	CFLAGS = -Wall -Werror -g -std=c11 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-value -lcrypto -DBANANAPI_SWITCH
 
 lanbeacon: $(OBJECTS)
 		$(CC) $(CFLAGS) $(OBJECTS) -o lanbeacon
 		rm -rf *.o
 		rm -rf a.out
 
-bananaLANbeacon: $(OBJECTS) $(BANANAOBJECTS)
+bananalanbeacon: $(OBJECTS) $(BANANAOBJECTS)
 		$(CC) $(CFLAGS) $(OBJECTS) $(BANANAOBJECTS) -lwiringPi -lrt -lm -o lanbeacon
 		rm -rf *.o
 		rm -rf a.out
@@ -37,10 +37,10 @@ translations:
 
 doxygen:
 		cd ../doc/ && \
-		doxygen doxygenConfig_LANbeacon && \
+		doxygen doxygenConfig_lanbeacon && \
 		cd latex/ && \
 		make && \
-		cp refman.pdf ../doxygen_LANbeacon.pdf
+		cp refman.pdf ../doxygen_lanbeacon.pdf
 
 clean:
 		rm -rf *.o lanbeacon
