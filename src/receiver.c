@@ -40,7 +40,7 @@
 	TLV_CUSTOM_COPY(descriptor, (char*) &my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+6], currentTLVsize-4);	/* +6 because header 2 + OUI 3 + Subtype 1 */	 /* -4 due to 3 OUI + 1 Subtype */
 	 
 
-char ** evaluateLANbeacon (struct received_lldp_packet *my_received_lldp_packet) {
+char ** evaluatelanbeacon (struct received_lldp_packet *my_received_lldp_packet) {
 	
 //	char parsedTLVs [PARSED_TLVS_MAX_NUMBER][PARSED_TLVS_MAX_LENGTH];
 	char ** parsedTLVs = malloc(PARSED_TLVS_MAX_NUMBER * sizeof(char*));
@@ -250,7 +250,7 @@ puts("\n\n\n####PIdisplay: ####");
 		// TODO umstellen (loop vllt in main?!)
 //		struct received_lldp_packet *my_received_lldp_packet = recLLDPrawSock(lanbeacon_keys);
 		
-//		parsedBeaconContents = evaluateLANbeacon(my_received_lldp_packet);
+//		parsedBeaconContents = evaluatelanbeacon(my_received_lldp_packet);
 
 //		begin = clock();
 		

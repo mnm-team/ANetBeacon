@@ -119,7 +119,7 @@ void getInterfaces (int *sockfd, int *numInterfaces, unsigned short etherType, u
 
 
 // parts of code based on https://gist.github.com/austinmarton/1922600
-int sendLLDPrawSock (int LLDPDU_len, char *LANbeaconCustomTLVs, struct open_ssl_keys *lanbeacon_keys)
+int sendLLDPrawSock (int LLDPDU_len, char *lanbeaconCustomTLVs, struct open_ssl_keys *lanbeacon_keys)
 {
 	int sockfd[20];
 	struct ifreq if_idx[20];
@@ -146,7 +146,7 @@ int sendLLDPrawSock (int LLDPDU_len, char *LANbeaconCustomTLVs, struct open_ssl_
 	frameLength += sizeof(struct ether_header);
 	
 	/* Packet data */
-	memcpy(&lldpEthernetFrame[frameLength], LANbeaconCustomTLVs, LLDPDU_len);
+	memcpy(&lldpEthernetFrame[frameLength], lanbeaconCustomTLVs, LLDPDU_len);
 	frameLength += LLDPDU_len; 
 	
 	/* End of LLDPDU TLV */
@@ -204,7 +204,7 @@ int sendLLDPrawSock (int LLDPDU_len, char *LANbeaconCustomTLVs, struct open_ssl_
 		memcpy(&lldpEthernetFrame[frameLength-272+6+4], &timeStamp, 4);
 		unsigned char* sig = NULL;
 		size_t slen = 0;
-		signLANbeacon(&sig, &slen, (const unsigned char *) &lldpEthernetFrame[14], (size_t) LLDPDU_len - 256, lanbeacon_keys); 
+		signlanbeacon(&sig, &slen, (const unsigned char *) &lldpEthernetFrame[14], (size_t) LLDPDU_len - 256, lanbeacon_keys); 
 		memcpy(&lldpEthernetFrame[frameLength-272+6+4+4], sig, slen);
 		
 	}
@@ -290,7 +290,7 @@ printf("Number %i is interface %s\n", numInterfaces, interfaces->ifa_name);
 	int rv;
 	
 /*neu
-	// receive one LANbeacon frame, send a challenge to the source MAC and 
+	// receive one lanbeacon frame, send a challenge to the source MAC and 
 	// then wait for the frame containing the challenge
 */	
 	// read first packet
@@ -318,7 +318,7 @@ puts("neuTest");
 				}
 
 				//## Verify signature ##//
-				if (0 != verifyLANbeacon(&my_received_lldp_packet->lldpReceivedPayload[14], my_received_lldp_packet->payloadSize - 2 - 14, lanbeacon_keys)) {	// - end of LLDPDU 2 - 14 Ethernet header
+				if (0 != verifylanbeacon(&my_received_lldp_packet->lldpReceivedPayload[14], my_received_lldp_packet->payloadSize - 2 - 14, lanbeacon_keys)) {	// - end of LLDPDU 2 - 14 Ethernet header
 					puts("problem with verification");
 				}
 				
@@ -383,7 +383,7 @@ puts("neuTest");
 				}
 
 				//## Verify signature ##//
-				if (0 != verifyLANbeacon(&my_received_lldp_packet->lldpReceivedPayload[14], my_received_lldp_packet->payloadSize - 2 - 14, lanbeacon_keys)) {	// - end of LLDPDU 2 - 14 Ethernet header
+				if (0 != verifylanbeacon(&my_received_lldp_packet->lldpReceivedPayload[14], my_received_lldp_packet->payloadSize - 2 - 14, lanbeacon_keys)) {	// - end of LLDPDU 2 - 14 Ethernet header
 					puts("problem with verification");
 				}
 				
@@ -431,7 +431,7 @@ puts("nach dem zweiten Empfangen"); sleep(3);
 					}
 			
 					//## Verify signature ##//
-					if (0 != verifyLANbeacon(&my_received_lldp_packet->lldpReceivedPayload[14], my_received_lldp_packet->payloadSize - 2 - 14, lanbeacon_keys)) {	// - end of LLDPDU 2 - 14 Ethernet header
+					if (0 != verifylanbeacon(&my_received_lldp_packet->lldpReceivedPayload[14], my_received_lldp_packet->payloadSize - 2 - 14, lanbeacon_keys)) {	// - end of LLDPDU 2 - 14 Ethernet header
 						puts("problem with verification");
 						continue;
 					}

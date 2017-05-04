@@ -13,7 +13,7 @@
 
 /* 
 - to run enter:
-clear && make && clear && ./LANbeacon -4 "Gobi: 192.168.178.133/24 Arktis: 111.222.111.222/16 Kalahari: 222.111.222.111/17" -6 "LRZ: 2001:618:11:1:1::1/127 MNM: 2001:cdba:0:0:0:0:3257:9652/33" -e "dominik.bitzer@mailbox.org" -d "DHCP info" -r "MAC: 00:04:4b:01:70:aa" -i 937 -n "MNM-VLAN Team IPsec" -c 'Das ist ein Beispiel fuer einen benutzerdefinierten String. Es kann beliebiger Text mitgegeben werden' && echo && xxd  -c 16 testNewTransfer
+clear && make && clear && ./lanbeacon -4 "Gobi: 192.168.178.133/24 Arktis: 111.222.111.222/16 Kalahari: 222.111.222.111/17" -6 "LRZ: 2001:618:11:1:1::1/127 MNM: 2001:cdba:0:0:0:0:3257:9652/33" -e "dominik.bitzer@mailbox.org" -d "DHCP info" -r "MAC: 00:04:4b:01:70:aa" -i 937 -n "MNM-VLAN Team IPsec" -c 'Das ist ein Beispiel fuer einen benutzerdefinierten String. Es kann beliebiger Text mitgegeben werden' && echo && xxd  -c 16 testNewTransfer
 
 - saving TCPdump: tcpdump -s 65535 -w meindump ether proto 0x88cc
 */
@@ -24,8 +24,8 @@ int main(int argc, char **argv) {
 	setlocale (LC_ALL, "");
 	char currentL10nFolder[200];
 	sprintf(currentL10nFolder, "%s%s", getenv("PWD"), "/l10n");
-	bindtextdomain ("LANbeacon", currentL10nFolder); // "/usr/share/locale/");
-	textdomain ("LANbeacon");
+	bindtextdomain ("lanbeacon", currentL10nFolder); // "/usr/share/locale/");
+	textdomain ("lanbeacon");
 	
 	struct open_ssl_keys lanbeacon_keys = {.path_To_Verifying_Key = "pubkey.pem", .path_To_Signing_Key = "privkey.pem" };
 //printf("%s\n%s\n", lanbeacon_keys.path_To_Verifying_Key, lanbeacon_keys.path_To_Signing_Key);
@@ -56,17 +56,17 @@ int main(int argc, char **argv) {
 				}
 			}
 		
-		//## receiving LANbeacon
+		//## receiving lanbeacon
 		struct received_lldp_packet *my_received_lldp_packet = recLLDPrawSock(&lanbeacon_keys);
-		char ** parsedBeaconContents = evaluateLANbeacon(my_received_lldp_packet);
+		char ** parsedBeaconContents = evaluatelanbeacon(my_received_lldp_packet);
 		bananaPIprint(parsedBeaconContents, &lanbeacon_keys);
 		return EXIT_SUCCESS;
 		}
 	}
 		
-	//## creating and sending LANbeacon
+	//## creating and sending lanbeacon
 	int lldpdu_len;
-	char *lanBeaconCustomTLVs = mergedLANbeaconCreator(&argc, argv, &lldpdu_len, &lanbeacon_keys);
+	char *lanBeaconCustomTLVs = mergedlanbeaconCreator(&argc, argv, &lldpdu_len, &lanbeacon_keys);
 
 	sendLLDPrawSock (lldpdu_len, lanBeaconCustomTLVs, &lanbeacon_keys);
 	

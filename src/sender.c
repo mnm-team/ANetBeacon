@@ -17,26 +17,26 @@
 
 /* Howto adding new fields:
 	1. Add defines for desired new field in define.h
-	2. Add desired options in mergedLANbeaconCreator()
+	2. Add desired options in mergedlanbeaconCreator()
 */
 
 // code loosely based on code from my Systempraktikum https://github.com/ciil/nine-mens-morris/blob/master/src/config.c
-char *mergedLANbeaconCreator (int *argc, char **argv, int *lldpdu_len, struct open_ssl_keys *lanbeacon_keys) {
+char *mergedlanbeaconCreator (int *argc, char **argv, int *lldpdu_len, struct open_ssl_keys *lanbeacon_keys) {
 	
-	char *myLANbeacon = malloc(1500);
+	char *mylanbeacon = malloc(1500);
 	int currentByte = 0;	//counter for current position in Array combinedBeacon, starting after TLV header
 	
 	char *combinedString[5];	// Maximum of 5 strings of combined human-readable text in case they are longer than 507 bytes (TLV max)
 	for(int i=0; i<5; i++) combinedString[i] = calloc(507, 1);
 	
 	unsigned char chasisSubtype[9] = { 0x02, 0x07, 0x04, 0xbc, 0x5f, 0xf4, 0x14, 0x34, 0x6d };	//TODO
-	memcpy(&myLANbeacon[currentByte], chasisSubtype, 9);
+	memcpy(&mylanbeacon[currentByte], chasisSubtype, 9);
 	currentByte += 9;
 	unsigned char portSubtype[9] = { 0x04, 0x07, 0x03, 0xbc, 0x5f, 0xf4, 0x14, 0x34, 0x6d };	//TODO
-	memcpy(&myLANbeacon[currentByte], portSubtype, 9);
+	memcpy(&mylanbeacon[currentByte], portSubtype, 9);
 	currentByte += 9;
 	unsigned char timeToLive[4] = { 0x06, 0x02, 0x00, 0x14 };	//TODO
-	memcpy(&myLANbeacon[currentByte], timeToLive, 4);
+	memcpy(&mylanbeacon[currentByte], timeToLive, 4);
 	currentByte += 4;
 	
 	//## custom TLV arguments ##//
@@ -48,25 +48,25 @@ char *mergedLANbeaconCreator (int *argc, char **argv, int *lldpdu_len, struct op
 			case 'i':	//## TLV VLAN ID ##//
 				transferToCombinedString (DESCRIPTOR_VLAN_ID, combinedString, optarg); 
 				unsigned short int vlan_id = htons( (unsigned short int) strtoul(optarg,NULL,10) );
-				transferToCombinedBeacon (SUBTYPE_VLAN_ID, &vlan_id, myLANbeacon, &currentByte, 2);	
+				transferToCombinedBeacon (SUBTYPE_VLAN_ID, &vlan_id, mylanbeacon, &currentByte, 2);	
 				break;
 				
 			case 'n':
 				transferToCombinedBeaconAndString(SUBTYPE_NAME, DESCRIPTOR_NAME, 
-					combinedString, optarg, myLANbeacon, &currentByte);
+					combinedString, optarg, mylanbeacon, &currentByte);
 				break;
 				
 			case 'c':
 				transferToCombinedBeaconAndString(SUBTYPE_CUSTOM, DESCRIPTOR_CUSTOM, 
-					combinedString, optarg, myLANbeacon, &currentByte);
+					combinedString, optarg, mylanbeacon, &currentByte);
 				break;
 
 			case '4':
-				ipParser (AF_INET, optarg, combinedString, myLANbeacon, &currentByte);
+				ipParser (AF_INET, optarg, combinedString, mylanbeacon, &currentByte);
 				break;
 				
 			case '6':
-				ipParser (AF_INET6, optarg, combinedString, myLANbeacon, &currentByte);
+				ipParser (AF_INET6, optarg, combinedString, mylanbeacon, &currentByte);
 				break;
 
 			case 'e':
@@ -87,7 +87,7 @@ char *mergedLANbeaconCreator (int *argc, char **argv, int *lldpdu_len, struct op
 				regfree(&compiled_regex);
 				
 				transferToCombinedBeaconAndString(SUBTYPE_EMAIL, DESCRIPTOR_EMAIL, 
-					combinedString, optarg, myLANbeacon, &currentByte);
+					combinedString, optarg, mylanbeacon, &currentByte);
 				break;
 
 			case 's':
@@ -100,12 +100,12 @@ char *mergedLANbeaconCreator (int *argc, char **argv, int *lldpdu_len, struct op
 
 			case 'd':
 				transferToCombinedBeaconAndString(SUBTYPE_DHCP, DESCRIPTOR_DHCP, 
-					combinedString, optarg, myLANbeacon, &currentByte);
+					combinedString, optarg, mylanbeacon, &currentByte);
 				break;
 
 			case 'r':
 				transferToCombinedBeaconAndString(SUBTYPE_ROUTER, DESCRIPTOR_ROUTER, 
-					combinedString, optarg, myLANbeacon, &currentByte);
+					combinedString, optarg, mylanbeacon, &currentByte);
 				break;
 
 			case 'h':
@@ -120,7 +120,7 @@ char *mergedLANbeaconCreator (int *argc, char **argv, int *lldpdu_len, struct op
 	//## transfer combined strings to TLVs, each with a maximum size of 507 byte 
 	for(int i = 0; i < 5; i++) {
 		if (0 < strlen(combinedString[i]))
-			transferToCombinedBeacon(SUBTYPE_COMBINED_STRING, combinedString [i], myLANbeacon, &currentByte, strlen(combinedString [i]));
+			transferToCombinedBeacon(SUBTYPE_COMBINED_STRING, combinedString [i], mylanbeacon, &currentByte, strlen(combinedString [i]));
 	}
 	
 	//## add signature ##//
@@ -128,19 +128,19 @@ char *mergedLANbeaconCreator (int *argc, char **argv, int *lldpdu_len, struct op
 	time_t timeStamp = time(NULL);
 	
 	challenge = htonl(challenge);
-	memcpy(&myLANbeacon[currentByte], &challenge, 4);
+	memcpy(&mylanbeacon[currentByte], &challenge, 4);
 	timeStamp = htonl(timeStamp);
-	memcpy(&myLANbeacon[currentByte+4], &timeStamp, 4);
-	// add TLV-header using function, this overrides LANbeacon signature part with itself 
-	transferToCombinedBeacon (SUBTYPE_SIGNATURE, &myLANbeacon[currentByte], myLANbeacon, &currentByte, 256 + 8);
+	memcpy(&mylanbeacon[currentByte+4], &timeStamp, 4);
+	// add TLV-header using function, this overrides lanbeacon signature part with itself 
+	transferToCombinedBeacon (SUBTYPE_SIGNATURE, &mylanbeacon[currentByte], mylanbeacon, &currentByte, 256 + 8);
 	
 	unsigned char* sig = NULL;
 	size_t slen = 0;
-	signLANbeacon(&sig, &slen, (const unsigned char *) myLANbeacon, (size_t) currentByte - 256, lanbeacon_keys); 
-	memcpy(&myLANbeacon[currentByte-256], sig, slen);
+	signlanbeacon(&sig, &slen, (const unsigned char *) mylanbeacon, (size_t) currentByte - 256, lanbeacon_keys); 
+	memcpy(&mylanbeacon[currentByte-256], sig, slen);
 	
 	*lldpdu_len = currentByte;
-	return myLANbeacon;
+	return mylanbeacon;
 }
 
 
@@ -153,7 +153,7 @@ void transferToCombinedBeaconAndString (unsigned char subtype, char *TLVdescript
 	if (!(combinedString == NULL))  transferToCombinedString (TLVdescription, combinedString, source); 
 }
 
-//## transferring the content of the field to the combined LANbeacon in binary format ##//
+//## transferring the content of the field to the combined lanbeacon in binary format ##//
 void transferToCombinedBeacon (unsigned char subtype, void *source, char *combinedBeacon, int *currentByte, unsigned short int currentTLVlength) {
 	//## calculating TLV length without header, then combining TLV Header and transfering combined TLV Header to combined Beacon ##//
 	
@@ -202,7 +202,7 @@ void transferToCombinedString (char *TLVdescription, char **combinedString, char
 }
 
 //## using regex to get IP-addresses from string input, then convert them to binary representation for transport
-void ipParser (int ip_V4or6, char *optarg, char **combinedString, char *myLANbeacon, int *currentByte) {
+void ipParser (int ip_V4or6, char *optarg, char **combinedString, char *mylanbeacon, int *currentByte) {
 	
 	int IP_binaryLength = (ip_V4or6 == AF_INET) ? 5 : 17;
 	size_t ip_strlen = (ip_V4or6 == AF_INET) ? INET_ADDRSTRLEN : INET6_ADDRSTRLEN; 
@@ -253,7 +253,7 @@ void ipParser (int ip_V4or6, char *optarg, char **combinedString, char *myLANbea
 	transferToCombinedString (ip_V4or6 == AF_INET ? DESCRIPTOR_IPV4 : DESCRIPTOR_IPV6, 
 		combinedString, optarg); 
 	transferToCombinedBeacon (ip_V4or6 == AF_INET ? SUBTYPE_IPV4 : SUBTYPE_IPV6, 
-		ip_AddressesInBinary, myLANbeacon, currentByte, gefundeneIPAdressenAnzahl*IP_binaryLength);
+		ip_AddressesInBinary, mylanbeacon, currentByte, gefundeneIPAdressenAnzahl*IP_binaryLength);
 	
 	if (gefundeneIPAdressenAnzahl < 1) {
 		printf(_("Exiting since no valid IP networks (format e.g. 192.168.178.1/24) "
@@ -268,7 +268,7 @@ void ipParser (int ip_V4or6, char *optarg, char **combinedString, char *myLANbea
 
 void printHelp() {
 	printf( "%s%s", _("Usage: "), 
-		"\t./LANbeacon [-i vlan_id] [-n VLAN_NAME] [-4 IPv4_SUBNETWORK] [-6 IPv6_SUBNETWORK] "
+		"\t./lanbeacon [-i vlan_id] [-n VLAN_NAME] [-4 IPv4_SUBNETWORK] [-6 IPv6_SUBNETWORK] "
 		"[-e EMAIL_CONTACTPERSON] [-d DHCP_TYPES] [-r ROUTER_INFORMATION] [-c CUSTOM_STRING]\n");
 	printf("\t./client -r\n");
 	printf("\t./client -h\n");

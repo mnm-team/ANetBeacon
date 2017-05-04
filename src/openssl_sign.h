@@ -36,12 +36,12 @@ void print_it(const char* label, const unsigned char* buff, size_t len);
 
 int passwd_callback(char *pcszBuff,int size,int rwflag, void *pPass);
 
-int signLANbeacon(unsigned char** sig, size_t* slen, const unsigned char* msg, size_t qqlen, struct open_ssl_keys *lanbeacon_keys); 
+int signlanbeacon(unsigned char** sig, size_t* slen, const unsigned char* msg, size_t qqlen, struct open_ssl_keys *lanbeacon_keys); 
 
 int read_keys(EVP_PKEY** skey, EVP_PKEY** vkey, struct open_ssl_keys *lanbeacon_keys);
 
 // int read_pubkey(EVP_PKEY** vkey);
 
-int verifyLANbeacon(const unsigned char* msg, size_t mlen, struct open_ssl_keys *lanbeacon_keys);
+int verifylanbeacon(const unsigned char* msg, size_t mlen, struct open_ssl_keys *lanbeacon_keys);
 
 #endif

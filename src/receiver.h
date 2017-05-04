@@ -9,7 +9,7 @@ struct received_lldp_packet {
 	ssize_t payloadSize;
 };
 
-char ** evaluateLANbeacon (struct received_lldp_packet *my_received_lldp_packet);
+char ** evaluatelanbeacon (struct received_lldp_packet *my_received_lldp_packet);
 void bananaPIprint (char **parsedBeaconContents, struct open_ssl_keys *lanbeacon_keys);
 
 #endif

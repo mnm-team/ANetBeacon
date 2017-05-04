@@ -6,7 +6,7 @@ AC_INIT(lanbeacon, 1.0, dominik.bitzer@mailbox.org)
 AM_INIT_AUTOMAKE(lanbeacon, 1.0)
 AC_OUTPUT(Makefile src/Makefile man/Makefile)
 AC_CONFIG_SRCDIR([src/cberry_includes_RAIO8870.h])
-AC_CONFIG_HEADERS([config.h])
+#AC_CONFIG_HEADERS([config.h])
 
 # Checks for programs.
 AC_PROG_CC

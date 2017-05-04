@@ -32,7 +32,7 @@
 const char hn[] = "SHA256";
 const char* pcszPassphrase = "open sezamee";
 
-int verifyLANbeacon(const unsigned char* msg, size_t mlen, struct open_ssl_keys *lanbeacon_keys)
+int verifylanbeacon(const unsigned char* msg, size_t mlen, struct open_ssl_keys *lanbeacon_keys)
 {
 	int rc;
 	
@@ -90,7 +90,7 @@ int verifyLANbeacon(const unsigned char* msg, size_t mlen, struct open_ssl_keys 
 
 /////////////////////
 
-int signLANbeacon(unsigned char** sig, size_t* slen, const unsigned char* msg, size_t mlen, struct open_ssl_keys *lanbeacon_keys)
+int signlanbeacon(unsigned char** sig, size_t* slen, const unsigned char* msg, size_t mlen, struct open_ssl_keys *lanbeacon_keys)
 {
 	int rc;
 	
