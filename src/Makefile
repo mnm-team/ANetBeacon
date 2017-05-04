@@ -559,8 +559,8 @@ uninstall-am: uninstall-binPROGRAMS
 .PRECIOUS: Makefile
 
 
-lanbeacon:			CFLAGS = -Wall -Werror -g -std=c11 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-value -lcrypto
-bananalanbeacon:	CFLAGS = -Wall -Werror -g -std=c11 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-value -lcrypto -DBANANAPI_SWITCH
+lanbeacon:			CFLAGS = -Wall -Werror -g -std=gnu11 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-value -lcrypto
+bananalanbeacon:	CFLAGS = -Wall -Werror -g -std=gnu11 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-value -lcrypto -DBANANAPI_SWITCH
 
 lanbeacon: $(OBJECTS)
 		$(CC) $(CFLAGS) $(OBJECTS) -o lanbeacon
@@ -582,7 +582,7 @@ RAIO8870.o: cberry_includes_RAIO8870.c cberry_includes_RAIO8870.h
 	gcc -Os -c cberry_includes_RAIO8870.c
 
 openssl_sign.o: openssl_sign.c openssl_sign.h
-	gcc -lcrypto -std=c11 -c openssl_sign.c
+	gcc -lcrypto -std=gnu11 -c openssl_sign.c
 
 translations: 
 		xgettext --keyword=_ --language=C --add-comments --sort-output -o l10n/lanbeacon.pot define.h receiver.c sender.c main.c
