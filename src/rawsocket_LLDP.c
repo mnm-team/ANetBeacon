@@ -130,7 +130,7 @@ int sendLLDPrawSock (int LLDPDU_len, char *lanbeaconCustomTLVs, struct open_ssl_
 	struct ether_header *eh = (struct ether_header *) lldpEthernetFrame;
 	struct sockaddr_ll socket_address;
 	unsigned long *receivedChallenge = calloc(sizeof(unsigned long), 1);
-	if(!receivedChallenge) puts(_("calloc error of \"receivedChallenge\" in sendLLDPrawSock"))
+	if(!receivedChallenge) puts(_("calloc error of \"receivedChallenge\" in sendLLDPrawSock"));
 	
 	/* Construct the Ethernet header */
 	memset(lldpEthernetFrame, 0, LLDP_BUF_SIZ);
@@ -220,7 +220,7 @@ int sendLLDPrawSock (int LLDPDU_len, char *lanbeaconCustomTLVs, struct open_ssl_
 struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys) {
 	
 	struct received_lldp_packet *my_received_lldp_packet = malloc(sizeof(struct received_lldp_packet));
-	if(!my_received_lldp_packet) puts(_("malloc error of \"my_received_lldp_packet\" in recLLDPrawSock"))
+	if(!my_received_lldp_packet) puts(_("malloc error of \"my_received_lldp_packet\" in recLLDPrawSock"));
 	struct ether_header *eh = (struct ether_header *) my_received_lldp_packet->lldpReceivedPayload;
 	
 	int sockfd[20];
@@ -580,10 +580,10 @@ void sendChallenge (unsigned char *destination_mac, unsigned long challenge) {
 unsigned long receiveChallenge() {
 	
 	unsigned char *receiveBuf = calloc(300, 1);
-	if(!receiveBuf) puts(_("calloc error of \"receiveBuf\" in receiveChallenge"))
+	if(!receiveBuf) puts(_("calloc error of \"receiveBuf\" in receiveChallenge"));
 	int receivedSize;
 	unsigned long *receivedChallenge = calloc(sizeof(unsigned long), 1);
-	if(!receivedChallenge) puts(_("calloc error of \"receivedChallenge\" in receiveChallenge"))
+	if(!receivedChallenge) puts(_("calloc error of \"receivedChallenge\" in receiveChallenge"));
 		
 	struct ether_header *eh = (struct ether_header *) receiveBuf;
 	int sockfd[20];

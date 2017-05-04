@@ -24,13 +24,13 @@
 char *mergedlanbeaconCreator (int *argc, char **argv, int *lldpdu_len, struct open_ssl_keys *lanbeacon_keys) {
 	
 	char *mylanbeacon = malloc(1500);
-	if(!mylanbeacon) puts(_("malloc error of \"mylanbeacon\" in mergedlanbeaconCreator"))
+	if(!mylanbeacon) puts(_("malloc error of \"mylanbeacon\" in mergedlanbeaconCreator"));
 	int currentByte = 0;	//counter for current position in Array combinedBeacon, starting after TLV header
 	
 	char *combinedString[5];	// Maximum of 5 strings of combined human-readable text in case they are longer than 507 bytes (TLV max)
 	for(int i=0; i<5; i++) {
 		combinedString[i] = calloc(507, 1);
-		if(!combinedString[i]) puts(_("malloc error of \"combinedString\" in mergedlanbeaconCreator"))
+		if(!combinedString[i]) puts(_("malloc error of \"combinedString\" in mergedlanbeaconCreator"));
 	} 
 	
 	unsigned char chasisSubtype[9] = { 0x02, 0x07, 0x04, 0xbc, 0x5f, 0xf4, 0x14, 0x34, 0x6d };	//TODO
