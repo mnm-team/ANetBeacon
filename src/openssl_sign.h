@@ -17,6 +17,10 @@
 #include "openssl_sign.h"
 #include "define.h"
 
+#define PRIVATE_KEY_STANDARD_PATH "privkey.pem"
+#define PUBLIC_KEY_STANDARD_PATH "pubkey.pem"
+
+
 struct open_ssl_keys {
 	char path_To_Verifying_Key[KEY_PATHLENGTH_MAX];
 	char path_To_Signing_Key[KEY_PATHLENGTH_MAX];

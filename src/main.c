@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
 	bindtextdomain ("lanbeacon", currentL10nFolder); // "/usr/share/locale/");
 	textdomain ("lanbeacon");
 	
-	struct open_ssl_keys lanbeacon_keys = {.path_To_Verifying_Key = "pubkey.pem", .path_To_Signing_Key = "privkey.pem" };
+	struct open_ssl_keys lanbeacon_keys = {.path_To_Verifying_Key = PUBLIC_KEY_STANDARD_PATH, .path_To_Signing_Key = PRIVATE_KEY_STANDARD_PATH };
 //printf("%s\n%s\n", lanbeacon_keys.path_To_Verifying_Key, lanbeacon_keys.path_To_Signing_Key);
 	
 	int opt;
