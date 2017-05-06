@@ -24,6 +24,7 @@
 struct open_ssl_keys {
 	char path_To_Verifying_Key[KEY_PATHLENGTH_MAX];
 	char path_To_Signing_Key[KEY_PATHLENGTH_MAX];
+	char pcszPassphrase[257];
 };
 
 /* Returns 0 for success, non-0 otherwise */

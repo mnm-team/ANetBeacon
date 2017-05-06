@@ -290,8 +290,10 @@ struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys
 			// delete received packet, send challenge and flush buffer
 			memset (my_received_lldp_packet->lldpReceivedPayload, 0, LLDP_BUF_SIZ);
 	
-			unsigned long challenge = 65534;
-			sendRawSocket (eh->ether_shost, &challenge, 4, CHALLENGE_ETHTYPE, NULL);
+			srand(time(NULL));
+			my_received_lldp_packet->challenge = 65321;
+			//my_received_lldp_packet->challenge = 1+ (rand() % 4294967294);
+			sendRawSocket (eh->ether_shost, &my_received_lldp_packet->challenge, 4, CHALLENGE_ETHTYPE, NULL);
 			
 	
 		//	SET_SELECT_FDS

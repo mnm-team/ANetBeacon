@@ -27,25 +27,45 @@ int main(int argc, char **argv) {
 	bindtextdomain ("lanbeacon", currentL10nFolder); // "/usr/share/locale/");
 	textdomain ("lanbeacon");
 	
-	struct open_ssl_keys lanbeacon_keys = {.path_To_Verifying_Key = PUBLIC_KEY_STANDARD_PATH, .path_To_Signing_Key = PRIVATE_KEY_STANDARD_PATH };
-//printf("%s\n%s\n", lanbeacon_keys.path_To_Verifying_Key, lanbeacon_keys.path_To_Signing_Key);
+	struct open_ssl_keys lanbeacon_keys = {
+		.path_To_Verifying_Key = PUBLIC_KEY_STANDARD_PATH, 
+		.path_To_Signing_Key = PRIVATE_KEY_STANDARD_PATH,
+		.pcszPassphrase = "asdf" //set default password as empty
+	};
 	
 	int opt;
 	for (int current_arg = 1; current_arg < argc; current_arg++) {
 		if (strcmp("-l", argv[current_arg]) == 0) {
-			while((opt=getopt(argc, argv, "lv:")) != -1) {
+			while((opt=getopt(argc, argv, "lv:p:")) != -1) {
 				switch(opt) {
 			
 					case 'l':
 						break;
 			
-					case 'v':	//## TLV VLAN ID ##//
+					case 'v':
 						if (strlen(argv[current_arg]) > KEY_PATHLENGTH_MAX) {
 							puts(_("Passed path to verifying key too long. Exiting."));
 							return EXIT_FAILURE; 
 						}
-						strncpy(lanbeacon_keys.path_To_Verifying_Key, argv[current_arg], KEY_PATHLENGTH_MAX);
-						lanbeacon_keys.path_To_Verifying_Key[strlen(argv[current_arg])-1] = 0;
+						strncpy(
+							lanbeacon_keys.path_To_Verifying_Key, 
+							argv[current_arg], KEY_PATHLENGTH_MAX
+						);
+						lanbeacon_keys.
+							path_To_Verifying_Key[strlen(optarg)] = 0;
+						break;
+						
+					case 'p':
+						if (strlen(optarg) > 256) {
+							puts(_("Length of passed password too long. Exiting"));
+							return EXIT_FAILURE; 
+						}
+						strncpy(
+							lanbeacon_keys.pcszPassphrase, 
+							optarg, 256
+						);
+						lanbeacon_keys.
+							pcszPassphrase[strlen(optarg)] = 0;
 						break;
 			
 					case 'h':
@@ -57,7 +77,8 @@ int main(int argc, char **argv) {
 			}
 		
 		//## receiving lanbeacon
-		struct received_lldp_packet *my_received_lldp_packet = recLLDPrawSock(&lanbeacon_keys);
+		struct received_lldp_packet *my_received_lldp_packet 
+			= recLLDPrawSock(&lanbeacon_keys);
 		char ** parsedBeaconContents = evaluatelanbeacon(my_received_lldp_packet);
 		bananaPIprint(parsedBeaconContents, &lanbeacon_keys);
 		
@@ -73,15 +94,10 @@ int main(int argc, char **argv) {
 		
 	//## creating and sending lanbeacon
 	int lldpdu_len;
-	char *lanBeaconCustomTLVs = mergedlanbeaconCreator(&argc, argv, &lldpdu_len, &lanbeacon_keys);
+	char *lanBeaconCustomTLVs 
+		= mergedlanbeaconCreator(&argc, argv, &lldpdu_len, &lanbeacon_keys);
 
 	sendLLDPrawSock (lldpdu_len, lanBeaconCustomTLVs, &lanbeacon_keys);
-	
-	
-	//	###### SPIELWIESE ######
-	//	printf("\n\n##########\nSPIELWIESE\n##########\n\n\n");
-	
-//debug//	printf ("lldpdu_len: %i\n",lldpdu_len);	FILE *combined = fopen("testNewTransfer","w");	fwrite(lanBeaconCustomTLVs, lldpdu_len, 1, combined);
 	
 	return EXIT_SUCCESS;
 }

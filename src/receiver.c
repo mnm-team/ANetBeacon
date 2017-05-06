@@ -144,6 +144,8 @@ char ** evaluatelanbeacon (struct received_lldp_packet *my_received_lldp_packet)
 					memcpy (&zwischenSpeicherTimeStamp, &my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+6+4], 4); 
 					zwischenSpeicherTimeStamp = ntohl(zwischenSpeicherTimeStamp);
 					
+					printf("Sent challenge: %lu, received challenge: %lu\n", my_received_lldp_packet->challenge, zwischenSpeicherChallenge);
+					
 					sprintf(TLVstringbuffer, _("AUTHENTICATION SUCCESSFULL! Challenge: %ld Timestamp: %ld"), zwischenSpeicherChallenge, zwischenSpeicherTimeStamp);
 					
 					printf("AuthTest %s\n", TLVstringbuffer);

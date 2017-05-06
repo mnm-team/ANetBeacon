@@ -247,13 +247,13 @@ int read_keys(EVP_PKEY** skey, EVP_PKEY** vkey, struct open_ssl_keys *lanbeacon_
 	int iRet = EXIT_SUCCESS;
 
 	if((pFile = fopen(lanbeacon_keys->path_To_Signing_Key,"rt")) && 
-	   (*skey = PEM_read_PrivateKey(pFile,NULL,passwd_callback,(void*)pcszPassphrase)))
+	   (*skey = PEM_read_PrivateKey(pFile,NULL,passwd_callback,(void*)lanbeacon_keys->pcszPassphrase)))
 	{
 		fprintf(stderr,"Private key read.\n");
 	}
 	else
 	{
-		fprintf(stderr,"Cannot read \"privkey.pem\".\n");
+		fprintf(stderr,"Cannot read \"%s\".\n", lanbeacon_keys->path_To_Signing_Key);
 		ERR_print_errors_fp(stderr);
 		iRet = iRet | NO_PRIVATE_KEY;
 	}
@@ -270,7 +270,7 @@ int read_keys(EVP_PKEY** skey, EVP_PKEY** vkey, struct open_ssl_keys *lanbeacon_
 	}
 	else
 	{
-		fprintf(stderr,"Cannot read \"pubkey.pem\".\n");
+		fprintf(stderr,"Cannot read \"%s\".\n", lanbeacon_keys->path_To_Verifying_Key);
 		ERR_print_errors_fp(stderr);
 		iRet = iRet | NO_PUBLIC_KEY; 
 	}
@@ -342,7 +342,7 @@ int make_keys(EVP_PKEY** skey, EVP_PKEY** vkey, struct open_ssl_keys *lanbeacon_
 	
 	const EVP_CIPHER* pCipher = NULL;
 
-	FILE*	 pFile	= NULL;
+	FILE* pFile = NULL;
 	
 	int iRet = EXIT_SUCCESS;
 		
@@ -350,8 +350,8 @@ int make_keys(EVP_PKEY** skey, EVP_PKEY** vkey, struct open_ssl_keys *lanbeacon_
 	{
 
 		if(!PEM_write_PrivateKey(pFile,*skey,pCipher,
-								(unsigned char*)pcszPassphrase,
-								(int)strlen(pcszPassphrase),NULL,NULL))
+								(unsigned char*)lanbeacon_keys->pcszPassphrase,
+								(int)strlen(lanbeacon_keys->pcszPassphrase),NULL,NULL))
 		{
 			fprintf(stderr,"PEM_write_PrivateKey failed.\n");
 			ERR_print_errors_fp(stderr);

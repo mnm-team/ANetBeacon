@@ -7,6 +7,7 @@
 struct received_lldp_packet {
 	unsigned char lldpReceivedPayload[LLDP_BUF_SIZ];
 	ssize_t payloadSize;
+	unsigned long challenge;
 };
 
 char ** evaluatelanbeacon (struct received_lldp_packet *my_received_lldp_packet);

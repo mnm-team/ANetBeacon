@@ -30,7 +30,8 @@ char *mergedlanbeaconCreator (int *argc, char **argv, int *lldpdu_len, struct op
 	char *combinedString[5];	// Maximum of 5 strings of combined human-readable text in case they are longer than 507 bytes (TLV max)
 	for(int i=0; i<5; i++) {
 		combinedString[i] = calloc(507, 1);
-		if(!combinedString[i]) puts(_("malloc error of \"combinedString\" in mergedlanbeaconCreator"));
+		if(!combinedString[i]) 
+			puts(_("malloc error of \"combinedString\" in mergedlanbeaconCreator"));
 	} 
 	
 	unsigned char chasisSubtype[9] = { 0x02, 0x07, 0x04, 0xbc, 0x5f, 0xf4, 0x14, 0x34, 0x6d };	//TODO
@@ -42,11 +43,11 @@ char *mergedlanbeaconCreator (int *argc, char **argv, int *lldpdu_len, struct op
 	unsigned char timeToLive[4] = { 0x06, 0x02, 0x00, 0x14 };	//TODO
 	memcpy(&mylanbeacon[currentByte], timeToLive, 4);
 	currentByte += 4;
-	
+
 	//## custom TLV arguments ##//
 	if(*argc == 1) printHelp();
 	int opt;
-	while((opt=getopt(*argc, argv, "i:n:c:4:6:e:d:r:s:h")) != -1) {
+	while((opt=getopt(*argc, argv, "i:n:c:4:6:e:d:r:s:v:p:h")) != -1) {
 		switch(opt) {
 			
 			case 'i':	//## TLV VLAN ID ##//
@@ -100,8 +101,31 @@ char *mergedlanbeaconCreator (int *argc, char **argv, int *lldpdu_len, struct op
 				}
 			
 				strncpy(lanbeacon_keys->path_To_Signing_Key, optarg, KEY_PATHLENGTH_MAX);
+				lanbeacon_keys->
+					path_To_Signing_Key[strlen(optarg)] = 0;
 				break;
-
+			
+			case 'v':
+				puts("test");
+				if (strlen(optarg) > KEY_PATHLENGTH_MAX) {
+					puts(_("Passed path to verifying key too long. Exiting."));
+					exit(EXIT_FAILURE); 
+				}
+				strncpy(
+					lanbeacon_keys->path_To_Verifying_Key,optarg, KEY_PATHLENGTH_MAX
+				);
+				lanbeacon_keys->path_To_Verifying_Key[strlen(optarg)] = 0;
+				break;
+			
+			case 'p':
+				if (strlen(optarg) > 256) {
+					puts(_("Length of passed password too long. Exiting"));
+					exit(EXIT_FAILURE); 
+				}
+				strncpy(lanbeacon_keys->pcszPassphrase, optarg, 256);
+				lanbeacon_keys->pcszPassphrase[strlen(optarg)] = 0;
+				break;
+			
 			case 'd':
 				transferToCombinedBeaconAndString(SUBTYPE_DHCP, DESCRIPTOR_DHCP, 
 					combinedString, optarg, mylanbeacon, &currentByte);
@@ -128,7 +152,7 @@ char *mergedlanbeaconCreator (int *argc, char **argv, int *lldpdu_len, struct op
 	}
 	
 	//## add signature ##//
-	long challenge = 12345678;	// TODO
+	long challenge = 0;
 	time_t timeStamp = time(NULL);
 	
 	challenge = htonl(challenge);
