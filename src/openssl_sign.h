@@ -17,10 +17,6 @@
 #include "openssl_sign.h"
 #include "define.h"
 
-#define PRIVATE_KEY_STANDARD_PATH "privkey.pem"
-#define PUBLIC_KEY_STANDARD_PATH "pubkey.pem"
-
-
 struct open_ssl_keys {
 	char path_To_Verifying_Key[KEY_PATHLENGTH_MAX];
 	char path_To_Signing_Key[KEY_PATHLENGTH_MAX];
@@ -31,22 +27,26 @@ struct open_ssl_keys {
 int make_keys(EVP_PKEY** skey, EVP_PKEY** vkey, struct open_ssl_keys *lanbeacon_keys);
 
 /* Returns 0 for success, non-0 otherwise */
-int sign_it(const unsigned char* msg, size_t mlen, unsigned char** sig, size_t* slen, EVP_PKEY* pkey);
+int sign_it(const unsigned char* msg, size_t mlen, unsigned char** sig, 
+			size_t* slen, EVP_PKEY* pkey);
 
 /* Returns 0 for success, non-0 otherwise */
-int verify_it(const unsigned char* msg, size_t mlen, const unsigned char* sig, size_t slen, EVP_PKEY* pkey);
+int verify_it(const unsigned char* msg, size_t mlen, const unsigned char* sig, 
+				size_t slen, EVP_PKEY* pkey);
 
 /* Prints a buffer to stdout. Label is optional */
 void print_it(const char* label, const unsigned char* buff, size_t len);
 
 int passwd_callback(char *pcszBuff,int size,int rwflag, void *pPass);
 
-int signlanbeacon(unsigned char** sig, size_t* slen, const unsigned char* msg, size_t qqlen, struct open_ssl_keys *lanbeacon_keys); 
+int signlanbeacon(	unsigned char** sig, size_t* slen, const unsigned char* msg, 
+					size_t qqlen, struct open_ssl_keys *lanbeacon_keys);
 
 int read_keys(EVP_PKEY** skey, EVP_PKEY** vkey, struct open_ssl_keys *lanbeacon_keys);
 
 // int read_pubkey(EVP_PKEY** vkey);
 
-int verifylanbeacon(const unsigned char* msg, size_t mlen, struct open_ssl_keys *lanbeacon_keys);
+int verifylanbeacon(const unsigned char* msg, size_t mlen, 
+					struct open_ssl_keys *lanbeacon_keys);
 
 #endif

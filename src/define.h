@@ -1,18 +1,18 @@
 #ifndef DEFINE_H
 #define DEFINE_H
 
-
 #define _(STRING) gettext(STRING)
-
 
 #define PARSED_TLVS_MAX_NUMBER	15
 #define PARSED_TLVS_MAX_LENGTH	510
+#define DESCRIPTOR_WIDTH 10
 
-#define LLDP_BUF_SIZ		4000
-
+#define LLDP_BUF_SIZ 4000
 #define KEY_PATHLENGTH_MAX 500
 
-#define DESCRIPTOR_WIDTH 10		//TODO: TLVcustomcopy
+#define PRIVATE_KEY_STANDARD_PATH "privkey.pem"
+#define PUBLIC_KEY_STANDARD_PATH "pubkey.pem"
+
 
 // Subtype numbers lanbeacon:
 #define SUBTYPE_VLAN_ID 200
@@ -26,7 +26,7 @@
 #define SUBTYPE_SIGNATURE 216
 #define SUBTYPE_COMBINED_STRING 217
 
-// Descriptors lanbeacon:
+// Descriptor strings lanbeacon:
 #define DESCRIPTOR_VLAN_ID gettext("VLAN-ID:")
 #define DESCRIPTOR_NAME gettext("VLAN-Name:")
 #define DESCRIPTOR_CUSTOM gettext("Freitext:")
