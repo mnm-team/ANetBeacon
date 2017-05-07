@@ -88,6 +88,8 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 
 	// Get interfaces
 	getInterfaces (sockfd, &numInterfaces, etherType, SEND_SOCKET, if_idx, if_mac, NULL, NULL);
+	
+	// Get interfaces
 
 	// send challenge CHALLENGE_SEND_TIMES times
 	// in case of LLDP-packet counter is not incremented, therefore infinite loop
@@ -327,8 +329,8 @@ void getInterfaces (int *sockfd, int *numInterfaces, unsigned short etherType,
 
 	for (; interfaces != NULL; interfaces = interfaces->ifa_next) {
 
-		if (interfaces->ifa_addr == NULL)	continue;
-		if (!(interfaces->ifa_addr->sa_family == AF_PACKET))	continue;
+		if (interfaces->ifa_addr == NULL) continue;
+		if (!(interfaces->ifa_addr->sa_family == AF_PACKET)) continue;
 
 		// Open RAW socket to send on
 		if ((sockfd[*numInterfaces] = socket(PF_PACKET, SOCK_RAW, htons(etherType))) == -1) {
