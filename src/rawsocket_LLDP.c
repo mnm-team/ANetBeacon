@@ -89,7 +89,13 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 	// Get interfaces
 	getInterfaces (sockfd, &numInterfaces, etherType, SEND_SOCKET, if_idx, if_mac, NULL, NULL);
 	
-	// Get interfaces
+	// Get interfaces for challenge
+	int challengeSockfd[20];
+	int challengeSockopt[20];
+	int challengeNumInterfaces = 0;
+	int challengeMaxSockFd = 0;
+	getInterfaces (challengeSockfd, &challengeNumInterfaces, CHALLENGE_ETHTYPE, REC_SOCKET, 
+		NULL, NULL, challengeSockopt, &challengeMaxSockFd);
 
 	// send challenge CHALLENGE_SEND_TIMES times
 	// in case of LLDP-packet counter is not incremented, therefore infinite loop
@@ -123,7 +129,9 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 
 		if (etherType == LLDP_ETHER_TYPE) {
 			if (*receivedChallenge == 0) {
-				*receivedChallenge = receiveChallenge();
+				*receivedChallenge = receiveChallenge(	challengeSockfd, 
+														challengeNumInterfaces, 
+														challengeMaxSockFd);
 				*receivedChallenge = htonl(*receivedChallenge);
 				memcpy(&lldpEthernetFrame[frameLength-272+6], receivedChallenge, 4);
 			}
@@ -262,7 +270,7 @@ struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys
 
 
 // parts of code based on https://gist.github.com/austinmarton/2862515
-unsigned long receiveChallenge() {
+unsigned long receiveChallenge(int *sockfd, int numInterfaces, int maxSockFd) {
 
 	unsigned char *receiveBuf = calloc(300, 1);
 	if(!receiveBuf) puts(_("calloc error of \"receiveBuf\" in receiveChallenge"));
@@ -271,19 +279,11 @@ unsigned long receiveChallenge() {
 	if(!receivedChallenge) puts(_("calloc error of \"receivedChallenge\" in receiveChallenge"));
 
 	struct ether_header *eh = (struct ether_header *) receiveBuf;
-	int sockfd[20];
-	int sockopt[20];
 
 	// parameters for select()
-	int maxSockFd = 0;
 	struct timeval tv = {1, 0};
 	tv.tv_sec = LLDP_SEND_FREQUENCY;
 	fd_set readfds;
-
-	int numInterfaces = 0;
-
-	getInterfaces (sockfd, &numInterfaces, CHALLENGE_ETHTYPE, REC_SOCKET, 
-		NULL, NULL, sockopt, &maxSockFd);
 
 	SET_SELECT_FDS
 
@@ -308,8 +308,8 @@ unsigned long receiveChallenge() {
 		}
 	}
 
-	for (int i = 0; i < numInterfaces; i++)
-		close(sockfd[i]);
+//	for (int i = 0; i < numInterfaces; i++)
+//		close(sockfd[i]);
 
 	free(receiveBuf);
 
