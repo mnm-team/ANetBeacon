@@ -17,10 +17,14 @@
 #include "openssl_sign.h"
 #include "define.h"
 
+#define SENDER_MODE 0
+#define RECEIVER_MODE 1
+
 struct open_ssl_keys {
 	char path_To_Verifying_Key[KEY_PATHLENGTH_MAX];
 	char path_To_Signing_Key[KEY_PATHLENGTH_MAX];
 	char pcszPassphrase[257];
+	int sender_or_receiver_mode; 
 };
 
 /* Returns 0 for success, non-0 otherwise */

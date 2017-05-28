@@ -39,17 +39,16 @@
 
 #define SEND_SOCKET 0
 #define REC_SOCKET 1
-#define SET_SELECT_FDS \
-	FD_ZERO(&readfds); \
-	for (int x = 0; x < numInterfaces; x++) \
-		{FD_SET(sockfd[x], &readfds);}
+//#define SET_SELECT_FDS 
+//	FD_ZERO(&readfds); 
+//	for (int x = 0; x < numInterfaces; x++) 
+//		{FD_SET(sockfd[x], &readfds);}
 
 void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLen, 
 					unsigned short etherType, struct open_ssl_keys *lanbeacon_keys) {
 	
 	if (etherType == CHALLENGE_ETHTYPE)
 		* (unsigned long *) payload = htonl(*(unsigned long *) payload);
-
 	int sockfd[20];
 	struct ifreq if_idx[20];
 	struct ifreq if_mac[20];
@@ -92,7 +91,7 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 	// Get interfaces
 	getInterfaces (sockfd, &numInterfaces, etherType, SEND_SOCKET, if_idx, if_mac, NULL, NULL);
 	
-	// Get interfaces for challenge
+	// Get interfaces for challenge		TODO
 	int challengeSockfd[20];
 	int challengeSockopt[20];
 	int challengeNumInterfaces = 0;
@@ -110,10 +109,12 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 			// Ethernet header, destination MAC address
 			memcpy(eh->ether_shost, ((uint8_t *)&if_mac[j].ifr_hwaddr.sa_data), 6);
 			
-			// Port and chassis subtype TLVs filled
-			memcpy(&lldpEthernetFrame[17], ((uint8_t *)&if_mac[j].ifr_hwaddr.sa_data), 6);
-			memcpy(&lldpEthernetFrame[26], ((uint8_t *)&if_mac[j].ifr_hwaddr.sa_data), 6);
-			
+			if (etherType == LLDP_ETHER_TYPE) {
+				// Port and chassis subtype TLVs filled
+				memcpy(&lldpEthernetFrame[17], ((uint8_t *)&if_mac[j].ifr_hwaddr.sa_data), 6);
+				memcpy(&lldpEthernetFrame[26], ((uint8_t *)&if_mac[j].ifr_hwaddr.sa_data), 6);
+			}
+		
 			// Index of the network device
 			socket_address.sll_ifindex = if_idx[j].ifr_ifindex;
 
@@ -132,11 +133,18 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 
 		if (etherType == LLDP_ETHER_TYPE) {
 			if (*receivedChallenge == 0) {
+				char challenge_dest_mac[6];
 				*receivedChallenge = receiveChallenge(	challengeSockfd, 
 														challengeNumInterfaces, 
-														challengeMaxSockFd);
+														challengeMaxSockFd,
+														challenge_dest_mac);
 				*receivedChallenge = htonl(*receivedChallenge);
 				memcpy(&lldpEthernetFrame[frameLength-272+6], receivedChallenge, 4);
+				
+				if (*receivedChallenge != 0) {
+					memcpy(eh->ether_dhost, challenge_dest_mac, 6);
+					memcpy(socket_address.sll_addr, challenge_dest_mac, 6);
+				}
 			}
 			else
 				sleep(LLDP_SEND_FREQUENCY);
@@ -152,6 +160,7 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 			memcpy(&lldpEthernetFrame[frameLength-272+6+4+4], sig, slen);
 			free(sig);
 		}
+//printf("%i*********************** %ld *************** %02X ****** %02X ****** %02X ****** %02X\n", frameLength,   * (unsigned long *) payload, (unsigned) lldpEthernetFrame[14], (unsigned)lldpEthernetFrame[15], (unsigned)lldpEthernetFrame[16], (unsigned)(unsigned)lldpEthernetFrame[17]);
 
 	}
 
@@ -198,7 +207,10 @@ struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys
 	// receive one lanbeacon frame, send a challenge to the source MAC and
 	// then wait for the frame containing the challenge
 	for (int i = 0; i < 2; i++) {
-		SET_SELECT_FDS
+		//SET_SELECT_FDS
+		FD_ZERO(&readfds); 
+		for (int x = 0; x < numInterfaces; x++) FD_SET(sockfd[x], &readfds);
+		
 		rv = select(maxSockFd, &readfds, NULL, NULL, NULL);
 
 		if (rv == -1) 
@@ -212,8 +224,10 @@ struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys
 					my_received_lldp_packet->payloadSize = 
 						recvfrom(sockfd[i], my_received_lldp_packet->lldpReceivedPayload, 
 							LLDP_BUF_SIZ, 0, NULL, NULL);
+printf("neu %02X ****** %02X ****** %02X ****** %02X ****** %02X ****** %02X\n", (unsigned) my_received_lldp_packet->lldpReceivedPayload[6], (unsigned) my_received_lldp_packet->lldpReceivedPayload[7], (unsigned) my_received_lldp_packet->lldpReceivedPayload[8], (unsigned) my_received_lldp_packet->lldpReceivedPayload[9], (unsigned) my_received_lldp_packet->lldpReceivedPayload[10], (unsigned) my_received_lldp_packet->lldpReceivedPayload[11]);
 
 					// Check if the packet was sent to the LLDP multicast MAC address
+printf("%02X ****** %02X ****** %02X ****** %02X ****** %02X ****** %02X\n", (unsigned) eh->ether_dhost[0], (unsigned) eh->ether_dhost[1], (unsigned) eh->ether_dhost[2], (unsigned) eh->ether_dhost[3], (unsigned) eh->ether_dhost[4], (unsigned) eh->ether_dhost[5]);
 					if(memcmp((unsigned char[6]){LLDP_DEST_MAC}, eh->ether_dhost, 6))
 						continue;
 					
@@ -235,18 +249,19 @@ struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys
 			memset (my_received_lldp_packet->lldpReceivedPayload, 0, LLDP_BUF_SIZ);
 
 			srand(time(NULL));
-			// my_received_lldp_packet->challenge = 65321;
+//my_received_lldp_packet->challenge = 65321;
 			my_received_lldp_packet->challenge = 1+ (rand() % 4294967294);
+printf("%02X ****** %02X ****** %02X ****** %02X ****** %02X ****** %02X\n", (unsigned) eh->ether_shost[0], (unsigned) eh->ether_shost[1], (unsigned) eh->ether_shost[2], (unsigned) eh->ether_shost[3], (unsigned) eh->ether_shost[4], (unsigned) eh->ether_shost[5]);
 			sendRawSocket (eh->ether_shost, &my_received_lldp_packet->challenge, 
 				4, CHALLENGE_ETHTYPE, NULL);
-
-
-		//	SET_SELECT_FDS
 			tv.tv_sec = 0;
 			while (1) {
-				SET_SELECT_FDS
+				//SET_SELECT_FDS
+				FD_ZERO(&readfds); 
+				for (int x = 0; x < numInterfaces; x++) FD_SET(sockfd[x], &readfds);
+				
 				rv = select(maxSockFd, &readfds, NULL, NULL, &tv);
-		puts("neuneuneu");//sleep(1);
+puts("neuneuneu");//sleep(1);
 				if (rv == -1) perror("select"); // error occurred in select()
 				else if (rv == 0) {
 					printf("Timeout occurred! All data flushed.\n");
@@ -255,7 +270,7 @@ struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys
 				else {
 					for (int j = 0; j < numInterfaces; j++) {
 						if (FD_ISSET(sockfd[j], &readfds)) {
-		puts("Deleted something");
+puts("Deleted something");
 							recvfrom(sockfd[j], NULL, 1500, 0, NULL, NULL);
 						}
 					}
@@ -273,7 +288,7 @@ struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys
 
 
 // parts of code based on https://gist.github.com/austinmarton/2862515
-unsigned long receiveChallenge(int *sockfd, int numInterfaces, int maxSockFd) {
+unsigned long receiveChallenge(int *sockfd, int numInterfaces, int maxSockFd, char *challenge_dest_mac) {
 
 	unsigned char *receiveBuf = calloc(300, 1);
 	if(!receiveBuf) puts(_("calloc error of \"receiveBuf\" in receiveChallenge"));
@@ -288,7 +303,9 @@ unsigned long receiveChallenge(int *sockfd, int numInterfaces, int maxSockFd) {
 	tv.tv_sec = LLDP_SEND_FREQUENCY;
 	fd_set readfds;
 
-	SET_SELECT_FDS
+	//SET_SELECT_FDS
+	FD_ZERO(&readfds); 
+	for (int x = 0; x < numInterfaces; x++) FD_SET(sockfd[x], &readfds);	
 
 	int rv = select(maxSockFd, &readfds, NULL, NULL, &tv);
 
@@ -305,6 +322,7 @@ unsigned long receiveChallenge(int *sockfd, int numInterfaces, int maxSockFd) {
 				memcpy(receivedChallenge, &receiveBuf[14], 4);
 				*receivedChallenge = ntohl(*receivedChallenge);
 				printf(_("Received challenge: %lu\n"), *receivedChallenge);
+				memcpy(challenge_dest_mac, &receiveBuf[7], 6);
 
 				break;
 			}

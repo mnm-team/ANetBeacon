@@ -2,10 +2,10 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT(lanbeacon, 1.0, dominik.bitzer@mailbox.org)
-AM_INIT_AUTOMAKE(lanbeacon, 1.0)
+AC_INIT([lanbeacon], [1.0])
 AC_OUTPUT(Makefile src/Makefile man/Makefile)
-AC_CONFIG_SRCDIR([src/cberry_includes_RAIO8870.h])
+AC_CONFIG_SRCDIR([src/main.c])
+AM_INIT_AUTOMAKE
 #AC_CONFIG_HEADERS([config.h])
 
 # Checks for programs.

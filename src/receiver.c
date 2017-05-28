@@ -155,7 +155,7 @@ char ** evaluatelanbeacon (struct received_lldp_packet *my_received_lldp_packet)
 						&my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+6+4], 4);
 					zwischenSpeicherTimeStamp = ntohl(zwischenSpeicherTimeStamp);
 
-					printf(_("Sent challenge: %lu, received challenge: %lu\n"),
+					printf(_("Sent challenge: %lu, received challenge: %lu\n"),	//TODO
 						(unsigned long) ntohl(my_received_lldp_packet->challenge),
 						zwischenSpeicherChallenge);
 
@@ -164,11 +164,11 @@ char ** evaluatelanbeacon (struct received_lldp_packet *my_received_lldp_packet)
 					(timeStamp == zwischenSpeicherTimeStamp)*/)
 						sprintf(TLVstringbuffer,
 						_("Authentication successfull! Sent challenge: %ld Received Challenge: %ld Timestamp: %ld"),
-						zwischenSpeicherChallenge, (unsigned long) ntohl(my_received_lldp_packet->challenge), zwischenSpeicherTimeStamp);
+						(unsigned long) ntohl(my_received_lldp_packet->challenge), zwischenSpeicherChallenge, zwischenSpeicherTimeStamp);
 					else
 						sprintf(TLVstringbuffer,
 						_("Authentication successfull! Sent challenge: %ld Received Challenge: %ld Timestamp: %ld"),
-						zwischenSpeicherChallenge, (unsigned long) ntohl(my_received_lldp_packet->challenge), zwischenSpeicherTimeStamp);
+						(unsigned long) ntohl(my_received_lldp_packet->challenge), zwischenSpeicherChallenge, zwischenSpeicherTimeStamp);
 
 					TLV_CUSTOM_COPY( DESCRIPTOR_SIGNATURE, TLVstringbuffer, strlen(TLVstringbuffer));
 			}

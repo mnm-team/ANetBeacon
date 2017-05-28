@@ -34,6 +34,7 @@ int main(int argc, char **argv) {
 		.pcszPassphrase = "as" // TODO set default password as empty
 	};
 
+	// lanbeacon listener mode
 	// check if any argument is "listen" mode
 	int opt;
 	for (int current_arg = 1; current_arg < argc; current_arg++) {
@@ -74,7 +75,9 @@ int main(int argc, char **argv) {
 						printHelp();
 				}
 			}
-
+		
+		lanbeacon_keys.sender_or_receiver_mode = RECEIVER_MODE; 
+		
 		// receive lanbeacon
 		struct received_lldp_packet *my_received_lldp_packet
 			= recLLDPrawSock(&lanbeacon_keys);
@@ -92,10 +95,12 @@ int main(int argc, char **argv) {
 		}
 	}
 
+	//lanbeacon sender mode
 	//## creating and sending lanbeacon
 	int lldpdu_len;
-	char *lanBeaconCustomTLVs
-		= mergedlanbeaconCreator(&argc, argv, &lldpdu_len, &lanbeacon_keys);
+	lanbeacon_keys.sender_or_receiver_mode = SENDER_MODE; 
+
+	char *lanBeaconCustomTLVs = mergedlanbeaconCreator(&argc, argv, &lldpdu_len, &lanbeacon_keys);
 
 	sendLLDPrawSock (lldpdu_len, lanBeaconCustomTLVs, &lanbeacon_keys);
 

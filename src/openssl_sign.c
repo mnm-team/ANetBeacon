@@ -1,4 +1,3 @@
-
 // sources:
 //	http://stackoverflow.com/a/12661380
 //	https://wiki.openssl.org/index.php/EVP_Signing_and_Verifying
@@ -241,33 +240,39 @@ int read_keys(EVP_PKEY** skey, EVP_PKEY** vkey, struct open_ssl_keys *lanbeacon_
 	FILE*	 pFile	= NULL;
 	int iRet = EXIT_SUCCESS;
 
-	if ((pFile = fopen(lanbeacon_keys->path_To_Signing_Key,"rt")) 
-	&&(*skey = PEM_read_PrivateKey(pFile, NULL, passwd_callback, (void*)lanbeacon_keys->pcszPassphrase)))
-	{
-		fprintf(stderr,_("Private key read.\n"));
+	// only open signing key, if in sender mode
+	if (lanbeacon_keys->sender_or_receiver_mode == SENDER_MODE) {
+		if ((pFile = fopen(lanbeacon_keys->path_To_Signing_Key,"rt")) 
+		&&(*skey = PEM_read_PrivateKey(pFile, NULL, passwd_callback, (void*)lanbeacon_keys->pcszPassphrase)))
+		{
+			fprintf(stderr,_("Private key read.\n"));
+		}
+		else
+		{
+			fprintf(stderr,_("Cannot read \"%s\".\n"), lanbeacon_keys->path_To_Signing_Key);
+			ERR_print_errors_fp(stderr);
+			iRet = iRet | NO_PRIVATE_KEY;
+		}
+		if(pFile)
+		{
+			fclose(pFile);
+			pFile = NULL;
+		}
 	}
-	else
-	{
-		fprintf(stderr,_("Cannot read \"%s\".\n"), lanbeacon_keys->path_To_Signing_Key);
-		ERR_print_errors_fp(stderr);
-		iRet = iRet | NO_PRIVATE_KEY;
-	}
-	if(pFile)
-	{
-		fclose(pFile);
-		pFile = NULL;
-	}
-
-	if((pFile = fopen(lanbeacon_keys->path_To_Verifying_Key,"rt")) &&
-	   (*vkey = PEM_read_PUBKEY(pFile,NULL,NULL,NULL)))
-	{
-		fprintf(stderr,_("Public key read.\n"));
-	}
-	else
-	{
-		fprintf(stderr,_("Cannot read \"%s\".\n"), lanbeacon_keys->path_To_Verifying_Key);
-		ERR_print_errors_fp(stderr);
-		iRet = iRet | NO_PUBLIC_KEY;
+	
+	// only open verifying key, if in listener mode
+	if (lanbeacon_keys->sender_or_receiver_mode == RECEIVER_MODE) {
+		if((pFile = fopen(lanbeacon_keys->path_To_Verifying_Key,"rt")) &&
+		   (*vkey = PEM_read_PUBKEY(pFile,NULL,NULL,NULL)))
+		{
+			fprintf(stderr,_("Public key read.\n"));
+		}
+		else
+		{
+			fprintf(stderr,_("Cannot read \"%s\".\n"), lanbeacon_keys->path_To_Verifying_Key);
+			ERR_print_errors_fp(stderr);
+			iRet = iRet | NO_PUBLIC_KEY;
+		}
 	}
 
 	return iRet;
