@@ -6,7 +6,7 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
-#include <linux/if.h>
+//#include <linux/if.h>
 #include <net/if.h>
 #include <net/ethernet.h>
 #include <netinet/ether.h>
