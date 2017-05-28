@@ -174,7 +174,8 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 int sendLLDPrawSock (int LLDPDU_len, char *lanbeaconCustomTLVs, 
 					struct open_ssl_keys *lanbeacon_keys)
 {
-	sendRawSocket ((unsigned char[6]){LLDP_DEST_MAC}, lanbeaconCustomTLVs, 
+	unsigned char lldp_mac[6] = {LLDP_DEST_MAC};
+	sendRawSocket (lldp_mac, lanbeaconCustomTLVs, 
 		LLDPDU_len, LLDP_ETHER_TYPE, lanbeacon_keys);
 	return EXIT_SUCCESS;
 }
