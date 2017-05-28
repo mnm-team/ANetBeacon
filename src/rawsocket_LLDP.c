@@ -69,7 +69,7 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 	// Construct the Ethernet header
 	memset(lldpEthernetFrame, 0, LLDP_BUF_SIZ);
 	memcpy(eh->ether_dhost, destination_mac, 6);
-
+// printf("%02X ****** %02X ****** %02X ****** %02X ****** %02X ****** %02X\n", (unsigned) eh->ether_dhost[0], (unsigned) eh->ether_dhost[1], (unsigned) eh->ether_dhost[2], (unsigned) eh->ether_dhost[3], (unsigned) eh->ether_dhost[4], (unsigned) eh->ether_dhost[5]);
 	// Ethertype field
 	eh->ether_type = htons(etherType);
 	frameLength += sizeof(struct ether_header);
@@ -174,8 +174,8 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 int sendLLDPrawSock (int LLDPDU_len, char *lanbeaconCustomTLVs, 
 					struct open_ssl_keys *lanbeacon_keys)
 {
-	unsigned char lldp_mac[6] = {LLDP_DEST_MAC};
-	sendRawSocket (lldp_mac, lanbeaconCustomTLVs, 
+//	unsigned char lldp_mac[6] = {LLDP_DEST_MAC};
+	sendRawSocket ((unsigned char[6]){LLDP_DEST_MAC}, lanbeaconCustomTLVs, 
 		LLDPDU_len, LLDP_ETHER_TYPE, lanbeacon_keys);
 	return EXIT_SUCCESS;
 }
@@ -244,6 +244,8 @@ printf("%02X ****** %02X ****** %02X ****** %02X ****** %02X ****** %02X\n", (un
 				}
 			}
 		}
+		
+		memcpy(my_received_lldp_packet->current_destination_mac, eh->ether_shost, 6);
 
 		if (0 == challengeSentBool++) {
 			// delete received packet, send challenge and flush buffer
@@ -252,8 +254,9 @@ printf("%02X ****** %02X ****** %02X ****** %02X ****** %02X ****** %02X\n", (un
 			srand(time(NULL));
 //my_received_lldp_packet->challenge = 65321;
 			my_received_lldp_packet->challenge = 1+ (rand() % 4294967294);
-printf("%02X ****** %02X ****** %02X ****** %02X ****** %02X ****** %02X\n", (unsigned) eh->ether_shost[0], (unsigned) eh->ether_shost[1], (unsigned) eh->ether_shost[2], (unsigned) eh->ether_shost[3], (unsigned) eh->ether_shost[4], (unsigned) eh->ether_shost[5]);
-			sendRawSocket (eh->ether_shost, &my_received_lldp_packet->challenge, 
+printf("dadada%02X ****** %02X ****** %02X ****** %02X ****** %02X ****** %02X\n", (unsigned) eh->ether_shost[0], (unsigned) eh->ether_shost[1], (unsigned) eh->ether_shost[2], (unsigned) eh->ether_shost[3], (unsigned) eh->ether_shost[4], (unsigned) eh->ether_shost[5]);
+//FILE *combined = fopen("macDebug","w");	fwrite(my_received_lldp_packet->current_destination_mac, 20, 1, combined); fclose(combined); exit(0);
+			sendRawSocket (my_received_lldp_packet->current_destination_mac, &my_received_lldp_packet->challenge, 
 				4, CHALLENGE_ETHTYPE, NULL);
 			tv.tv_sec = 0;
 			while (1) {
@@ -323,7 +326,7 @@ unsigned long receiveChallenge(int *sockfd, int numInterfaces, int maxSockFd, ch
 				memcpy(receivedChallenge, &receiveBuf[14], 4);
 				*receivedChallenge = ntohl(*receivedChallenge);
 				printf(_("Received challenge: %lu\n"), *receivedChallenge);
-				memcpy(challenge_dest_mac, &receiveBuf[7], 6);
+				memcpy(challenge_dest_mac, &receiveBuf[6], 6);
 
 				break;
 			}
