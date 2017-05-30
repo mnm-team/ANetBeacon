@@ -158,27 +158,7 @@ char *mergedlanbeaconCreator (int *argc, char **argv, int *lldpdu_len,
 				mylanbeacon, &currentByte, strlen(combinedString [i]));
 	}
 
-	// add signature
-	long challenge = 0;
-	time_t timeStamp = time(NULL);
-
-	challenge = htonl(challenge);
-	memcpy(&mylanbeacon[currentByte], &challenge, 4);
-	timeStamp = htonl(timeStamp);
-	memcpy(&mylanbeacon[currentByte+4], &timeStamp, 4);
-	// add TLV-header using function, this overrides lanbeacon signature part with itself
-	transferToCombinedBeacon (SUBTYPE_SIGNATURE, &mylanbeacon[currentByte], 
-		mylanbeacon, &currentByte, 256 + 8);
-
-	unsigned char* sig = NULL;
-	size_t slen = 0;
-	signlanbeacon(&sig, &slen, (const unsigned char *) mylanbeacon, 
-		(size_t) currentByte - 256, lanbeacon_keys);
-	memcpy(&mylanbeacon[currentByte-256], sig, slen);
-
 	*lldpdu_len = currentByte;
-
-	free(sig);
 
 	return mylanbeacon;
 }

@@ -133,32 +133,79 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 
 		if (etherType == LLDP_ETHER_TYPE) {
 			if (*receivedChallenge == 0) {
+				
+				// receive challenge
 				char challenge_dest_mac[6];
 				*receivedChallenge = receiveChallenge(	challengeSockfd, 
 														challengeNumInterfaces, 
 														challengeMaxSockFd,
 														challenge_dest_mac);
 				*receivedChallenge = htonl(*receivedChallenge);
-				memcpy(&lldpEthernetFrame[frameLength-272+6], receivedChallenge, 4);
 				
 				if (*receivedChallenge != 0) {
 					memcpy(eh->ether_dhost, challenge_dest_mac, 6);
 					memcpy(socket_address.sll_addr, challenge_dest_mac, 6);
+				
+					// generate timestamp
+					time_t timeStamp = time(NULL);
+					timeStamp = htonl(timeStamp);
+				
+					// add signature TLV
+	//				long challenge = 0;
+
+	//				challenge = htonl(challenge);
+	//				memcpy(&mylanbeacon[currentByte], &challenge, 4);
+				
+					lldpEthernetFrame[frameLength-2+0] = 0xff;
+					lldpEthernetFrame[frameLength-2+1] = 0x0c;
+					lldpEthernetFrame[frameLength-2+2] = 0xcc;
+					lldpEthernetFrame[frameLength-2+3] = 0x4d;
+					lldpEthernetFrame[frameLength-2+4] = 0x55;
+					lldpEthernetFrame[frameLength-2+5] = 0xd8;
+				
+		//			unsigned char signature_header_buffer[6] = {0xff, 0x0c, 0xcc, 0x4d, 0x55, 0xd8};
+		//			memcpy(&lldpEthernetFrame[frameLength-2], signature_header_buffer, 6);
+				
+					memcpy(&lldpEthernetFrame[frameLength-2+6], receivedChallenge, 4);
+				
+	//				memcpy(&mylanbeacon[currentByte+4], &timeStamp, 4);
+					memcpy(&lldpEthernetFrame[frameLength-2+6+4], &timeStamp, 4);
+				
+				
+					unsigned char* sig = NULL;
+					size_t slen = 0;
+					signlanbeacon(&sig, &slen, (const unsigned char *) &lldpEthernetFrame[14], 
+						(size_t) payloadLen + 6 + 6 + 4, lanbeacon_keys);
+					memcpy(&lldpEthernetFrame[frameLength-2+6+4+4], sig, slen);
+					free(sig);
+				
+				
+					lldpEthernetFrame[frameLength+272] = 0x00;
+					lldpEthernetFrame[frameLength+273] = 0x00;
+				
+					frameLength += 270;
+					// add TLV-header using function, this overrides lanbeacon signature part with itself
+	//				transferToCombinedBeacon (SUBTYPE_SIGNATURE, &mylanbeacon[currentByte], 
+	//					mylanbeacon, &currentByte, 256 + 8);
+
+	//				unsigned char* sig = NULL;
+	//				size_t slen = 0;
+	//				signlanbeacon(&sig, &slen, (const unsigned char *) mylanbeacon, 
+	//					(size_t) currentByte - 256, lanbeacon_keys);
+	//				memcpy(&mylanbeacon[currentByte-256], sig, slen);
+
+	//				free(sig);
+				
+				
+					//## add signature ##//
+	//				time_t timeStamp = time(NULL);
+	//				timeStamp = htonl(timeStamp);
 				}
+				
 			}
 			else
 				sleep(LLDP_SEND_FREQUENCY);
 
-			//## add signature ##//
-			time_t timeStamp = time(NULL);
-			timeStamp = htonl(timeStamp);
-			memcpy(&lldpEthernetFrame[frameLength-272+6+4], &timeStamp, 4);
-			unsigned char* sig = NULL;
-			size_t slen = 0;
-			signlanbeacon(&sig, &slen, (const unsigned char *) &lldpEthernetFrame[14], 
-				(size_t) payloadLen - 256, lanbeacon_keys);
-			memcpy(&lldpEthernetFrame[frameLength-272+6+4+4], sig, slen);
-			free(sig);
 		}
 //printf("%i*********************** %ld *************** %02X ****** %02X ****** %02X ****** %02X\n", frameLength,   * (unsigned long *) payload, (unsigned) lldpEthernetFrame[14], (unsigned)lldpEthernetFrame[15], (unsigned)lldpEthernetFrame[16], (unsigned)(unsigned)lldpEthernetFrame[17]);
 
