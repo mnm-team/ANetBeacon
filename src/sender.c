@@ -22,7 +22,7 @@
 
 // code loosely based on code from my Systempraktikum https://github.com/ciil/nine-mens-morris/blob/master/src/config.c
 char *mergedlanbeaconCreator (int *argc, char **argv, int *lldpdu_len, 
-								struct open_ssl_keys *lanbeacon_keys) {
+								struct open_ssl_keys *lanbeacon_keys, char **interface_to_send_on) {
 
 	char *mylanbeacon = malloc(1500);
 	if(!mylanbeacon) puts(_("malloc error of \"mylanbeacon\" in mergedlanbeaconCreator"));
@@ -53,9 +53,16 @@ char *mergedlanbeaconCreator (int *argc, char **argv, int *lldpdu_len,
 	// custom TLV arguments
 	if(*argc == 1) printHelp();
 	int opt;
-	while((opt=getopt(*argc, argv, "i:n:c:4:6:e:d:r:s:v:p:h")) != -1) {
+	while((opt=getopt(*argc, argv, "4:6:c:d:e:f:i:n:p:r:s:v:h")) != -1) {
 		switch(opt) {
 
+			case 'f':
+puts(optarg);
+				*interface_to_send_on = calloc (16,sizeof(char));
+				strncpy(*interface_to_send_on, optarg, 15);
+puts(*interface_to_send_on);
+				break;
+			
 			case 'i':
 				transferToCombinedString (DESCRIPTOR_VLAN_ID, combinedString, optarg);
 				unsigned short int vlan_id = htons( (unsigned short int) strtoul(optarg,NULL,10) );

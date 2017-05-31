@@ -2,7 +2,7 @@
 #define MERGEDBEACON_H
 
 char *mergedlanbeaconCreator (int *argc, char **argv, int *lldpdu_len, 
-								struct open_ssl_keys *lanbeacon_keys) ;
+								struct open_ssl_keys *lanbeacon_keys, char **interface_to_send_on) ;
 void transferToCombinedBeaconAndString (unsigned char subtype, char *TLVdescription, 
 										char **combinedString, char *source, 
 										char *combinedBeacon, int *currentByte);

@@ -46,7 +46,7 @@
 //		{FD_SET(sockfd[x], &readfds);}
 
 void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLen, 
-					unsigned short etherType, struct open_ssl_keys *lanbeacon_keys) {
+					unsigned short etherType, struct open_ssl_keys *lanbeacon_keys, char *interface_to_send_on) {
 puts("Begin of sendRawSocket");	
 	if (etherType == CHALLENGE_ETHTYPE)
 		* (unsigned long *) payload = htonl(*(unsigned long *) payload);
@@ -90,7 +90,7 @@ puts("Begin of sendRawSocket");
 	memcpy(socket_address.sll_addr, destination_mac, 6);
 
 	// Get interfaces
-	getInterfaces (sockfd, &numInterfaces, etherType, SEND_SOCKET, if_idx, if_mac, NULL, NULL);
+	getInterfaces (sockfd, &numInterfaces, etherType, SEND_SOCKET, if_idx, if_mac, NULL, NULL, interface_to_send_on);
 	
 	// Get interfaces for challenge		TODO
 	int challengeSockfd[20];
@@ -98,7 +98,7 @@ puts("Begin of sendRawSocket");
 	int challengeNumInterfaces = 0;
 	int challengeMaxSockFd = 0;
 	getInterfaces (challengeSockfd, &challengeNumInterfaces, CHALLENGE_ETHTYPE, REC_SOCKET, 
-		NULL, NULL, challengeSockopt, &challengeMaxSockFd);
+		NULL, NULL, challengeSockopt, &challengeMaxSockFd, interface_to_send_on);
 
 	
 	int signed_responses_sent = 0; 
@@ -242,11 +242,11 @@ puts("########################################################################")
 
 // parts of code based on https://gist.github.com/austinmarton/1922600
 int sendLLDPrawSock (int LLDPDU_len, char *lanbeaconCustomTLVs, 
-					struct open_ssl_keys *lanbeacon_keys)
+					struct open_ssl_keys *lanbeacon_keys, char *interface_to_send_on)
 {
 //	unsigned char lldp_mac[6] = {LLDP_DEST_MAC};
 	sendRawSocket ((unsigned char[6]){LLDP_DEST_MAC}, lanbeaconCustomTLVs, 
-		LLDPDU_len, LLDP_ETHER_TYPE, lanbeacon_keys);
+		LLDPDU_len, LLDP_ETHER_TYPE, lanbeacon_keys, interface_to_send_on);
 	return EXIT_SUCCESS;
 }
 
@@ -270,7 +270,7 @@ struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys
 	fd_set readfds;
 	int numInterfaces = 0;
 
-	getInterfaces (sockfd, &numInterfaces, LLDP_ETHER_TYPE, REC_SOCKET, NULL, NULL, sockopt, &maxSockFd);
+	getInterfaces (sockfd, &numInterfaces, LLDP_ETHER_TYPE, REC_SOCKET, NULL, NULL, sockopt, &maxSockFd, NULL);
 
 	int challengeSentBool = 0;
 	int rv;
@@ -340,7 +340,7 @@ struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys
 //printf("dadada%02X ****** %02X ****** %02X ****** %02X ****** %02X ****** %02X\n", (unsigned) eh->ether_shost[0], (unsigned) eh->ether_shost[1], (unsigned) eh->ether_shost[2], (unsigned) eh->ether_shost[3], (unsigned) eh->ether_shost[4], (unsigned) eh->ether_shost[5]);
 //FILE *combined = fopen("macDebug","w");	fwrite(my_received_lldp_packet->current_destination_mac, 20, 1, combined); fclose(combined); exit(0);
 			sendRawSocket (my_received_lldp_packet->current_destination_mac, &my_received_lldp_packet->challenge, 
-				4, CHALLENGE_ETHTYPE, NULL);
+				4, CHALLENGE_ETHTYPE, NULL, NULL);
 			tv.tv_sec = 0;
 			
 			flush_all_interfaces (sockfd, maxSockFd, numInterfaces);
@@ -431,7 +431,7 @@ unsigned long receiveChallenge(int *sockfd, int numInterfaces, int maxSockFd, ch
 
 void getInterfaces (int *sockfd, int *numInterfaces, unsigned short etherType, 
 					unsigned short sendOrReceive, struct ifreq *if_idx, 
-					struct ifreq *if_mac, int *sockopt, int *maxSockFd) {
+					struct ifreq *if_mac, int *sockopt, int *maxSockFd, char *interface_to_send_on) {
 
 	struct ifaddrs *interfaces;
 	if (getifaddrs(&interfaces) == -1) {
@@ -440,6 +440,14 @@ void getInterfaces (int *sockfd, int *numInterfaces, unsigned short etherType,
 	}
 
 	for (; interfaces != NULL; interfaces = interfaces->ifa_next) {
+
+		
+		if (interface_to_send_on) {
+			if (strcmp(interface_to_send_on, interfaces->ifa_name) ) {
+				continue;
+			}
+		}
+		printf("if-name: %s\nparameter: %s\n", interfaces->ifa_name, interface_to_send_on);
 
 		if (interfaces->ifa_addr == NULL) continue;
 		if (!(interfaces->ifa_addr->sa_family == AF_PACKET)) continue;
@@ -493,7 +501,7 @@ void getInterfaces (int *sockfd, int *numInterfaces, unsigned short etherType,
 		}
 
 		printf(_("Number %i is interface %s\n"), *numInterfaces, interfaces->ifa_name);
-		*numInterfaces = *numInterfaces + 1;
+		*numInterfaces += 1;
 	}
 
 	return;
