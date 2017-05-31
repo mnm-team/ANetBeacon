@@ -19,6 +19,6 @@ void getInterfaces (int *sockfd, int *numInterfaces, unsigned short etherType,
 void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLen, 
 					unsigned short etherType, struct open_ssl_keys *lanbeacon_keys);
 
-void flush_all_interfaces ();
+void flush_all_interfaces (int *sockfd, int maxSockFd, int numInterfaces);
 
 #endif
