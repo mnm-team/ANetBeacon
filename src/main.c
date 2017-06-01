@@ -31,11 +31,13 @@ int main(int argc, char **argv) {
 	struct open_ssl_keys lanbeacon_keys = {
 		.path_To_Verifying_Key = PUBLIC_KEY_STANDARD_PATH,
 		.path_To_Signing_Key = PRIVATE_KEY_STANDARD_PATH,
-		.pcszPassphrase = "as" // TODO set default password as empty
+		.pcszPassphrase = "TODO"
 	};
 
 
 
+	int authenticated = 0;
+	
 	// lanbeacon listener mode
 	// check if any argument is "listen" mode
 	int opt;
@@ -43,10 +45,14 @@ int main(int argc, char **argv) {
 		if (strcmp("-l", argv[current_arg]) == 0) {
 			// if listen mode is enabled, get all arguments.
 			// if any arguments not used in listen mode are contained, show help
-			while((opt=getopt(argc, argv, "lv:p:")) != -1) {
+			while((opt=getopt(argc, argv, "lav:p:")) != -1) {
 				switch(opt) {
 
 					case 'l':
+						break;
+
+					case 'a':
+						authenticated = 1;
 						break;
 
 					case 'v':
@@ -58,11 +64,11 @@ int main(int argc, char **argv) {
 							lanbeacon_keys.path_To_Verifying_Key,
 							argv[current_arg], KEY_PATHLENGTH_MAX
 						);
-						lanbeacon_keys.path_To_Verifying_Key[strlen(optarg)] = 0;
+						lanbeacon_keys.path_To_Verifying_Key[KEY_PATHLENGTH_MAX] = 0;
 						break;
 
 					case 'p':
-						if (strlen(optarg) > 256) {
+						if (strlen(optarg) > 1023) {
 							puts(_("Length of passed password too long. Exiting"));
 							return EXIT_FAILURE;
 						}
@@ -78,11 +84,16 @@ int main(int argc, char **argv) {
 				}
 			}
 		
+		if((authenticated == 1) && (strlen(lanbeacon_keys.path_To_Verifying_Key) < 4)) {
+			puts(_("No sufficiently long password was provided! Please enter 4 to 1023 characters"));
+			exit(EXIT_FAILURE);
+		}
+		
 		lanbeacon_keys.sender_or_receiver_mode = RECEIVER_MODE; 
 		
 		// receive lanbeacon
 		struct received_lldp_packet *my_received_lldp_packet
-			= recLLDPrawSock(&lanbeacon_keys);
+			= recLLDPrawSock(&lanbeacon_keys, authenticated);
 		char ** parsedBeaconContents = evaluatelanbeacon(my_received_lldp_packet);
 		bananaPIprint(parsedBeaconContents, &lanbeacon_keys);
 

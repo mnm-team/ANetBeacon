@@ -252,7 +252,7 @@ int sendLLDPrawSock (int LLDPDU_len, char *lanbeaconCustomTLVs,
 
 
 // parts of code based on https://gist.github.com/austinmarton/2862515
-struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys) {
+struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys, int authenticated) {
 
 	struct received_lldp_packet *my_received_lldp_packet = 
 		malloc(sizeof(struct received_lldp_packet));
@@ -330,7 +330,7 @@ struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys
 		
 		memcpy(my_received_lldp_packet->current_destination_mac, eh->ether_shost, 6);
 
-		if (0 == challengeSentBool++) {
+		if ((authenticated == 1) && (0 == challengeSentBool++)) {
 			// delete received packet, send challenge and flush buffer
 			memset (my_received_lldp_packet->lldpReceivedPayload, 0, LLDP_BUF_SIZ);
 

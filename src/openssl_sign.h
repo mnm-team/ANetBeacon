@@ -23,7 +23,7 @@
 struct open_ssl_keys {
 	char path_To_Verifying_Key[KEY_PATHLENGTH_MAX];
 	char path_To_Signing_Key[KEY_PATHLENGTH_MAX];
-	char pcszPassphrase[257];
+	char pcszPassphrase[1024];
 	int sender_or_receiver_mode; 
 };
 

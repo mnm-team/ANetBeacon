@@ -155,13 +155,13 @@ char ** evaluatelanbeacon (struct received_lldp_packet *my_received_lldp_packet)
 						&my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+6+4], 4);
 					zwischenSpeicherTimeStamp = ntohl(zwischenSpeicherTimeStamp);
 
-					printf(_("Sent challenge: %lu, received challenge: %lu\n"),	//TODO
-						(unsigned long) ntohl(my_received_lldp_packet->challenge),
-						zwischenSpeicherChallenge);
+//					printf(_("Sent challenge: %lu, received challenge: %lu\n"),	
+//						(unsigned long) ntohl(my_received_lldp_packet->challenge),
+//						zwischenSpeicherChallenge);
 
 					if ((((unsigned long) ntohl(my_received_lldp_packet->challenge))
-					== zwischenSpeicherChallenge) /*TODO&&
-					(timeStamp == zwischenSpeicherTimeStamp)*/)
+					== zwischenSpeicherChallenge) &&
+					(timeStamp - zwischenSpeicherTimeStamp < 10))
 						sprintf(TLVstringbuffer,
 						_("Authentication successfull! Sent challenge: %ld Received Challenge: %ld Timestamp: %ld"),
 						(unsigned long) ntohl(my_received_lldp_packet->challenge), zwischenSpeicherChallenge, zwischenSpeicherTimeStamp);

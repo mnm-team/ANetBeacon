@@ -8,7 +8,7 @@
 int sendLLDPrawSock (int LLDPDU_len, char *lanbeaconCustomTLVs,
 					struct open_ssl_keys *lanbeacon_keys, char *interface_to_send_on);
 
-struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys);
+struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys, int authenticated);
 
 unsigned long receiveChallenge(int *sockfd, int numInterfaces, int maxSockFd, char *challenge_dest_mac);
 

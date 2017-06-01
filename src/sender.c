@@ -131,7 +131,7 @@ puts(*interface_to_send_on);
 				break;
 
 			case 'p':
-				if (strlen(optarg) > 256) {
+				if (strlen(optarg) > 1023) {
 					puts(_("Length of passed password too long. Exiting"));
 					exit(EXIT_FAILURE);
 				}
@@ -158,6 +158,11 @@ puts(*interface_to_send_on);
 		}
 	}
 
+	if((strlen(lanbeacon_keys->path_To_Verifying_Key) < 4)) {
+		puts(_("No sufficiently long password was provided for private key! Please enter 4 to 1023 characters"));
+		exit(EXIT_FAILURE);
+	}
+	
 	// transfer combined strings to TLVs, each with a maximum size of 507 byte
 	for(int i = 0; i < 5; i++) {
 		if (0 < strlen(combinedString[i]))
