@@ -4,11 +4,12 @@
 #include <sys/ioctl.h>
 #include <net/if.h>
 #include "openssl_sign.h"
+#include "receiver.h"
+#include "sender.h"
 
-int sendLLDPrawSock (int LLDPDU_len, char *lanbeaconCustomTLVs,
-					struct open_ssl_keys *lanbeacon_keys, char *interface_to_send_on);
+int sendLLDPrawSock (struct sender_information *my_sender_information);
 
-struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys, int authenticated);
+struct received_lldp_packet *recLLDPrawSock(struct receiver_information *my_receiver_information);
 
 unsigned long receiveChallenge(int *sockfd, int numInterfaces, int maxSockFd, char *challenge_dest_mac);
 

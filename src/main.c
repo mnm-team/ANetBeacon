@@ -33,33 +33,44 @@ int main(int argc, char **argv) {
 	
 	bindtextdomain ("lanbeacon", currentL10nFolder);
 	textdomain ("lanbeacon");
-
-	struct open_ssl_keys lanbeacon_keys = {
-		.path_To_Verifying_Key = PUBLIC_KEY_STANDARD_PATH,
-		.path_To_Signing_Key = PRIVATE_KEY_STANDARD_PATH,
-		.pcszPassphrase = "TODO" // TODO
-	};
-
-
 	
+	
+
 	// lanbeacon listener mode
 	// check if any argument is "l", in which case the "listen" mode will be used
 	int opt;
 	for (int current_arg = 1; current_arg < argc; current_arg++) {
 		if (strcmp("-l", argv[current_arg]) == 0) {
-			lanbeacon_keys.sender_or_receiver_mode = RECEIVER_MODE; 
-			int authenticated = 0;
+			
+			struct receiver_information my_receiver_information = {
+				.currentLLDPDU_for_printing = 0,
+				.authenticated = 0,
+				.number_of_currently_received_packets = 0,
+				.scroll_speed = DEFAULT_SCROLLSPEED,
+				.lanbeacon_keys = {
+					.path_To_Verifying_Key = PUBLIC_KEY_STANDARD_PATH,
+//					.path_To_Signing_Key = PRIVATE_KEY_STANDARD_PATH,
+//					.pcszPassphrase = "TODO" // TODO
+				}
+			};
+			
+			my_receiver_information.lanbeacon_keys.sender_or_receiver_mode = RECEIVER_MODE; 
+//			int authenticated = 0;
 			
 			// if listen mode is enabled, get all arguments.
 			// if any arguments are contained, which are not used in listen mode, show help
-			while((opt=getopt(argc, argv, "lav:p:")) != -1) {
+			while((opt=getopt(argc, argv, "lav:y:")) != -1) {
 				switch(opt) {
 
 					case 'l':
 						break;
 
 					case 'a':
-						authenticated = 1;
+						my_receiver_information.authenticated = 1;
+						break;
+
+					case 'y':
+						my_receiver_information.scroll_speed = atoi(optarg);
 						break;
 
 					case 'v':
@@ -68,13 +79,13 @@ int main(int argc, char **argv) {
 							return EXIT_FAILURE;
 						}
 						strncpy(
-							lanbeacon_keys.path_To_Verifying_Key,
+							my_receiver_information.lanbeacon_keys.path_To_Verifying_Key,
 							argv[current_arg], KEY_PATHLENGTH_MAX
 						);
-						lanbeacon_keys.path_To_Verifying_Key[KEY_PATHLENGTH_MAX] = 0;
+						my_receiver_information.lanbeacon_keys.path_To_Verifying_Key[KEY_PATHLENGTH_MAX] = 0;
 						break;
 
-					case 'p':
+/*					case 'p':
 						if (strlen(optarg) > 1023) {
 							puts(_("Length of passed password too long. Exiting"));
 							return EXIT_FAILURE;
@@ -82,7 +93,7 @@ int main(int argc, char **argv) {
 						strncpy(lanbeacon_keys.pcszPassphrase, optarg, 256);
 						lanbeacon_keys.pcszPassphrase[strlen(optarg)] = 0;
 						break;
-
+*/
 					case 'h':
 						printHelp();
 
@@ -92,35 +103,40 @@ int main(int argc, char **argv) {
 			}
 		
 			// receive lanbeacon
-			struct received_lldp_packet *my_received_lldp_packet
-				= recLLDPrawSock(&lanbeacon_keys, authenticated);
-			char ** parsedBeaconContents = evaluatelanbeacon(my_received_lldp_packet);
-			bananaPIprint(parsedBeaconContents, &lanbeacon_keys);
+			my_receiver_information.pointers_to_received_packets[0] = recLLDPrawSock(&my_receiver_information);
+			my_receiver_information.pointers_to_received_packets[0]->parsedBeaconContents 
+				= evaluatelanbeacon(my_receiver_information.pointers_to_received_packets[0]);
+			bananaPIprint(&my_receiver_information);
 
 			// free memory
 			for (int i = 0 ; i < PARSED_TLVS_MAX_NUMBER; ++i) {
-				free(parsedBeaconContents[i]);
+				free(my_receiver_information.pointers_to_received_packets[0]->parsedBeaconContents[i]);
 			}
-			free(parsedBeaconContents);
-			free(my_received_lldp_packet);
+			free(my_receiver_information.pointers_to_received_packets[0]->parsedBeaconContents);
+			free(my_receiver_information.pointers_to_received_packets[0]);
 
 			return EXIT_SUCCESS;
 		}
 	}
 	
 	
-
 	//lanbeacon sender mode
 	//## creating and sending lanbeacon
-	int lldpdu_len;
-	lanbeacon_keys.sender_or_receiver_mode = SENDER_MODE; 
+	struct sender_information my_sender_information = {
+		.interface_to_send_on = NULL,
+		.lanbeacon_keys = {
+			.sender_or_receiver_mode = SENDER_MODE,
+			.path_To_Verifying_Key = PUBLIC_KEY_STANDARD_PATH,
+			.path_To_Signing_Key = PRIVATE_KEY_STANDARD_PATH,
+			.pcszPassphrase = "TODO" // TODO
+		}
+	};
+	my_sender_information.lanBeacon_PDU = mergedlanbeaconCreator(&argc, argv, &my_sender_information);
+printf("xxxxxxxxxxxxxxxxx %s\n", my_sender_information.interface_to_send_on);
+	sendLLDPrawSock (&my_sender_information);
 
-	char *interface_to_send_on = NULL;
-	char *lanBeaconCustomTLVs = mergedlanbeaconCreator(&argc, argv, &lldpdu_len, &lanbeacon_keys, &interface_to_send_on);
-printf("xxxxxxxxxxxxxxxxx %s\n", interface_to_send_on);
-	sendLLDPrawSock (lldpdu_len, lanBeaconCustomTLVs, &lanbeacon_keys, interface_to_send_on);
-
-	if (interface_to_send_on) free(interface_to_send_on);
+	if (my_sender_information.interface_to_send_on) free(my_sender_information.interface_to_send_on);
 	
 	return EXIT_SUCCESS;
 }
+

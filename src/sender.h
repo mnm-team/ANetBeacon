@@ -1,8 +1,17 @@
 #ifndef MERGEDBEACON_H
 #define MERGEDBEACON_H
+#include "define.h"
+#include "openssl_sign.h"
 
-char *mergedlanbeaconCreator (int *argc, char **argv, int *lldpdu_len, 
-								struct open_ssl_keys *lanbeacon_keys, char **interface_to_send_on) ;
+struct sender_information {
+	
+	char *lanBeacon_PDU;
+	int lldpdu_len;
+	char *interface_to_send_on;
+	struct open_ssl_keys lanbeacon_keys;
+};
+
+char *mergedlanbeaconCreator (int *argc, char **argv, struct sender_information *my_sender_information);
 void transferToCombinedBeaconAndString (unsigned char subtype, char *TLVdescription, 
 										char **combinedString, char *source, 
 										char *combinedBeacon, int *currentByte);

@@ -64,7 +64,7 @@ puts("Begin of sendRawSocket");
 	if (etherType == LLDP_ETHER_TYPE) {
 		receivedChallenge = calloc(sizeof(unsigned long), 1);
 		if(!receivedChallenge) 
-			puts(_("calloc error of \"receivedChallenge\" in sendLLDPrawSock"));
+			puts(_("calloc error of \"receivedChallenge\" in sendRawSocket"));
 	}
 
 	// Construct the Ethernet header
@@ -241,18 +241,17 @@ puts("########################################################################")
 
 
 // parts of code based on https://gist.github.com/austinmarton/1922600
-int sendLLDPrawSock (int LLDPDU_len, char *lanbeaconCustomTLVs, 
-					struct open_ssl_keys *lanbeacon_keys, char *interface_to_send_on)
+int sendLLDPrawSock (struct sender_information *my_sender_information)
 {
 //	unsigned char lldp_mac[6] = {LLDP_DEST_MAC};
-	sendRawSocket ((unsigned char[6]){LLDP_DEST_MAC}, lanbeaconCustomTLVs, 
-		LLDPDU_len, LLDP_ETHER_TYPE, lanbeacon_keys, interface_to_send_on);
+	sendRawSocket ((unsigned char[6]){LLDP_DEST_MAC}, my_sender_information->lanBeacon_PDU, 
+		my_sender_information->lldpdu_len, LLDP_ETHER_TYPE, &my_sender_information->lanbeacon_keys, my_sender_information->interface_to_send_on);
 	return EXIT_SUCCESS;
 }
 
 
 // parts of code based on https://gist.github.com/austinmarton/2862515
-struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys, int authenticated) {
+struct received_lldp_packet *recLLDPrawSock(struct receiver_information *my_receiver_information) {
 
 	struct received_lldp_packet *my_received_lldp_packet = 
 		malloc(sizeof(struct received_lldp_packet));
@@ -324,13 +323,13 @@ struct received_lldp_packet *recLLDPrawSock(struct open_ssl_keys *lanbeacon_keys
 		// position: end of LLDPDU - 2 Ethernet header - 14
 		if (0 != verifylanbeacon(
 			&my_received_lldp_packet->lldpReceivedPayload[14],
-			my_received_lldp_packet->payloadSize - 2 - 14, lanbeacon_keys)) {
+			my_received_lldp_packet->payloadSize - 2 - 14, &my_receiver_information->lanbeacon_keys)) {
 				puts("problem with verification");
 		}
 		
 		memcpy(my_received_lldp_packet->current_destination_mac, eh->ether_shost, 6);
 
-		if ((authenticated == 1) && (0 == challengeSentBool++)) {
+		if ((my_receiver_information->authenticated == 1) && (0 == challengeSentBool++)) {
 			// delete received packet, send challenge and flush buffer
 			memset (my_received_lldp_packet->lldpReceivedPayload, 0, LLDP_BUF_SIZ);
 

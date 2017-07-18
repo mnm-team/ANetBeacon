@@ -187,7 +187,7 @@ char ** evaluatelanbeacon (struct received_lldp_packet *my_received_lldp_packet)
 
 
 
-void bananaPIprint (char **parsedBeaconContents, struct open_ssl_keys *lanbeacon_keys) {
+void bananaPIprint (struct receiver_information *my_receiver_information) {
 
 	#ifdef BANANAPI_SWITCH
 	TFT_init_board();
@@ -219,12 +219,12 @@ void bananaPIprint (char **parsedBeaconContents, struct open_ssl_keys *lanbeacon
 		for (int currentTLV = 0; currentTLV < PARSED_TLVS_MAX_NUMBER; currentTLV++) {
 
 			for (currentPosInTLV = 1, endOfLastPartialString = 0; 
-			parsedBeaconContents[currentTLV][currentPosInTLV-1] != 0 ; currentPosInTLV++) {
+			my_receiver_information->pointers_to_received_packets[my_receiver_information->currentLLDPDU_for_printing]->parsedBeaconContents[currentTLV][currentPosInTLV-1] != 0 ; currentPosInTLV++) {
 
-				if (parsedBeaconContents[currentTLV][currentPosInTLV] == ' ')
+				if (my_receiver_information->pointers_to_received_packets[my_receiver_information->currentLLDPDU_for_printing]->parsedBeaconContents[currentTLV][currentPosInTLV] == ' ')
 					currentLastSpace = currentPosInTLV;
 
-				if (parsedBeaconContents[currentTLV][currentPosInTLV] == 0
+				if (my_receiver_information->pointers_to_received_packets[my_receiver_information->currentLLDPDU_for_printing]->parsedBeaconContents[currentTLV][currentPosInTLV] == 0
 				||	currentPosInTLV - endOfLastPartialString 
 				> (endOfLastPartialString == 0 ? 39 : 39 - DESCRIPTOR_WIDTH)) {
 
@@ -239,12 +239,12 @@ void bananaPIprint (char **parsedBeaconContents, struct open_ssl_keys *lanbeacon
 
 					if (endOfLastPartialString == 0) {
 						snprintf(buf, currentPosInTLV - endOfLastPartialString + 1, 
-							"%s", &parsedBeaconContents[currentTLV][endOfLastPartialString]);
+							"%s", &my_receiver_information->pointers_to_received_packets[my_receiver_information->currentLLDPDU_for_printing]->parsedBeaconContents[currentTLV][endOfLastPartialString]);
 					}
 					else {
 						snprintf(buf, currentPosInTLV - endOfLastPartialString + 1 + DESCRIPTOR_WIDTH, 
 							"%*s%s", DESCRIPTOR_WIDTH, "", 
-							&parsedBeaconContents[currentTLV][endOfLastPartialString]);
+							&my_receiver_information->pointers_to_received_packets[my_receiver_information->currentLLDPDU_for_printing]->parsedBeaconContents[currentTLV][endOfLastPartialString]);
 					}
 
 					puts(buf);
@@ -259,7 +259,7 @@ void bananaPIprint (char **parsedBeaconContents, struct open_ssl_keys *lanbeacon
 					currentLastSpace = 0;
 
 					if (currentPIline++ >= 14) {
-						sleep (5);
+						sleep (my_receiver_information->scroll_speed);
 						currentPIline = 0;
 
 						printf("\e[1;1H\e[2J"); //clear screen
@@ -273,7 +273,7 @@ void bananaPIprint (char **parsedBeaconContents, struct open_ssl_keys *lanbeacon
 		}
 
 		//if sleep (5) already has been executed, don't execute again
-		if (currentPIline != 0)	sleep (5);	
+		if (currentPIline != 0)	sleep (my_receiver_information->scroll_speed);	
 	}
 
 	return;

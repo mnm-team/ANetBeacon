@@ -21,8 +21,7 @@
 */
 
 // code loosely based on code from my Systempraktikum https://github.com/ciil/nine-mens-morris/blob/master/src/config.c
-char *mergedlanbeaconCreator (int *argc, char **argv, int *lldpdu_len, 
-								struct open_ssl_keys *lanbeacon_keys, char **interface_to_send_on) {
+char *mergedlanbeaconCreator (int *argc, char **argv, struct sender_information *my_sender_information) {
 
 	char *mylanbeacon = malloc(1500);
 	if(!mylanbeacon) puts(_("malloc error of \"mylanbeacon\" in mergedlanbeaconCreator"));
@@ -58,9 +57,9 @@ char *mergedlanbeaconCreator (int *argc, char **argv, int *lldpdu_len,
 
 			case 'f':
 puts(optarg);
-				*interface_to_send_on = calloc (16,sizeof(char));
-				strncpy(*interface_to_send_on, optarg, 15);
-puts(*interface_to_send_on);
+				my_sender_information->interface_to_send_on = calloc (16,sizeof(char));
+				strncpy(my_sender_information->interface_to_send_on, optarg, 15);
+puts(my_sender_information->interface_to_send_on);
 				break;
 			
 			case 'i':
@@ -113,8 +112,8 @@ puts(*interface_to_send_on);
 					puts(_("Passed path to signing key too long. Exiting."));
 				}
 
-				strncpy(lanbeacon_keys->path_To_Signing_Key, optarg, KEY_PATHLENGTH_MAX);
-				lanbeacon_keys->
+				strncpy(my_sender_information->lanbeacon_keys.path_To_Signing_Key, optarg, KEY_PATHLENGTH_MAX);
+				my_sender_information->lanbeacon_keys.
 					path_To_Signing_Key[strlen(optarg)] = 0;
 				break;
 
@@ -125,9 +124,9 @@ puts(*interface_to_send_on);
 					exit(EXIT_FAILURE);
 				}
 				strncpy(
-					lanbeacon_keys->path_To_Verifying_Key,optarg, KEY_PATHLENGTH_MAX
+					my_sender_information->lanbeacon_keys.path_To_Verifying_Key,optarg, KEY_PATHLENGTH_MAX
 				);
-				lanbeacon_keys->path_To_Verifying_Key[strlen(optarg)] = 0;
+				my_sender_information->lanbeacon_keys.path_To_Verifying_Key[strlen(optarg)] = 0;
 				break;
 
 			case 'p':
@@ -135,8 +134,9 @@ puts(*interface_to_send_on);
 					puts(_("Length of passed password too long. Exiting"));
 					exit(EXIT_FAILURE);
 				}
-				strncpy(lanbeacon_keys->pcszPassphrase, optarg, 256);
-				lanbeacon_keys->pcszPassphrase[strlen(optarg)] = 0;
+				strncpy(my_sender_information->lanbeacon_keys.pcszPassphrase, optarg, 256);
+				my_sender_information->lanbeacon_keys.pcszPassphrase[strlen(optarg)] = 0;
+printf("******************************************************* %s\n", my_sender_information->lanbeacon_keys.pcszPassphrase);
 				break;
 
 			case 'd':
@@ -158,7 +158,7 @@ puts(*interface_to_send_on);
 		}
 	}
 
-	if((strlen(lanbeacon_keys->pcszPassphrase) < 4)) {
+	if((strlen(my_sender_information->lanbeacon_keys.pcszPassphrase) < 4)) {
 		puts(_("No sufficiently long password was provided for private key! Please enter 4 to 1023 characters"));
 		exit(EXIT_FAILURE);
 	}
@@ -170,7 +170,7 @@ puts(*interface_to_send_on);
 				mylanbeacon, &currentByte, strlen(combinedString [i]));
 	}
 
-	*lldpdu_len = currentByte;
+	my_sender_information->lldpdu_len = currentByte;
 
 	return mylanbeacon;
 }
