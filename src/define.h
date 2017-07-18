@@ -4,20 +4,31 @@
 // Macro for gettext localization support
 #define _(STRING) gettext(STRING)
 
+
+// Protocol options such as addresses and send frequency
+#define LLDP_SEND_FREQUENCY 1
+
+#define LLDP_DEST_MAC	0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+//#define LLDP_DEST_MAC	0x01, 0x80, 0xc2, 0x00, 0x00, 0x0e
+//#define LLDP_DEST_MAC	0x01, 0x80, 0xc2, 0xde, 0x4c, 0x73
+#define CHALLENGE_ETHTYPE 0x88B5
+//#define LLDP_ETHER_TYPE	0x88CC
+#define LLDP_ETHER_TYPE	0x88B6
+
+// Buffer sizes
 #define PARSED_TLVS_MAX_NUMBER	25
 #define PARSED_TLVS_MAX_LENGTH	510
-
-// Display options
-#define DESCRIPTOR_WIDTH 10
-#define DEFAULT_SCROLLSPEED 5
 
 #define LLDP_BUF_SIZ 2000
 #define KEY_PATHLENGTH_MAX 500
 
+// Standard paths
 #define PRIVATE_KEY_STANDARD_PATH "privkey.pem"
 #define PUBLIC_KEY_STANDARD_PATH "pubkey.pem"
 
-#define LLDP_SEND_FREQUENCY 1
+// Display options
+#define DESCRIPTOR_WIDTH 10
+#define DEFAULT_SCROLLSPEED 5
 
 // Subtype numbers lanbeacon:
 #define SUBTYPE_VLAN_ID 200

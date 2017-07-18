@@ -26,18 +26,6 @@
 #include "openssl_sign.h"
 #define _GNU_SOURCE
 
-#define LLDP_DEST_MAC	0x01, 0x80, 0xc2, 0x00, 0x00, 0x0e
-//#define LLDP_DEST_MAC	0xff, 0xff, 0xff, 0xff, 0xff, 0xff
-//#define LLDP_DEST_MAC	0x01, 0x80, 0xc2, 0xde, 0x4c, 0x73
-#define CHALLENGE_ETHTYPE 0x88B5
-#define LLDP_ETHER_TYPE	0x88CC
-//#define LLDP_ETHER_TYPE	0x88B6
-
-#define LLDP_SEND_FREQUENCY 1
-#define CHALLENGE_SEND_FREQUENCY 170000
-#define CHALLENGE_SEND_TIMES 3
-#define SIGNED_RESPONSE_TIMES 3
-
 #define SEND_SOCKET 0
 #define REC_SOCKET 1
 //#define SET_SELECT_FDS 
@@ -103,9 +91,9 @@ puts("Begin of sendRawSocket");
 	
 	int signed_responses_sent = 0; 
 	
-	// send challenge CHALLENGE_SEND_TIMES times
+	// send challenge 1 time
 	// in case of LLDP-packet counter is not incremented, therefore infinite loop
-	for (int i = 0; i<CHALLENGE_SEND_TIMES; ) {
+	for (int i = 0; i<1; ) {
 
 		
 		// send packets on all interfaces
@@ -131,14 +119,14 @@ puts("Begin of sendRawSocket");
 				printf(_("Successfully sent on interface number %i\n"), j);
 		}
 
-		if (etherType == CHALLENGE_ETHTYPE) {
-			i++;
-			usleep(CHALLENGE_SEND_FREQUENCY);
-		}
+		if (etherType == CHALLENGE_ETHTYPE) i++; //{
+			
+//			usleep(CHALLENGE_SEND_FREQUENCY);
+//		}
 
 		if (etherType == LLDP_ETHER_TYPE) {
 			
-			if ((*receivedChallenge != 0) && (signed_responses_sent++ == SIGNED_RESPONSE_TIMES)) {
+			if ((*receivedChallenge != 0) && (signed_responses_sent++ == 1)) {
 			
 				*receivedChallenge = 0;
 			
