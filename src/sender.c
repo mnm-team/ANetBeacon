@@ -158,7 +158,7 @@ puts(*interface_to_send_on);
 		}
 	}
 
-	if((strlen(lanbeacon_keys->path_To_Verifying_Key) < 4)) {
+	if((strlen(lanbeacon_keys->pcszPassphrase) < 4)) {
 		puts(_("No sufficiently long password was provided for private key! Please enter 4 to 1023 characters"));
 		exit(EXIT_FAILURE);
 	}

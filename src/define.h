@@ -1,13 +1,14 @@
 #ifndef DEFINE_H
 #define DEFINE_H
 
+// Macro for gettext localization support
 #define _(STRING) gettext(STRING)
 
-#define PARSED_TLVS_MAX_NUMBER	15
+#define PARSED_TLVS_MAX_NUMBER	25
 #define PARSED_TLVS_MAX_LENGTH	510
 #define DESCRIPTOR_WIDTH 10
 
-#define LLDP_BUF_SIZ 4000
+#define LLDP_BUF_SIZ 2000
 #define KEY_PATHLENGTH_MAX 500
 
 #define PRIVATE_KEY_STANDARD_PATH "privkey.pem"
@@ -29,7 +30,7 @@
 // Descriptor strings lanbeacon:
 #define DESCRIPTOR_VLAN_ID gettext("VLAN-ID:")
 #define DESCRIPTOR_NAME gettext("VLAN-Name:")
-#define DESCRIPTOR_CUSTOM gettext("Freitext:")
+#define DESCRIPTOR_CUSTOM gettext("Free text:")
 #define DESCRIPTOR_IPV4 gettext("IPv4:")
 #define DESCRIPTOR_IPV6 gettext("IPv6:")
 #define DESCRIPTOR_EMAIL gettext("Email:")

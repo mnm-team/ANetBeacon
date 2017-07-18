@@ -24,27 +24,34 @@ int main(int argc, char **argv) {
 	// gettext setup
 	setlocale (LC_ALL, "");
 	char currentL10nFolder[200];
+	
+	//*  <<- Add/remove one '/' here to toggle active code block // TODO
 	sprintf(currentL10nFolder, "%s%s", getenv("PWD"), "/l10n");
-	bindtextdomain ("lanbeacon", currentL10nFolder); // "/usr/share/locale/"); // TODO
+	/*/
+	sprintf(currentL10nFolder, "%s", "/usr/share/locale/");
+	//*/
+	
+	bindtextdomain ("lanbeacon", currentL10nFolder);
 	textdomain ("lanbeacon");
 
 	struct open_ssl_keys lanbeacon_keys = {
 		.path_To_Verifying_Key = PUBLIC_KEY_STANDARD_PATH,
 		.path_To_Signing_Key = PRIVATE_KEY_STANDARD_PATH,
-		.pcszPassphrase = "TODO"
+		.pcszPassphrase = "TODO" // TODO
 	};
 
 
-
-	int authenticated = 0;
 	
 	// lanbeacon listener mode
-	// check if any argument is "listen" mode
+	// check if any argument is "l", in which case the "listen" mode will be used
 	int opt;
 	for (int current_arg = 1; current_arg < argc; current_arg++) {
 		if (strcmp("-l", argv[current_arg]) == 0) {
+			lanbeacon_keys.sender_or_receiver_mode = RECEIVER_MODE; 
+			int authenticated = 0;
+			
 			// if listen mode is enabled, get all arguments.
-			// if any arguments not used in listen mode are contained, show help
+			// if any arguments are contained, which are not used in listen mode, show help
 			while((opt=getopt(argc, argv, "lav:p:")) != -1) {
 				switch(opt) {
 
@@ -84,27 +91,20 @@ int main(int argc, char **argv) {
 				}
 			}
 		
-		if((authenticated == 1) && (strlen(lanbeacon_keys.path_To_Verifying_Key) < 4)) {
-			puts(_("No sufficiently long password was provided! Please enter 4 to 1023 characters"));
-			exit(EXIT_FAILURE);
-		}
-		
-		lanbeacon_keys.sender_or_receiver_mode = RECEIVER_MODE; 
-		
-		// receive lanbeacon
-		struct received_lldp_packet *my_received_lldp_packet
-			= recLLDPrawSock(&lanbeacon_keys, authenticated);
-		char ** parsedBeaconContents = evaluatelanbeacon(my_received_lldp_packet);
-		bananaPIprint(parsedBeaconContents, &lanbeacon_keys);
+			// receive lanbeacon
+			struct received_lldp_packet *my_received_lldp_packet
+				= recLLDPrawSock(&lanbeacon_keys, authenticated);
+			char ** parsedBeaconContents = evaluatelanbeacon(my_received_lldp_packet);
+			bananaPIprint(parsedBeaconContents, &lanbeacon_keys);
 
-		// free memory
-		for (int i = 0 ; i < PARSED_TLVS_MAX_NUMBER; ++i) {
-			free(parsedBeaconContents[i]);
-		}
-		free(parsedBeaconContents);
-		free(my_received_lldp_packet);
+			// free memory
+			for (int i = 0 ; i < PARSED_TLVS_MAX_NUMBER; ++i) {
+				free(parsedBeaconContents[i]);
+			}
+			free(parsedBeaconContents);
+			free(my_received_lldp_packet);
 
-		return EXIT_SUCCESS;
+			return EXIT_SUCCESS;
 		}
 	}
 	
