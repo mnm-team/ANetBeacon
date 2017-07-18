@@ -125,7 +125,7 @@ void TFT_wait_for_raio ( void )
 void TFT_SPI_data_out ( uint16_t data )
 {
 	union my_union number;
-	char buffer[2];
+	unsigned char buffer[2];
 
 	number.value = data;
 	buffer[0] = (char) number.split.high;
