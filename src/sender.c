@@ -38,7 +38,7 @@ char *mergedlanbeaconCreator (int *argc, char **argv, struct sender_information 
 	}
 
 	// Fill chassis and port subtype with FFs, will be changed to MAC-addresses in send function
-	unsigned char chasisSubtype[9] = { 0x02, 0x07, 0x04, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+/*	unsigned char chasisSubtype[9] = { 0x02, 0x07, 0x04, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 	memcpy(&mylanbeacon[currentByte], chasisSubtype, 9);
 	currentByte += 9;
 	unsigned char portSubtype[9] = { 0x04, 0x07, 0x03, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
@@ -49,6 +49,17 @@ char *mergedlanbeaconCreator (int *argc, char **argv, struct sender_information 
 	memcpy(&mylanbeacon[currentByte], timeToLive, 4);
 	currentByte += 4;
 
+
+	// Fill chassis and port subtype with FFs, will be changed to MAC-addresses in send function
+	
+	memcpy(&mylanbeacon[currentByte], (unsigned char[9]){0x02, 0x07, 0x04, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}, 9);
+	currentByte += 9;
+	memcpy(&mylanbeacon[currentByte], (unsigned char[9]){0x02, 0x07, 0x04, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}, 9);
+	currentByte += 9;
+	// 20 sec time to live
+	memcpy(&mylanbeacon[currentByte], (unsigned char[4]){0x02, 0x07, 0x04, 0xff}, 4);
+	currentByte += 4;
+*/
 	// custom TLV arguments
 	if(*argc == 1) printHelp();
 	int opt;
@@ -56,10 +67,8 @@ char *mergedlanbeaconCreator (int *argc, char **argv, struct sender_information 
 		switch(opt) {
 
 			case 'f':
-puts(optarg);
 				my_sender_information->interface_to_send_on = calloc (16,sizeof(char));
 				strncpy(my_sender_information->interface_to_send_on, optarg, 15);
-puts(my_sender_information->interface_to_send_on);
 				break;
 			
 			case 'i':
@@ -169,6 +178,9 @@ printf("******************************************************* %s\n", my_sender
 			transferToCombinedBeacon(SUBTYPE_COMBINED_STRING, combinedString [i], 
 				mylanbeacon, &currentByte, strlen(combinedString [i]));
 	}
+	
+	mylanbeacon[currentByte++] = 0x00;
+	mylanbeacon[currentByte++] = 0x00;
 
 	my_sender_information->lldpdu_len = currentByte;
 

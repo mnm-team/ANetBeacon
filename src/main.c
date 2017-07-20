@@ -55,7 +55,6 @@ int main(int argc, char **argv) {
 			};
 			
 			my_receiver_information.lanbeacon_keys.sender_or_receiver_mode = RECEIVER_MODE; 
-//			int authenticated = 0;
 			
 			// if listen mode is enabled, get all arguments.
 			// if any arguments are contained, which are not used in listen mode, show help
@@ -85,15 +84,6 @@ int main(int argc, char **argv) {
 						my_receiver_information.lanbeacon_keys.path_To_Verifying_Key[KEY_PATHLENGTH_MAX] = 0;
 						break;
 
-/*					case 'p':
-						if (strlen(optarg) > 1023) {
-							puts(_("Length of passed password too long. Exiting"));
-							return EXIT_FAILURE;
-						}
-						strncpy(lanbeacon_keys.pcszPassphrase, optarg, 256);
-						lanbeacon_keys.pcszPassphrase[strlen(optarg)] = 0;
-						break;
-*/
 					case 'h':
 						printHelp();
 
@@ -132,7 +122,7 @@ int main(int argc, char **argv) {
 		}
 	};
 	my_sender_information.lanBeacon_PDU = mergedlanbeaconCreator(&argc, argv, &my_sender_information);
-printf("xxxxxxxxxxxxxxxxx %s\n", my_sender_information.interface_to_send_on);
+
 	sendLLDPrawSock (&my_sender_information);
 
 	if (my_sender_information.interface_to_send_on) free(my_sender_information.interface_to_send_on);

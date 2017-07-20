@@ -13,7 +13,7 @@
 //#define LLDP_DEST_MAC	0x01, 0x80, 0xc2, 0xde, 0x4c, 0x73
 #define CHALLENGE_ETHTYPE 0x88B5
 //#define LLDP_ETHER_TYPE	0x88CC
-#define LLDP_ETHER_TYPE	0x88B6
+#define LLDP_ETHER_TYPE	0x88B6 // TODO
 
 // Buffer sizes
 #define PARSED_TLVS_MAX_NUMBER	25
