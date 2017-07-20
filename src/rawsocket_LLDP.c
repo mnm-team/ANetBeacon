@@ -82,13 +82,13 @@ puts("Begin of sendRawSocket");
 	int challengeNumInterfaces = 0;
 	int challengeMaxSockFd = 0;
 	getInterfaces (challengeSockfd, &challengeNumInterfaces, CHALLENGE_ETHTYPE, REC_SOCKET, 
-		NULL, NULL, challengeSockopt, &challengeMaxSockFd, interface_to_send_on);
+		NULL, NULL, challengeSockopt, &challengeMaxSockFd, interface_to_send_on); //NULL);
 
 	while (1) {
 		// send packets on all interfaces
-printf("jgkfdjgölkajfdg %i\n",challengeNumInterfaces);
+
 		for(int j = 0; j < numInterfaces; j++) {
-printf("22222222222222jgkfdjgölkajfdg %i\n",numInterfaces);
+
 			// Ethernet header, destination MAC address
 			memcpy(eh->ether_shost, ((uint8_t *)&if_mac[j].ifr_hwaddr.sa_data), 6);
 			
@@ -127,7 +127,7 @@ printf("22222222222222jgkfdjgölkajfdg %i\n",numInterfaces);
 			}
 			
 			if (*receivedChallenge == 0) {
-				
+
 				// receive challenge
 				char challenge_dest_mac[6];
 				*receivedChallenge = receiveChallenge(	challengeSockfd, 
@@ -310,7 +310,10 @@ unsigned long receiveChallenge(int *sockfd, int numInterfaces, int maxSockFd, ch
 
 	//SET_SELECT_FDS
 	FD_ZERO(&readfds); 
-	for (int x = 0; x < numInterfaces; x++) FD_SET(sockfd[x], &readfds);	
+	for (int x = 0; x < numInterfaces; x++) {
+		FD_SET(sockfd[x], &readfds);	
+
+	} 
 
 	int rv = select(maxSockFd, &readfds, NULL, NULL, &tv);
 
@@ -321,7 +324,7 @@ unsigned long receiveChallenge(int *sockfd, int numInterfaces, int maxSockFd, ch
 	else {
 		for (int i = 0; i < numInterfaces; i++) {
 			if (FD_ISSET(sockfd[i], &readfds)) {
-printf("in receivechallenge %i\n",numInterfaces);
+
 				receivedSize = recvfrom(sockfd[i], receiveBuf, 300, 0, NULL, NULL);
 
 				memcpy(receivedChallenge, &receiveBuf[14], 4);
@@ -333,9 +336,6 @@ printf("in receivechallenge %i\n",numInterfaces);
 			}
 		}
 	}
-
-//	for (int i = 0; i < numInterfaces; i++)
-//		close(sockfd[i]);
 
 	free(receiveBuf);
 
@@ -442,7 +442,7 @@ puts("neuneuneu");//sleep(1);
 		else {
 			for (int j = 0; j < numInterfaces; j++) {
 				if (FD_ISSET(sockfd[j], &readfds)) {
-puts("Deleted something");
+printf("Deleted something from interface %i \n", j);
 					recvfrom(sockfd[j], NULL, 1500, 0, NULL, NULL);
 				}
 			}
