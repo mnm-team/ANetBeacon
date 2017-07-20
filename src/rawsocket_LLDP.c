@@ -123,7 +123,7 @@ printf("22222222222222jgkfdjgölkajfdg %i\n",numInterfaces);
 				frameLength -= 270;
 				lldpEthernetFrame[frameLength-2] = 0x00;
 				lldpEthernetFrame[frameLength-1] = 0x00;
-//				flush_all_interfaces (challengeSockfd, challengeMaxSockFd, challengeNumInterfaces);
+				flush_all_interfaces (challengeSockfd, challengeMaxSockFd, challengeNumInterfaces);
 			}
 			
 			if (*receivedChallenge == 0) {
