@@ -56,6 +56,9 @@ int verifylanbeacon(const unsigned char* msg, size_t mlen,
 	size_t slen = 256;
 	size_t messageWithoutSignatureLength = mlen - 256;
 	const unsigned char* sig = &msg[messageWithoutSignatureLength];
+FILE *binBeacon = fopen("msgForVerify","w");
+fwrite(msg, messageWithoutSignatureLength, 1, binBeacon);
+fclose(binBeacon);
 
 	if(!msg || !messageWithoutSignatureLength || !sig || !slen || !vkey) {
 		puts(_("Problem in function \"verify_it\". "));
@@ -125,6 +128,9 @@ printf("mlen %i   \n", mlen );
 int signlanbeacon(unsigned char** sig, size_t* slen, const unsigned char* msg, 
 				size_t mlen, struct open_ssl_keys *lanbeacon_keys)
 {
+FILE *binBeacon = fopen("msgForSign","w");
+fwrite(msg, mlen, 1, binBeacon);
+fclose(binBeacon);
 	int rc;
 	int result = EXIT_SUCCESS;
 
