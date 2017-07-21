@@ -243,10 +243,12 @@ void new_lldp_receiver (struct receiver_information *my_receiver_information) {
 					// if it is sent to singlecast, it is authenticated
 					number_of_bytes_to_compare_for_equal_check = 
 						memcmp((unsigned char[6]){LLDP_DEST_MAC}, eh->ether_dhost, 6) ? 
-						receiveBufferSize - 272 : receiveBufferSize;
+						receiveBufferSize - 272 : receiveBufferSize - 2;
 					
 					
-					for (iterator_current_packet_in_received_packets_array = 0; iterator_current_packet_in_received_packets_array < my_receiver_information->number_of_currently_received_packets; iterator_current_packet_in_received_packets_array++) {
+					for (iterator_current_packet_in_received_packets_array = 0; 
+							iterator_current_packet_in_received_packets_array < my_receiver_information->number_of_currently_received_packets; 
+							iterator_current_packet_in_received_packets_array++) {
 						if (0 == memcmp(&LLDPreceiveBuffer[14], 
 										&my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->lldpReceivedPayload[14],
 										number_of_bytes_to_compare_for_equal_check - 14)) {
@@ -254,13 +256,14 @@ void new_lldp_receiver (struct receiver_information *my_receiver_information) {
 							// if no authentication is required, just reset display countdown
 							if (!my_receiver_information->authenticated) {
 								my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->times_left_to_display = SHOW_FRAMES_X_TIMES;
+//printf("op1/()/)(/)(/)=/))=/(/=)/)=/=((/=(/=(/)=/==//)=//==/= %i \n", iterator_current_packet_in_received_packets_array); sleep (1);
 								break;
 							}
 							
 							// if packet has been authenticated already, just reset display countdown
 							if (my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->successfullyAuthenticated) {
 								my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->times_left_to_display = SHOW_FRAMES_X_TIMES;
-puts("/()/)(/)(/)=/))=/(/=)/)=/=((/=(/=(/)=/==//)=//==/="); sleep (1);
+//printf("op2/()/)(/)(/)=/))=/(/=)/)=/=((/=(/=(/)=/==//)=//==/= %i \n", iterator_current_packet_in_received_packets_array); sleep (1);
 								break;
 							}
 							
@@ -268,7 +271,8 @@ puts("/()/)(/)(/)=/))=/(/=)/)=/=((/=(/=(/)=/==//)=//==/="); sleep (1);
 							// with same contents as before arrives
 							// but an authenticated one is expected, break
 							if (my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->payloadSize == receiveBufferSize) {
-								my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->times_left_to_display = SHOW_FRAMES_X_TIMES;
+//								my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->times_left_to_display = SHOW_FRAMES_X_TIMES;
+//printf("op3/()/)(/)(/)=/))=/(/=)/)=/=((/=(/=(/)=/==//)=//==/= %i \n", iterator_current_packet_in_received_packets_array); sleep (1);
 								break;
 							}
 							
@@ -276,7 +280,7 @@ puts("/()/)(/)(/)=/))=/(/=)/)=/=((/=(/=(/)=/==//)=//==/="); sleep (1);
 							// - authentication mode is active
 							// - no authenticated version has been received before
 							// - the packet has authentication information
-							
+//printf("added/()/)(/)(/)=/))=/(/=)/)=/=((/=(/=(/)=/==//)=//==/= %i \n", iterator_current_packet_in_received_packets_array); sleep (1);							
 							memcpy(my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->lldpReceivedPayload, LLDPreceiveBuffer, receiveBufferSize);
 							my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->payloadSize = receiveBufferSize;
 							memcpy(my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->current_destination_mac, eh->ether_shost, 6);
