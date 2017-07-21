@@ -80,7 +80,7 @@ puts("Begin of sendRawSocket");
 	int challengeNumInterfaces = 0;
 	int challengeMaxSockFd = 0;
 	getInterfaces (challengeSockfd, &challengeNumInterfaces, CHALLENGE_ETHTYPE, REC_SOCKET, 
-		NULL, NULL, challengeSockopt, &challengeMaxSockFd, interface_to_send_on); //NULL);
+		NULL, NULL, challengeSockopt, &challengeMaxSockFd, NULL);
 
 	while (1) {
 		// send packets on all interfaces
@@ -447,7 +447,7 @@ unsigned long receiveChallenge(int *sockfd, int numInterfaces, int maxSockFd, ch
 		FD_SET(sockfd[x], &readfds);	
 
 	} 
-
+printf("%i\n", numInterfaces);
 	int rv = select(maxSockFd, &readfds, NULL, NULL, &tv);
 
 	if (rv == -1) 
