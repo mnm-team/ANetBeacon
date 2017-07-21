@@ -7,6 +7,7 @@ struct sender_information {
 	
 	char *lanBeacon_PDU;
 	int lldpdu_len;
+	int generate_keys;
 	char *interface_to_send_on;
 	struct open_ssl_keys lanbeacon_keys;
 };

@@ -137,6 +137,7 @@ sleep(1);
 	//## creating and sending lanbeacon
 	struct sender_information my_sender_information = {
 		.interface_to_send_on = NULL,
+		.generate_keys = 0,
 		.lanbeacon_keys = {
 			.sender_or_receiver_mode = SENDER_MODE,
 			.path_To_Verifying_Key = PUBLIC_KEY_STANDARD_PATH,
