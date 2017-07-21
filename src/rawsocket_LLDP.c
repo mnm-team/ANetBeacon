@@ -243,21 +243,24 @@ void new_lldp_receiver (struct receiver_information *my_receiver_information) {
 					// if it is sent to singlecast, it is authenticated
 					number_of_bytes_to_compare_for_equal_check = 
 						memcmp((unsigned char[6]){LLDP_DEST_MAC}, eh->ether_dhost, 6) ? 
-						receiveBufferSize - 270 : receiveBufferSize;
+						receiveBufferSize - 272 : receiveBufferSize;
 					
 					
 					for (iterator_current_packet_in_received_packets_array = 0; iterator_current_packet_in_received_packets_array < my_receiver_information->number_of_currently_received_packets; iterator_current_packet_in_received_packets_array++) {
-						if (memcmp(&LLDPreceiveBuffer[14], &my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->lldpReceivedPayload[14], number_of_bytes_to_compare_for_equal_check - 14) == 0) {
+						if (0 == memcmp(&LLDPreceiveBuffer[14], 
+										&my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->lldpReceivedPayload[14],
+										number_of_bytes_to_compare_for_equal_check - 14)) {
 							
 							// if no authentication is required, just reset display countdown
 							if (!my_receiver_information->authenticated) {
-								my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->times_left_to_display = 3;
+								my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->times_left_to_display = SHOW_FRAMES_X_TIMES;
 								break;
 							}
 							
 							// if packet has been authenticated already, just reset display countdown
 							if (my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->successfullyAuthenticated) {
-								my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->times_left_to_display = 3;
+								my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->times_left_to_display = SHOW_FRAMES_X_TIMES;
+puts("/()/)(/)(/)=/))=/(/=)/)=/=((/=(/=(/)=/==//)=//==/="); sleep (1);
 								break;
 							}
 							
@@ -265,7 +268,7 @@ void new_lldp_receiver (struct receiver_information *my_receiver_information) {
 							// with same contents as before arrives
 							// but an authenticated one is expected, break
 							if (my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->payloadSize == receiveBufferSize) {
-								my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->times_left_to_display = 3;
+								my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->times_left_to_display = SHOW_FRAMES_X_TIMES;
 								break;
 							}
 							
@@ -274,13 +277,13 @@ void new_lldp_receiver (struct receiver_information *my_receiver_information) {
 							// - no authenticated version has been received before
 							// - the packet has authentication information
 							
-							
 							memcpy(my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->lldpReceivedPayload, LLDPreceiveBuffer, receiveBufferSize);
 							my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->payloadSize = receiveBufferSize;
 							memcpy(my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->current_destination_mac, eh->ether_shost, 6);
-							my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->times_left_to_display = 3;
+							my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->times_left_to_display = SHOW_FRAMES_X_TIMES;
 							my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->parsedBeaconContents 
-								= evaluatelanbeacon(my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array], &my_receiver_information->lanbeacon_keys);							
+								= evaluatelanbeacon(my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array], 
+									&my_receiver_information->lanbeacon_keys);							
 							break; 
 						}
 					}
@@ -293,21 +296,25 @@ void new_lldp_receiver (struct receiver_information *my_receiver_information) {
 						struct received_lldp_packet *my_received_lldp_packet = 
 							malloc(sizeof(struct received_lldp_packet));
 						if(!my_received_lldp_packet) 
-							puts(_("malloc error of \"my_received_lldp_packet\" in recLLDPrawSock"));						
+							puts(_("malloc error of \"my_received_lldp_packet\" in new_lldp_receiver"));						
 						
 						memcpy(my_received_lldp_packet->lldpReceivedPayload, LLDPreceiveBuffer, receiveBufferSize);
 						my_received_lldp_packet->payloadSize = receiveBufferSize;
 						memcpy(my_received_lldp_packet->current_destination_mac, eh->ether_shost, 6);
-						my_received_lldp_packet->times_left_to_display = 3;
+						my_received_lldp_packet->times_left_to_display = SHOW_FRAMES_X_TIMES;
+						my_received_lldp_packet->successfullyAuthenticated = 0;
 						my_received_lldp_packet->parsedBeaconContents 
 							= evaluatelanbeacon(my_received_lldp_packet, &my_receiver_information->lanbeacon_keys);
 						
-						srand(time(NULL));
+						if (my_receiver_information->authenticated) {
+							srand(time(NULL));
 
-						my_received_lldp_packet->challenge = 1+ (rand() % 4294967294);
+							my_received_lldp_packet->challenge = 1+ (rand() % 4294967294);
 
-						sendRawSocket (my_received_lldp_packet->current_destination_mac, &my_received_lldp_packet->challenge, 
-							4, CHALLENGE_ETHTYPE, NULL, NULL);
+							sendRawSocket (my_received_lldp_packet->current_destination_mac, 
+									&my_received_lldp_packet->challenge, 
+									4, CHALLENGE_ETHTYPE, NULL, NULL);
+						}
 						
 						my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array] = my_received_lldp_packet;
 						my_receiver_information->number_of_currently_received_packets++;

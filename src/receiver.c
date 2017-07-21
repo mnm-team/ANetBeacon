@@ -169,15 +169,17 @@ char ** evaluatelanbeacon (struct received_lldp_packet *my_received_lldp_packet,
 
 					if ((((unsigned long) ntohl(my_received_lldp_packet->challenge))
 					== zwischenSpeicherChallenge) &&
-					(timeStamp - zwischenSpeicherTimeStamp < 10))
+					(timeStamp - zwischenSpeicherTimeStamp < 10)) {
 						sprintf(TLVstringbuffer,
-						_("Authentication successfull! Sent challenge: %ld Received Challenge: %ld Timestamp: %ld"),
-						(unsigned long) ntohl(my_received_lldp_packet->challenge), zwischenSpeicherChallenge, zwischenSpeicherTimeStamp);
-					else
+							_("Authentication successfull! Sent challenge: %ld Received Challenge: %ld Timestamp: %ld"),
+							(unsigned long) ntohl(my_received_lldp_packet->challenge), zwischenSpeicherChallenge, zwischenSpeicherTimeStamp);
+						my_received_lldp_packet->successfullyAuthenticated = 1;
+					} else {
 						sprintf(TLVstringbuffer,
 						_("Authentication failed! Sent challenge: %ld Received Challenge: %ld Timestamp: %ld"),
 						(unsigned long) ntohl(my_received_lldp_packet->challenge), zwischenSpeicherChallenge, zwischenSpeicherTimeStamp);
-
+					}
+					
 					TLV_CUSTOM_COPY( DESCRIPTOR_SIGNATURE, TLVstringbuffer, strlen(TLVstringbuffer));
 			}
 

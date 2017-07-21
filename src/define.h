@@ -28,7 +28,8 @@
 
 // Display options
 #define DESCRIPTOR_WIDTH 10
-#define DEFAULT_SCROLLSPEED 5
+#define DEFAULT_SCROLLSPEED 2
+#define SHOW_FRAMES_X_TIMES 3
 
 // Subtype numbers lanbeacon:
 #define SUBTYPE_VLAN_ID 200
