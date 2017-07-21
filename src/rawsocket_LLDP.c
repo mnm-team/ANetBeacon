@@ -106,7 +106,7 @@ puts("Begin of sendRawSocket");
 					signlanbeacon(&sig, &slen, (const unsigned char *) &lldpEthernetFrame[14], 
 						(size_t) payloadLen + 4 + 4 + 4, lanbeacon_keys);
 					
-					memcpy(&lldpEthernetFrame[frameLength-264+4+4], sig, slen);
+					memcpy(&lldpEthernetFrame[frameLength-2-264+4+4], sig, slen);
 					free(sig);
 				}
 				
