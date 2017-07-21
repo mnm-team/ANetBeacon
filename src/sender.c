@@ -311,7 +311,7 @@ void ipParser (int ip_V4or6, char *optarg, char **combinedString, char *mylanbea
 
 	if (gefundeneIPAdressenAnzahl < 1) {
 		printf(_("Exiting since no valid IP networks (format e.g. 192.168.178.1/24) "
-			"could be found in provided string \"%s\"."), optarg);
+			"could be found in provided string \"%s\". \n"), optarg);
 		exit(EXIT_FAILURE);
 	}
 

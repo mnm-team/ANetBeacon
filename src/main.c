@@ -47,10 +47,17 @@ int main(int argc, char **argv) {
 				.authenticated = 0,
 				.number_of_currently_received_packets = 0,
 				.scroll_speed = DEFAULT_SCROLLSPEED,
+//				.challenge = 0,
+				
 				.lanbeacon_keys = {
 					.path_To_Verifying_Key = PUBLIC_KEY_STANDARD_PATH,
 //					.path_To_Signing_Key = PRIVATE_KEY_STANDARD_PATH,
 //					.pcszPassphrase = "TODO" // TODO
+				},
+				
+				.my_receiver_interfaces = {
+					.maxSockFd = 0,
+					.numInterfaces = 0
 				}
 			};
 			
@@ -92,18 +99,34 @@ int main(int argc, char **argv) {
 				}
 			}
 		
-			// receive lanbeacon
-			my_receiver_information.pointers_to_received_packets[0] = recLLDPrawSock(&my_receiver_information);
-			my_receiver_information.pointers_to_received_packets[0]->parsedBeaconContents 
-				= evaluatelanbeacon(my_receiver_information.pointers_to_received_packets[0]);
-			bananaPIprint(&my_receiver_information);
+			getInterfaces (my_receiver_information.my_receiver_interfaces.sockfd, 
+					&my_receiver_information.my_receiver_interfaces.numInterfaces, 
+					LLDP_ETHER_TYPE, REC_SOCKET, NULL, NULL, 
+					my_receiver_information.my_receiver_interfaces.sockopt, 
+					&my_receiver_information.my_receiver_interfaces.maxSockFd, NULL);
+			
+			while (1) {
+				// receive new lanbeacons
+				new_lldp_receiver (&my_receiver_information);
+printf("currently there are %i received packets\n", my_receiver_information.number_of_currently_received_packets);
+sleep(1);
+				// print everything, that currently is received
+				bananaPIprint(&my_receiver_information);
+			}
+			
+//my_receiver_information.pointers_to_received_packets[0] = recLLDPrawSock(&my_receiver_information);
+//my_receiver_information.pointers_to_received_packets[0]->parsedBeaconContents 
+//	= evaluatelanbeacon(my_receiver_information.pointers_to_received_packets[0]);
 
 			// free memory
-			for (int i = 0 ; i < PARSED_TLVS_MAX_NUMBER; ++i) {
-				free(my_receiver_information.pointers_to_received_packets[0]->parsedBeaconContents[i]);
+			for (int j = 0; j < my_receiver_information.number_of_currently_received_packets; j++) {
+				
+				for (int i = 0 ; i < PARSED_TLVS_MAX_NUMBER; ++i) {
+					free(my_receiver_information.pointers_to_received_packets[j]->parsedBeaconContents[i]);
+				}
+				free(my_receiver_information.pointers_to_received_packets[j]->parsedBeaconContents);
+				free(my_receiver_information.pointers_to_received_packets[j]);
 			}
-			free(my_receiver_information.pointers_to_received_packets[0]->parsedBeaconContents);
-			free(my_receiver_information.pointers_to_received_packets[0]);
 
 			return EXIT_SUCCESS;
 		}

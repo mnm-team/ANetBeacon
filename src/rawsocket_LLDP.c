@@ -27,8 +27,6 @@
 #include "sender.h"
 #define _GNU_SOURCE
 
-#define SEND_SOCKET 0
-#define REC_SOCKET 1
 //#define SET_SELECT_FDS 
 //	FD_ZERO(&readfds); 
 //	for (int x = 0; x < numInterfaces; x++) 
@@ -109,7 +107,11 @@ puts("Begin of sendRawSocket");
 				printf(_("Successfully sent on interface number %i\n"), j);
 		}
 
-		if (etherType == CHALLENGE_ETHTYPE) break;
+		if (etherType == CHALLENGE_ETHTYPE) {
+			// wait for server to respond
+			sleep(1);
+			break;
+		}
 
 		if (etherType == LLDP_ETHER_TYPE) {
 			
@@ -193,6 +195,131 @@ int sendLLDPrawSock (struct sender_information *my_sender_information)
 }
 
 
+
+void new_lldp_receiver (struct receiver_information *my_receiver_information) {
+	
+	unsigned char LLDPreceiveBuffer[LLDP_BUF_SIZ];
+	struct ether_header *eh = (struct ether_header *) LLDPreceiveBuffer;
+	
+	struct received_lldp_packet *my_received_lldp_packet;// = 
+//		malloc(sizeof(struct received_lldp_packet));
+//	if(!my_received_lldp_packet) 
+//		puts(_("malloc error of \"my_received_lldp_packet\" in recLLDPrawSock"));
+
+	int receiveBufferSize = 0;
+	// parameters for select()
+	struct timeval tv = {0, 0};	
+	fd_set readfds;
+	int rv;
+	
+	int number_of_bytes_to_compare_for_equal_check;
+	int iterator_current_packet_in_received_packets_array;
+	
+	while(1) {
+	
+		//SET_SELECT_FDS
+		FD_ZERO(&readfds); 
+		for (int x = 0; x < my_receiver_information->my_receiver_interfaces.numInterfaces; x++) 
+			FD_SET(my_receiver_information->my_receiver_interfaces.sockfd[x], &readfds);
+	
+		rv = select(my_receiver_information->my_receiver_interfaces.maxSockFd, &readfds, NULL, NULL, 
+					my_receiver_information->number_of_currently_received_packets ? &tv : NULL);
+
+		if (rv == -1) 
+			perror("select");
+		else if (rv == 0) {
+			printf("All current data received.\n");
+			break;
+		}
+		else {
+			for (int i = 0; i < my_receiver_information->my_receiver_interfaces.numInterfaces; i++) {
+				if (FD_ISSET(my_receiver_information->my_receiver_interfaces.sockfd[i], &readfds)) {
+
+					receiveBufferSize = 
+						recvfrom(my_receiver_information->my_receiver_interfaces.sockfd[i], LLDPreceiveBuffer, 
+							LLDP_BUF_SIZ, 0, NULL, NULL);
+					
+					// if packet has been sent to broadcast, it is not authenticated
+					// if it is sent to singlecast, it is authenticated
+					number_of_bytes_to_compare_for_equal_check = 
+						memcmp((unsigned char[6]){LLDP_DEST_MAC}, eh->ether_dhost, 6) ? 
+						receiveBufferSize - 270 : receiveBufferSize;
+					
+					
+					for (iterator_current_packet_in_received_packets_array = 0; iterator_current_packet_in_received_packets_array < my_receiver_information->number_of_currently_received_packets; iterator_current_packet_in_received_packets_array++) {
+						if (memcmp(&LLDPreceiveBuffer[14], &my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->lldpReceivedPayload[14], number_of_bytes_to_compare_for_equal_check - 14) == 0) {
+							
+							// if no authentication is required, just reset display countdown
+							if (!my_receiver_information->authenticated) {
+								my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->times_left_to_display = 3;
+								break;
+							}
+							
+							// if packet has been authenticated already, just reset display countdown
+							if (my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->successfullyAuthenticated) {
+								my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->times_left_to_display = 3;
+								break;
+							}
+							
+							// if another unauthenticated broadcast packet 
+							// with same contents as before arrives
+							// but an authenticated one is expected, break
+							if (my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->payloadSize == receiveBufferSize) {
+								my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->times_left_to_display = 3;
+								break;
+							}
+							
+							// if none of the earlier conditions apply,  
+							// - authentication mode is active
+							// - no authenticated version has been received before
+							// - the packet has authentication information
+							
+							
+							memcpy(my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->lldpReceivedPayload, LLDPreceiveBuffer, receiveBufferSize);
+							my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->payloadSize = receiveBufferSize;
+							memcpy(my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->current_destination_mac, eh->ether_shost, 6);
+							my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->times_left_to_display = 3;
+							my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->parsedBeaconContents 
+								= evaluatelanbeacon(my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array], &my_receiver_information->lanbeacon_keys);							
+							break; 
+						}
+					}
+					
+					// if a packet with the same contents hasn't been received before,
+					// add it to the list of frames
+					if (iterator_current_packet_in_received_packets_array == my_receiver_information->number_of_currently_received_packets) {
+						
+						
+						struct received_lldp_packet *my_received_lldp_packet = 
+							malloc(sizeof(struct received_lldp_packet));
+						if(!my_received_lldp_packet) 
+							puts(_("malloc error of \"my_received_lldp_packet\" in recLLDPrawSock"));						
+						
+						memcpy(my_received_lldp_packet->lldpReceivedPayload, LLDPreceiveBuffer, receiveBufferSize);
+						my_received_lldp_packet->payloadSize = receiveBufferSize;
+						memcpy(my_received_lldp_packet->current_destination_mac, eh->ether_shost, 6);
+						my_received_lldp_packet->times_left_to_display = 3;
+						my_received_lldp_packet->parsedBeaconContents 
+							= evaluatelanbeacon(my_received_lldp_packet, &my_receiver_information->lanbeacon_keys);
+						
+						srand(time(NULL));
+
+						my_received_lldp_packet->challenge = 1+ (rand() % 4294967294);
+
+						sendRawSocket (my_received_lldp_packet->current_destination_mac, &my_received_lldp_packet->challenge, 
+							4, CHALLENGE_ETHTYPE, NULL, NULL);
+						
+						my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array] = my_received_lldp_packet;
+						my_receiver_information->number_of_currently_received_packets++;
+					}
+				}
+			}
+		}
+	}
+}
+
+
+
 // parts of code based on https://gist.github.com/austinmarton/2862515
 struct received_lldp_packet *recLLDPrawSock(struct receiver_information *my_receiver_information) {
 
@@ -203,16 +330,10 @@ struct received_lldp_packet *recLLDPrawSock(struct receiver_information *my_rece
 	struct ether_header *eh = 
 		(struct ether_header *) my_received_lldp_packet->lldpReceivedPayload;
 
-	int sockfd[20];
-	int sockopt[20];
 
 	// parameters for select()
-	int maxSockFd = 0;
 	struct timeval tv = {1, 0};
 	fd_set readfds;
-	int numInterfaces = 0;
-
-	getInterfaces (sockfd, &numInterfaces, LLDP_ETHER_TYPE, REC_SOCKET, NULL, NULL, sockopt, &maxSockFd, NULL);
 
 	int challengeSentBool = 0;
 	int rv;
@@ -222,20 +343,21 @@ struct received_lldp_packet *recLLDPrawSock(struct receiver_information *my_rece
 	while (1) {
 		//SET_SELECT_FDS
 		FD_ZERO(&readfds); 
-		for (int x = 0; x < numInterfaces; x++) FD_SET(sockfd[x], &readfds);
+		for (int x = 0; x < my_receiver_information->my_receiver_interfaces.numInterfaces; x++) 
+			FD_SET(my_receiver_information->my_receiver_interfaces.sockfd[x], &readfds);
 		
-		rv = select(maxSockFd, &readfds, NULL, NULL, NULL);
+		rv = select(my_receiver_information->my_receiver_interfaces.maxSockFd, &readfds, NULL, NULL, NULL);
 
 		if (rv == -1) 
 			perror("select");
 		else if (rv == 0) 
 			printf("Timeout occurred! No data after %i seconds.\n", LLDP_SEND_FREQUENCY);  // TODO receive for how long?
 		else {
-			for (int i = 0; i < numInterfaces; i++) {
-				if (FD_ISSET(sockfd[i], &readfds)) {
+			for (int i = 0; i < my_receiver_information->my_receiver_interfaces.numInterfaces; i++) {
+				if (FD_ISSET(my_receiver_information->my_receiver_interfaces.sockfd[i], &readfds)) {
 
 					my_received_lldp_packet->payloadSize = 
-						recvfrom(sockfd[i], my_received_lldp_packet->lldpReceivedPayload, 
+						recvfrom(my_receiver_information->my_receiver_interfaces.sockfd[i], my_received_lldp_packet->lldpReceivedPayload, 
 							LLDP_BUF_SIZ, 0, NULL, NULL);
 					
 					// if no challenge has been sent yet,
@@ -274,7 +396,7 @@ struct received_lldp_packet *recLLDPrawSock(struct receiver_information *my_rece
 
 			my_received_lldp_packet->challenge = 1+ (rand() % 4294967294);
 
-			flush_all_interfaces (sockfd, maxSockFd, numInterfaces);
+			flush_all_interfaces (my_receiver_information->my_receiver_interfaces.sockfd, my_receiver_information->my_receiver_interfaces.maxSockFd, my_receiver_information->my_receiver_interfaces.numInterfaces);
 			
 			sendRawSocket (my_received_lldp_packet->current_destination_mac, &my_received_lldp_packet->challenge, 
 				4, CHALLENGE_ETHTYPE, NULL, NULL);
@@ -285,8 +407,8 @@ struct received_lldp_packet *recLLDPrawSock(struct receiver_information *my_rece
 		else break;
 	}
 
-	for (int i = 0; i < numInterfaces; i++)
-		close(sockfd[i]);
+//	for (int i = 0; i < my_receiver_information->my_receiver_interfaces.numInterfaces; i++)
+//		close(my_receiver_information->my_receiver_interfaces.sockfd[i]);
 
 	return my_received_lldp_packet;
 }

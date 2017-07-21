@@ -34,7 +34,7 @@
 		currentTLVsize-4);
 	
 
-char ** evaluatelanbeacon (struct received_lldp_packet *my_received_lldp_packet) {
+char ** evaluatelanbeacon (struct received_lldp_packet *my_received_lldp_packet, struct open_ssl_keys *lanbeacon_keys) {
 
 //	char parsedTLVs [PARSED_TLVS_MAX_NUMBER][PARSED_TLVS_MAX_LENGTH];
 	char ** parsedTLVs = malloc(PARSED_TLVS_MAX_NUMBER * sizeof(char*));
@@ -147,6 +147,14 @@ char ** evaluatelanbeacon (struct received_lldp_packet *my_received_lldp_packet)
 					time_t timeStamp = time(NULL);
 
 					long zwischenSpeicherChallenge, zwischenSpeicherTimeStamp;
+					
+					// Verify signature
+					// position: end of LLDPDU - 2 LLDPDU end TLV - 14 Ethernet header
+					if (0 != verifylanbeacon(
+						&my_received_lldp_packet->lldpReceivedPayload[14],
+						my_received_lldp_packet->payloadSize - 2 - 14, lanbeacon_keys)) {
+							puts(_("problem with signature verification"));
+					}
 
 					memcpy (&zwischenSpeicherChallenge,
 						&my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+6], 4);
@@ -167,7 +175,7 @@ char ** evaluatelanbeacon (struct received_lldp_packet *my_received_lldp_packet)
 						(unsigned long) ntohl(my_received_lldp_packet->challenge), zwischenSpeicherChallenge, zwischenSpeicherTimeStamp);
 					else
 						sprintf(TLVstringbuffer,
-						_("Authentication successfull! Sent challenge: %ld Received Challenge: %ld Timestamp: %ld"),
+						_("Authentication failed! Sent challenge: %ld Received Challenge: %ld Timestamp: %ld"),
 						(unsigned long) ntohl(my_received_lldp_packet->challenge), zwischenSpeicherChallenge, zwischenSpeicherTimeStamp);
 
 					TLV_CUSTOM_COPY( DESCRIPTOR_SIGNATURE, TLVstringbuffer, strlen(TLVstringbuffer));
@@ -206,7 +214,9 @@ void bananaPIprint (struct receiver_information *my_receiver_information) {
 
 	int currentLastSpace = 0;
 
-	while (1) {
+	for (my_receiver_information->currentLLDPDU_for_printing = 0; 
+			my_receiver_information->currentLLDPDU_for_printing < my_receiver_information->number_of_currently_received_packets; 
+			my_receiver_information->currentLLDPDU_for_printing++) {
 
 		currentPIline = 0;
 
@@ -215,7 +225,7 @@ void bananaPIprint (struct receiver_information *my_receiver_information) {
 		#ifdef BANANAPI_SWITCH
 		RAIO_clear_screen();
 		#endif
-
+		
 		for (int currentTLV = 0; currentTLV < PARSED_TLVS_MAX_NUMBER; currentTLV++) {
 
 			for (currentPosInTLV = 1, endOfLastPartialString = 0; 
@@ -273,9 +283,29 @@ void bananaPIprint (struct receiver_information *my_receiver_information) {
 		}
 
 		//if sleep (5) already has been executed, don't execute again
-		if (currentPIline != 0)	sleep (my_receiver_information->scroll_speed);	
+		if (currentPIline != 0)	sleep (my_receiver_information->scroll_speed);
+		
+		// check, how many times frame has been printed yet
+		if (--my_receiver_information->pointers_to_received_packets[my_receiver_information->currentLLDPDU_for_printing]->times_left_to_display == 0) {
+			// remove frame
+			free(my_receiver_information->pointers_to_received_packets[my_receiver_information->currentLLDPDU_for_printing]);
+			
+			for (int x = my_receiver_information->currentLLDPDU_for_printing; 
+					x < my_receiver_information->number_of_currently_received_packets; 
+					x++) {
+				my_receiver_information->pointers_to_received_packets[x] = my_receiver_information->pointers_to_received_packets[x+1];
+			}
+			
+			my_receiver_information->currentLLDPDU_for_printing--;
+			my_receiver_information->number_of_currently_received_packets--;
+		}
 	}
 
 	return;
 }
+
+
+
+
+
 

@@ -7,6 +7,11 @@
 #include "receiver.h"
 #include "sender.h"
 
+#define SEND_SOCKET 0
+#define REC_SOCKET 1
+
+void new_lldp_receiver (struct receiver_information *my_receiver_information);
+
 int sendLLDPrawSock (struct sender_information *my_sender_information);
 
 struct received_lldp_packet *recLLDPrawSock(struct receiver_information *my_receiver_information);
