@@ -36,6 +36,8 @@
 void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLen, 
 					unsigned short etherType, struct open_ssl_keys *lanbeacon_keys, char *interface_to_send_on) {
 puts("Begin of sendRawSocket");	
+	
+	
 	if (etherType == CHALLENGE_ETHTYPE)
 		* (unsigned long *) payload = htonl(*(unsigned long *) payload);
 	int frameLength = 0;
@@ -94,6 +96,20 @@ puts("Begin of sendRawSocket");
 				// Port and chassis subtype TLVs filled
 				memcpy(&lldpEthernetFrame[17], ((uint8_t *)&if_mac[j].ifr_hwaddr.sa_data), 6);
 				memcpy(&lldpEthernetFrame[26], ((uint8_t *)&if_mac[j].ifr_hwaddr.sa_data), 6);
+				
+				if (*receivedChallenge != 0) {
+					
+					unsigned char* sig = NULL;
+					size_t slen = 0;
+					
+					// 14 = Size of Ethernet header
+					signlanbeacon(&sig, &slen, (const unsigned char *) &lldpEthernetFrame[14], 
+						(size_t) payloadLen + 4 + 4 + 4, lanbeacon_keys);
+					
+					memcpy(&lldpEthernetFrame[frameLength-264+4+4], sig, slen);
+					free(sig);
+				}
+				
 			}
 		
 			// Index of the network device
