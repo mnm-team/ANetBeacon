@@ -167,7 +167,7 @@ puts("Begin of sendRawSocket");
 					
 					// 14 = Size of Ethernet header
 					signlanbeacon(&sig, &slen, (const unsigned char *) &lldpEthernetFrame[14], 
-						(size_t) payloadLen + 6 + 6 + 2, lanbeacon_keys);
+						(size_t) payloadLen - 2, lanbeacon_keys);
 					
 					memcpy(&lldpEthernetFrame[frameLength-264+4+4], sig, slen);
 					free(sig);
@@ -333,7 +333,7 @@ void new_lldp_receiver (struct receiver_information *my_receiver_information) {
 
 // parts of code based on https://gist.github.com/austinmarton/2862515
 struct received_lldp_packet *recLLDPrawSock(struct receiver_information *my_receiver_information) {
-
+puts ("DEPRECATED FUNCTION!!!"); sleep (5);
 	struct received_lldp_packet *my_received_lldp_packet = 
 		malloc(sizeof(struct received_lldp_packet));
 	if(!my_received_lldp_packet) 

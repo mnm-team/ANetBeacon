@@ -44,10 +44,11 @@ int verifylanbeacon(const unsigned char* msg, size_t mlen,
 	EVP_PKEY *skey = NULL, *vkey = NULL;
 	rc = read_keys(&skey, &vkey, lanbeacon_keys);
 
-	if(rc & NO_PUBLIC_KEY == NO_PUBLIC_KEY)
+	if(rc & NO_PUBLIC_KEY == NO_PUBLIC_KEY) {
 		printf(_("Could not read public key at specified path %s.\n"), 
 			lanbeacon_keys->path_To_Verifying_Key);
 		return(rc);
+	}
 
 	// Using the vkey or verifying key
 //	rc = verify_it(msg, mlen - 256, &msg[mlen - 256], 256, vkey);
@@ -96,6 +97,7 @@ int verifylanbeacon(const unsigned char* msg, size_t mlen,
 	// Clear any errors for the call below
 	ERR_clear_error();
 
+printf("mlen %i   \n", mlen );
 	rc = EVP_DigestVerifyFinal(ctx, (unsigned char *) sig, slen);
 	if(rc != 1) {
 		printf(_("EVP_DigestVerifyFinal failed, error 0x%lx\n"), ERR_get_error());
