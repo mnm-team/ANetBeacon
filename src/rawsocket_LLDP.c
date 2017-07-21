@@ -167,7 +167,7 @@ puts("Begin of sendRawSocket");
 					
 					// 14 = Size of Ethernet header
 					signlanbeacon(&sig, &slen, (const unsigned char *) &lldpEthernetFrame[14], 
-						(size_t) payloadLen + 2 + 4 + 4 + 4, lanbeacon_keys);
+						(size_t) payloadLen + 2 + 4 + 4 + 4 - 1, lanbeacon_keys);
 					
 					memcpy(&lldpEthernetFrame[frameLength-264+4+4], sig, slen);
 					free(sig);
