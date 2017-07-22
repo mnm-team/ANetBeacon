@@ -1,8 +1,8 @@
-.TH LANbeacon 8 "Dominik Bitzer"
+.TH LAN-Beacon 8 "Dominik Bitzer"
 .SH NAME
-LANbeacon \- send out and authenticate custom LLDP packets containing machine- and humanreadable information VLANs \"TODO
+LAN-Beacon \- send out or receive, optionally authenticated, custom LLDP-like frames containing machine- and humanreadable information about VLANs and network topology. 
 .SH SYNOPSIS
-.B LANbeacon
+.B lanbeacon
 [\fB\-i\fR \fIVLAN_ID\fR]
 [\fB\-n\fR \fIVLAN_NAME\fR]
 [\fB\-4\fR \fIIPv4_SUBNETWORK\fR]
@@ -11,26 +11,31 @@ LANbeacon \- send out and authenticate custom LLDP packets containing machine- a
 [\fB\-d\fR \fIDHCP_TYPES\fR]
 [\fB\-r\fR \fIROUTER_INFORMATION\fR]
 [\fB\-c\fR \fICUSTOM_STRING\fR]
-.\" TODO signatures .IR file ...
-.\" TODO create keys
+[\fB\-f\fR \fISENDING_INTERFACE\fR]
+[\fB\-g\fR]
+[\fB\-p\fR \fIPRIVATE_KEY_PASSWORD\fR]
+[\fB\-s\fR \fIPATH_TO_PRIVATE_KEY\fR]
+[\fB\-v\fR \fIPATH_TO_PUBLIC_KEY\fR]
+[\fB\-z\fR \fISEND_FREQUENCY\fR]
 
-.B LANbeacon
+.B lanbeacon
 [\fB\-l\fR]
-.\" TODO signatures .IR file ...
-.\" TODO interactive mode
-.\" TODO password
+[\fB\-a\fR]
+[\fB\-v\fR \fIPATH_TO_PUBLIC_KEY\fR]
+[\fB\-y\fR \fISCROLL_SPEED\fR]
 
-.B LANbeacon
+.B lanbeacon
 [\fB\-h\fR]
 
 .SH DESCRIPTION		\" TODO more info
 .PP
-In sending mode, \fBLANbeacon\fR periodically sends out a LLDP-package over all network interfaces.
-The package contains all of the information that it was given using the parameters stated above.
+In sending mode, \fBLAN-Beacon\fR periodically sends out a Ethernet-frames over all network interfaces or one selected interface. The frame contains all of the information that it was given using the parameters stated above.
 .PP
-In receiving mode, \fBLANbeacon\fR periodically checks all network interfaces for LLDP-packages and takes all known TLV subtypes to then store them for further processing.
-Generally it will print them out in the standard output, if it is run on a microcomputer that supports the C-Berry display it will show the information there.
-In case new packages arrive, it will update it's information that is being put out on the screen.
+In receiving mode, \fBLAN-Beacon\fR periodically checks all network interfaces for LAN-Beacon frames and evaluates all known TLV subtypes. Generally it will print out the received information on the standard output, if it is run on a microcomputer that supports the C-Berry display it will show the information there.
+.PP
+In case new frames arrive, it will update it's information that is being put out on the screen.
+.PP
+Receiving from multiple VLANs at once is supported.
 .SH OPTIONS		\" TODO options beschreiben
 .TP
 .BR \-n ", " \-\-bits =\fIBITS\fR
@@ -78,7 +83,7 @@ Nifty, huh?
 
 .SH COMPILING
 .PP 
-use make for normal computers
+Use ./configure, make and make install for normal computers
 .PP 
 use make bananaLANbeacon to enable C-Berry support
 .SH ENVIRONMENT

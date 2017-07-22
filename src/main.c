@@ -12,8 +12,10 @@
 #include "define.h"
 
 /*
-- to run enter:
-clear && make && clear && ./lanbeacon -4 "Gobi: 192.168.178.133/24 Arktis: 111.222.111.222/16 Kalahari: 222.111.222.111/17" -6 "LRZ: 2001:618:11:1:1::1/127 MNM: 2001:cdba:0:0:0:0:3257:9652/33" -e "dominik.bitzer@mailbox.org" -d "DHCP info" -r "MAC: 00:04:4b:01:70:aa" -i 937 -n "MNM-VLAN Team IPsec" -c 'Das ist ein Beispiel fuer einen benutzerdefinierten String. Es kann beliebiger Text mitgegeben werden' && echo && xxd  -c 16 testNewTransfer
+- to run Server enter:
+./lanbeacon -4 "Gobi: 192.168.178.133/24 Arktis: 111.222.111.222/16 Kalahari: 222.111.222.111/17" -6 "LRZ: 2001:618:11:1:1::1/127 MNM: 2001:cdba:0:0:0:0:3257:9652/33" -e "dominik.bitzer@mailbox.org" -d "DHCP info" -r "MAC: 00:04:4b:01:70:aa" -i 937 -n "MNM-VLAN Team IPsec" -c 'Das ist ein Beispiel fuer einen benutzerdefinierten String. Es kann beliebiger Text mitgegeben werden' -p "TODO"
+
+- to run Client in authenticated mode enter: ./lanbeacon -l -a
 
 - saving TCPdump: tcpdump -s 65535 -w meindump ether proto 0x88cc
 - 0x88B6
@@ -47,12 +49,9 @@ int main(int argc, char **argv) {
 				.authenticated = 0,
 				.number_of_currently_received_packets = 0,
 				.scroll_speed = DEFAULT_SCROLLSPEED,
-//				.challenge = 0,
 				
 				.lanbeacon_keys = {
 					.path_To_Verifying_Key = PUBLIC_KEY_STANDARD_PATH,
-//					.path_To_Signing_Key = PRIVATE_KEY_STANDARD_PATH,
-//					.pcszPassphrase = "TODO" // TODO
 				},
 				
 				.my_receiver_interfaces = {
@@ -108,16 +107,11 @@ int main(int argc, char **argv) {
 			while (1) {
 				// receive new lanbeacons
 				new_lldp_receiver (&my_receiver_information);
-printf("currently there are %i received packets\n", my_receiver_information.number_of_currently_received_packets);
-sleep(1);
+printf("currently there are %i received packets\n", my_receiver_information.number_of_currently_received_packets); sleep(1);
 				// print everything, that currently is received
 				bananaPIprint(&my_receiver_information);
 			}
 			
-//my_receiver_information.pointers_to_received_packets[0] = recLLDPrawSock(&my_receiver_information);
-//my_receiver_information.pointers_to_received_packets[0]->parsedBeaconContents 
-//	= evaluatelanbeacon(my_receiver_information.pointers_to_received_packets[0]);
-
 			// free memory
 			for (int j = 0; j < my_receiver_information.number_of_currently_received_packets; j++) {
 				
@@ -137,12 +131,13 @@ sleep(1);
 	//## creating and sending lanbeacon
 	struct sender_information my_sender_information = {
 		.interface_to_send_on = NULL,
-		.generate_keys = 0,
+		.send_frequency = LLDP_SEND_FREQUENCY,
 		.lanbeacon_keys = {
 			.sender_or_receiver_mode = SENDER_MODE,
 			.path_To_Verifying_Key = PUBLIC_KEY_STANDARD_PATH,
 			.path_To_Signing_Key = PRIVATE_KEY_STANDARD_PATH,
-			.pcszPassphrase = "TODO" // TODO
+			.generate_keys = 0,
+			.pcszPassphrase = ""
 		}
 	};
 	my_sender_information.lanBeacon_PDU = mergedlanbeaconCreator(&argc, argv, &my_sender_information);

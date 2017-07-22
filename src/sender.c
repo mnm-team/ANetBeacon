@@ -63,7 +63,7 @@ char *mergedlanbeaconCreator (int *argc, char **argv, struct sender_information 
 	// custom TLV arguments
 	if(*argc == 1) printHelp();
 	int opt;
-	while((opt=getopt(*argc, argv, "4:6:c:d:e:f:gi:n:p:r:s:v:h")) != -1) {
+	while((opt=getopt(*argc, argv, "4:6:c:d:e:f:gi:n:p:r:s:v:z:h")) != -1) {
 		switch(opt) {
 
 			case 'f':
@@ -72,7 +72,7 @@ char *mergedlanbeaconCreator (int *argc, char **argv, struct sender_information 
 				break;
 			
 			case 'g':
-				my_sender_information->generate_keys = 1;
+				my_sender_information->lanbeacon_keys.generate_keys = 1;
 				break;
 			
 			case 'i':
@@ -160,6 +160,10 @@ printf("******************************************************* %s\n", my_sender
 			case 'r':
 				transferToCombinedBeaconAndString(SUBTYPE_ROUTER, DESCRIPTOR_ROUTER,
 					combinedString, optarg, mylanbeacon, &currentByte);
+				break;
+
+			case 'z':
+				my_sender_information->send_frequency = atoi(optarg);
 				break;
 
 			case 'h':

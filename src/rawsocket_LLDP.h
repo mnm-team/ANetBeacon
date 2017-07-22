@@ -16,14 +16,16 @@ int sendLLDPrawSock (struct sender_information *my_sender_information);
 
 struct received_lldp_packet *recLLDPrawSock(struct receiver_information *my_receiver_information);
 
-unsigned long receiveChallenge(int *sockfd, int numInterfaces, int maxSockFd, char *challenge_dest_mac);
+unsigned long receiveChallenge(int *sockfd, int numInterfaces, int maxSockFd, 
+				char *challenge_dest_mac, struct sender_information *my_sender_information);
 
 void getInterfaces (int *sockfd, int *numInterfaces, unsigned short etherType, 
 					unsigned short sendOrReceive, struct ifreq *if_idx, 
 					struct ifreq *if_mac, int *sockopt, int *maxSockFd, char *interface_to_send_on);
 
 void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLen, 
-					unsigned short etherType, struct open_ssl_keys *lanbeacon_keys, char *interface_to_send_on);
+					unsigned short etherType, struct open_ssl_keys *lanbeacon_keys, 
+					char *interface_to_send_on, struct sender_information *my_sender_information);
 
 void flush_all_interfaces (int *sockfd, int maxSockFd, int numInterfaces);
 

@@ -145,7 +145,7 @@ fclose(binBeacon);
 		printf(_("Could not read private key at specified path %s. Maybe the password or path are wrong?\n"), 
 			lanbeacon_keys->path_To_Verifying_Key);
 		
-		if (my_sender_information->generate_keys) {
+		if (lanbeacon_keys->generate_keys) {
 			puts("Key pair will be created. ");
 			rc = make_keys(&skey, &vkey, lanbeacon_keys);
 		}

@@ -34,7 +34,8 @@
 
 // parts of code based on https://gist.github.com/austinmarton/1922600
 void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLen, 
-					unsigned short etherType, struct open_ssl_keys *lanbeacon_keys, char *interface_to_send_on) {
+					unsigned short etherType, struct open_ssl_keys *lanbeacon_keys, 
+					char *interface_to_send_on, struct sender_information *my_sender_information) {
 puts("Begin of sendRawSocket");	
 	
 	
@@ -68,7 +69,7 @@ puts("Begin of sendRawSocket");
 	// Address length and destination MAC
 	socket_address.sll_halen = ETH_ALEN;
 	memcpy(socket_address.sll_addr, destination_mac, 6);
-
+// puts("ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ");
 	// Get interfaces
 	int sockfd[20];
 	int numInterfaces = 0;
@@ -76,7 +77,7 @@ puts("Begin of sendRawSocket");
 	struct ifreq if_mac[20];
 	getInterfaces (sockfd, &numInterfaces, etherType, SEND_SOCKET, if_idx, if_mac, NULL, NULL, interface_to_send_on);
 	
-	// Get interfaces for challenge		TODO
+	// Get interfaces for challenge
 	int challengeSockfd[20];
 	int challengeSockopt[20];
 	int challengeNumInterfaces = 0;
@@ -151,7 +152,8 @@ puts("Begin of sendRawSocket");
 				*receivedChallenge = receiveChallenge(	challengeSockfd, 
 														challengeNumInterfaces, 
 														challengeMaxSockFd,
-														challenge_dest_mac);
+														challenge_dest_mac,
+														my_sender_information);
 				*receivedChallenge = htonl(*receivedChallenge);
 				
 				if (*receivedChallenge != 0) {
@@ -196,7 +198,7 @@ puts("Begin of sendRawSocket");
 				
 			}
 			else
-				sleep(LLDP_SEND_FREQUENCY);
+				sleep(my_sender_information->send_frequency);
 		}
 	}
 	return;
@@ -206,7 +208,8 @@ puts("Begin of sendRawSocket");
 int sendLLDPrawSock (struct sender_information *my_sender_information)
 {
 	sendRawSocket ((unsigned char[6]){LLDP_DEST_MAC}, my_sender_information->lanBeacon_PDU, 
-		my_sender_information->lldpdu_len, LLDP_ETHER_TYPE, &my_sender_information->lanbeacon_keys, my_sender_information->interface_to_send_on);
+		my_sender_information->lldpdu_len, LLDP_ETHER_TYPE, &my_sender_information->lanbeacon_keys, 
+		my_sender_information->interface_to_send_on, my_sender_information);
 	return EXIT_SUCCESS;
 }
 
@@ -333,7 +336,7 @@ void new_lldp_receiver (struct receiver_information *my_receiver_information) {
 
 							sendRawSocket (my_received_lldp_packet->current_destination_mac, 
 									&my_received_lldp_packet->challenge, 
-									4, CHALLENGE_ETHTYPE, NULL, NULL);
+									4, CHALLENGE_ETHTYPE, NULL, NULL, NULL);
 						}
 						
 						my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array] = my_received_lldp_packet;
@@ -378,7 +381,7 @@ puts ("DEPRECATED FUNCTION!!!"); sleep (5);
 		if (rv == -1) 
 			perror("select");
 		else if (rv == 0) 
-			printf("Timeout occurred! No data after %i seconds.\n", LLDP_SEND_FREQUENCY);  // TODO receive for how long?
+			printf("Timeout occurred! No data after %i seconds.\n", LLDP_SEND_FREQUENCY);
 		else {
 			for (int i = 0; i < my_receiver_information->my_receiver_interfaces.numInterfaces; i++) {
 				if (FD_ISSET(my_receiver_information->my_receiver_interfaces.sockfd[i], &readfds)) {
@@ -426,7 +429,7 @@ puts ("DEPRECATED FUNCTION!!!"); sleep (5);
 			flush_all_interfaces (my_receiver_information->my_receiver_interfaces.sockfd, my_receiver_information->my_receiver_interfaces.maxSockFd, my_receiver_information->my_receiver_interfaces.numInterfaces);
 			
 			sendRawSocket (my_received_lldp_packet->current_destination_mac, &my_received_lldp_packet->challenge, 
-				4, CHALLENGE_ETHTYPE, NULL, NULL);
+				4, CHALLENGE_ETHTYPE, NULL, NULL, NULL);
 			tv.tv_sec = 0;
 			
 
@@ -442,7 +445,8 @@ puts ("DEPRECATED FUNCTION!!!"); sleep (5);
 
 
 // parts of code based on https://gist.github.com/austinmarton/2862515
-unsigned long receiveChallenge(int *sockfd, int numInterfaces, int maxSockFd, char *challenge_dest_mac) {
+unsigned long receiveChallenge(int *sockfd, int numInterfaces, int maxSockFd, 
+			char *challenge_dest_mac, struct sender_information *my_sender_information) {
 
 	unsigned char *receiveBuf = calloc(300, 1);
 	if(!receiveBuf) puts(_("calloc error of \"receiveBuf\" in receiveChallenge"));
@@ -454,7 +458,7 @@ unsigned long receiveChallenge(int *sockfd, int numInterfaces, int maxSockFd, ch
 
 	// parameters for select()
 	struct timeval tv = {1, 0};
-	tv.tv_sec = LLDP_SEND_FREQUENCY;
+	tv.tv_sec = my_sender_information->send_frequency;
 	fd_set readfds;
 
 	//SET_SELECT_FDS
@@ -469,7 +473,7 @@ printf("%i\n", numInterfaces);
 	if (rv == -1) 
 		perror("select"); // error occurred in select()
 	else if (rv == 0) 
-		printf("Timeout occurred! No data after %i seconds.\n", LLDP_SEND_FREQUENCY);
+		printf("Timeout occurred! No data after %i seconds.\n", my_sender_information->send_frequency);
 	else {
 		for (int i = 0; i < numInterfaces; i++) {
 			if (FD_ISSET(sockfd[i], &readfds)) {

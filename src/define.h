@@ -6,30 +6,30 @@
 
 
 // Protocol options such as addresses and send frequency
-#define LLDP_SEND_FREQUENCY 1
+#define LLDP_SEND_FREQUENCY 5	//frequency in seconds
 
 #define LLDP_DEST_MAC	0xff, 0xff, 0xff, 0xff, 0xff, 0xff
 //#define LLDP_DEST_MAC	0x01, 0x80, 0xc2, 0x00, 0x00, 0x0e
 //#define LLDP_DEST_MAC	0x01, 0x80, 0xc2, 0xde, 0x4c, 0x73
-#define CHALLENGE_ETHTYPE 0x88B5
+#define CHALLENGE_ETHTYPE 0x88B6
 #define LLDP_ETHER_TYPE	0x88CC
-//#define LLDP_ETHER_TYPE	0x88B6 // TODO
+//#define LLDP_ETHER_TYPE	0x88B5 // TODO
 
 // Buffer sizes
 #define PARSED_TLVS_MAX_NUMBER	25
 #define PARSED_TLVS_MAX_LENGTH	510
 
 #define LLDP_BUF_SIZ 2000
-#define KEY_PATHLENGTH_MAX 500
+#define KEY_PATHLENGTH_MAX 800
 
 // Standard paths
 #define PRIVATE_KEY_STANDARD_PATH "privkey.pem"
 #define PUBLIC_KEY_STANDARD_PATH "pubkey.pem"
 
 // Display options
-#define DESCRIPTOR_WIDTH 10
 #define DEFAULT_SCROLLSPEED 2
 #define SHOW_FRAMES_X_TIMES 3
+#define DESCRIPTOR_WIDTH 10
 
 // Subtype numbers lanbeacon:
 #define SUBTYPE_VLAN_ID 200
