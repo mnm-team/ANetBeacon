@@ -64,31 +64,42 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 	memcpy(socket_address.sll_addr, destination_mac, 6);
 
 	// Get interfaces
-	int sockfd[20];
-	int numInterfaces = 0;
-	struct ifreq if_idx[20];
-	struct ifreq if_mac[20];
-	getInterfaces (sockfd, &numInterfaces, etherType, SEND_SOCKET, if_idx, if_mac, NULL, NULL, interface_to_send_on);
+	struct interfaces my_interfaces = {
+		.numInterfaces = 0,
+		.etherType = etherType,
+		.sendOrReceive = SEND_SOCKET,
+//		.maxSockFd = NULL,
+//		.sockopt = NULL
+	};
 	
-	// Get interfaces for challenge
-	int challengeSockfd[20];
-	int challengeSockopt[20];
-	int challengeNumInterfaces = 0;
-	int challengeMaxSockFd = 0;
-	getInterfaces (challengeSockfd, &challengeNumInterfaces, CHALLENGE_ETHTYPE, REC_SOCKET, 
-		NULL, NULL, challengeSockopt, &challengeMaxSockFd, NULL);
+//	int sockfd[20];
+//	int numInterfaces = 0;
+//	struct ifreq if_idx[20];
+//	struct ifreq if_mac[20];
+	getInterfaces (&my_interfaces, interface_to_send_on);
+	
+	struct interfaces my_challenge_interfaces = {
+		.numInterfaces = 0,
+		.maxSockFd = 0,
+		.etherType = CHALLENGE_ETHTYPE,
+		.sendOrReceive = REC_SOCKET,
+//		.if_idx = NULL,
+//		.if_mac = NULL
+	};
+	
+	getInterfaces (&my_challenge_interfaces, NULL);
 
 	while (1) {
 		// send frames on all interfaces
-		for(int j = 0; j < numInterfaces; j++) {
+		for(int j = 0; j < my_interfaces.numInterfaces; j++) {
 
 			// Ethernet header, destination MAC address
-			memcpy(eh->ether_shost, ((uint8_t *)&if_mac[j].ifr_hwaddr.sa_data), 6);
+			memcpy(eh->ether_shost, ((uint8_t *)&my_interfaces.if_mac[j].ifr_hwaddr.sa_data), 6);
 			
 			if (etherType == LAN_BEACON_ETHER_TYPE) {
 				// Port and chassis subtype TLVs filled
-				memcpy(&lan_beacon_EthernetFrame[17], ((uint8_t *)&if_mac[j].ifr_hwaddr.sa_data), 6);
-				memcpy(&lan_beacon_EthernetFrame[26], ((uint8_t *)&if_mac[j].ifr_hwaddr.sa_data), 6);
+				memcpy(&lan_beacon_EthernetFrame[17], ((uint8_t *)&my_interfaces.if_mac[j].ifr_hwaddr.sa_data), 6);
+				memcpy(&lan_beacon_EthernetFrame[26], ((uint8_t *)&my_interfaces.if_mac[j].ifr_hwaddr.sa_data), 6);
 				
 				if (*receivedChallenge != 0) {
 					
@@ -106,10 +117,10 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 			}
 		
 			// Index of the network device
-			socket_address.sll_ifindex = if_idx[j].ifr_ifindex;
+			socket_address.sll_ifindex = my_interfaces.if_idx[j].ifr_ifindex;
 
 			// Send frame
-			if (sendto(sockfd[j], lan_beacon_EthernetFrame, frameLength, 0, 
+			if (sendto(my_interfaces.sockfd[j], lan_beacon_EthernetFrame, frameLength, 0, 
 				(struct sockaddr*)&socket_address, sizeof(struct sockaddr_ll)) < 0)
 					printf(_("Send failed on interface number %i\n"), j);
 			else
@@ -134,16 +145,13 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 				frameLength -= 270;
 				lan_beacon_EthernetFrame[frameLength-2] = 0x00;
 				lan_beacon_EthernetFrame[frameLength-1] = 0x00;
-			//	flush_all_interfaces (challengeSockfd, challengeMaxSockFd, challengeNumInterfaces);
 			}
 			
 			if (*receivedChallenge == 0) {
 
 				// receive challenge
 				char challenge_dest_mac[6];
-				*receivedChallenge = receiveChallenge(	challengeSockfd, 
-														challengeNumInterfaces, 
-														challengeMaxSockFd,
+				*receivedChallenge = receiveChallenge(	&my_challenge_interfaces,
 														challenge_dest_mac,
 														my_sender_information);
 				*receivedChallenge = htonl(*receivedChallenge);
@@ -333,7 +341,7 @@ void new_lan_beacon_receiver (struct receiver_information *my_receiver_informati
 
 
 // parts of code based on https://gist.github.com/austinmarton/2862515
-unsigned long receiveChallenge(int *sockfd, int numInterfaces, int maxSockFd, 
+unsigned long receiveChallenge(struct interfaces *my_challenge_interfaces, 
 			char *challenge_dest_mac, struct sender_information *my_sender_information) {
 
 	unsigned char *receiveBuf = calloc(300, 1);
@@ -350,21 +358,21 @@ unsigned long receiveChallenge(int *sockfd, int numInterfaces, int maxSockFd,
 	fd_set readfds;
 
 	FD_ZERO(&readfds); 
-	for (int x = 0; x < numInterfaces; x++) {
-		FD_SET(sockfd[x], &readfds);	
+	for (int x = 0; x < my_challenge_interfaces->numInterfaces; x++) {
+		FD_SET(my_challenge_interfaces->sockfd[x], &readfds);	
 
 	} 
-	int rv = select(maxSockFd, &readfds, NULL, NULL, &tv);
+	int rv = select(my_challenge_interfaces->maxSockFd, &readfds, NULL, NULL, &tv);
 
 	if (rv == -1) 
 		perror("select"); // error occurred in select()
 	else if (rv == 0) 
 		printf(_("Timeout occurred! No data after %i seconds.\n"), my_sender_information->send_frequency);
 	else {
-		for (int i = 0; i < numInterfaces; i++) {
-			if (FD_ISSET(sockfd[i], &readfds)) {
+		for (int i = 0; i < my_challenge_interfaces->numInterfaces; i++) {
+			if (FD_ISSET(my_challenge_interfaces->sockfd[i], &readfds)) {
 
-				receivedSize = recvfrom(sockfd[i], receiveBuf, 300, 0, NULL, NULL);
+				receivedSize = recvfrom(my_challenge_interfaces->sockfd[i], receiveBuf, 300, 0, NULL, NULL);
 
 				memcpy(receivedChallenge, &receiveBuf[14], 4);
 				*receivedChallenge = ntohl(*receivedChallenge);
@@ -382,9 +390,7 @@ unsigned long receiveChallenge(int *sockfd, int numInterfaces, int maxSockFd,
 }
 
 
-void getInterfaces (int *sockfd, int *numInterfaces, unsigned short etherType, 
-					unsigned short sendOrReceive, struct ifreq *if_idx, 
-					struct ifreq *if_mac, int *sockopt, int *maxSockFd, char *interface_to_send_on) {
+void getInterfaces (struct interfaces *my_interfaces_struct, char *interface_to_send_on) {
 
 	struct ifaddrs *interfaces;
 	if (getifaddrs(&interfaces) == -1) {
@@ -405,88 +411,57 @@ void getInterfaces (int *sockfd, int *numInterfaces, unsigned short etherType,
 		if (!(interfaces->ifa_addr->sa_family == AF_PACKET)) continue;
 
 		// Open RAW socket to send on
-		if ((sockfd[*numInterfaces] = socket(PF_PACKET, SOCK_RAW, htons(etherType))) == -1) {
+		if ((my_interfaces_struct->sockfd[my_interfaces_struct->numInterfaces] = socket(PF_PACKET, SOCK_RAW, htons(my_interfaces_struct->etherType))) == -1) {
 			perror("socket");
 		}
 
-		if (sendOrReceive == SEND_SOCKET) {
+		if (my_interfaces_struct->sendOrReceive == SEND_SOCKET) {
 
 			// Get the index of the interface to send on
-			memset(&if_idx[*numInterfaces], 0, sizeof(struct ifreq));
-			memcpy(if_idx[*numInterfaces].ifr_name, interfaces->ifa_name, IFNAMSIZ-1);
-			if (ioctl(sockfd[*numInterfaces], SIOCGIFINDEX, &if_idx[*numInterfaces]) < 0)
+			memset(&my_interfaces_struct->if_idx[my_interfaces_struct->numInterfaces], 0, sizeof(struct ifreq));
+			memcpy(my_interfaces_struct->if_idx[my_interfaces_struct->numInterfaces].ifr_name, interfaces->ifa_name, IFNAMSIZ-1);
+			if (ioctl(my_interfaces_struct->sockfd[my_interfaces_struct->numInterfaces], SIOCGIFINDEX, &my_interfaces_struct->if_idx[my_interfaces_struct->numInterfaces]) < 0)
 				perror("SIOCGIFINDEX");
 			// Get the MAC address of the interface to send on
-			memset(&if_mac[*numInterfaces], 0, sizeof(struct ifreq));
-			memcpy(if_mac[*numInterfaces].ifr_name, interfaces->ifa_name, IFNAMSIZ-1);
-			if (ioctl(sockfd[*numInterfaces], SIOCGIFHWADDR, &if_mac[*numInterfaces]) < 0)
+			memset(&my_interfaces_struct->if_mac[my_interfaces_struct->numInterfaces], 0, sizeof(struct ifreq));
+			memcpy(my_interfaces_struct->if_mac[my_interfaces_struct->numInterfaces].ifr_name, interfaces->ifa_name, IFNAMSIZ-1);
+			if (ioctl(my_interfaces_struct->sockfd[my_interfaces_struct->numInterfaces], SIOCGIFHWADDR, &my_interfaces_struct->if_mac[my_interfaces_struct->numInterfaces]) < 0)
 				perror("SIOCGIFHWADDR");
 		}
 
-		if (sendOrReceive == REC_SOCKET) {
+		if (my_interfaces_struct->sendOrReceive == REC_SOCKET) {
 
 			// Set interface to promiscuous mode
 			struct ifreq ifopts;
 			memcpy(ifopts.ifr_name, interfaces->ifa_name, IFNAMSIZ-1);
-			ioctl(sockfd[*numInterfaces], SIOCGIFFLAGS, &ifopts);
+			ioctl(my_interfaces_struct->sockfd[my_interfaces_struct->numInterfaces], SIOCGIFFLAGS, &ifopts);
 			ifopts.ifr_flags |= IFF_PROMISC;
-			ioctl(sockfd[*numInterfaces], SIOCSIFFLAGS, &ifopts);
+			ioctl(my_interfaces_struct->sockfd[my_interfaces_struct->numInterfaces], SIOCSIFFLAGS, &ifopts);
 
 			// Allow the socket to be reused - incase connection is closed prematurely
-			if (setsockopt(sockfd[*numInterfaces], SOL_SOCKET, SO_REUSEADDR, 
-				&sockopt[*numInterfaces], sizeof sockopt) == -1) {
+			if (setsockopt(my_interfaces_struct->sockfd[my_interfaces_struct->numInterfaces], SOL_SOCKET, SO_REUSEADDR, 
+				&my_interfaces_struct->sockopt[my_interfaces_struct->numInterfaces], sizeof my_interfaces_struct->sockopt) == -1) {
 					perror("setsockopt");
-					close(sockfd[*numInterfaces]);
+					close(my_interfaces_struct->sockfd[my_interfaces_struct->numInterfaces]);
 					exit(EXIT_FAILURE);
 			}
 
 			// Bind to device
-			if (setsockopt(sockfd[*numInterfaces], SOL_SOCKET, SO_BINDTODEVICE, 
+			if (setsockopt(my_interfaces_struct->sockfd[my_interfaces_struct->numInterfaces], SOL_SOCKET, SO_BINDTODEVICE, 
 				interfaces->ifa_name, IFNAMSIZ-1) == -1)	{
 					perror("SO_BINDTODEVICE");
-					close(sockfd[*numInterfaces]);
+					close(my_interfaces_struct->sockfd[my_interfaces_struct->numInterfaces]);
 					exit(EXIT_FAILURE);
 			}
 
-			if (sockfd[*numInterfaces] > *maxSockFd)
-				*maxSockFd = sockfd[*numInterfaces];
+			if (my_interfaces_struct->sockfd[my_interfaces_struct->numInterfaces] > my_interfaces_struct->maxSockFd)
+				my_interfaces_struct->maxSockFd = my_interfaces_struct->sockfd[my_interfaces_struct->numInterfaces];
 		}
 
-		printf(_("Number %i is interface %s\n"), *numInterfaces, interfaces->ifa_name);
-		*numInterfaces += 1;
+		printf(_("Number %i is interface %s\n"), my_interfaces_struct->numInterfaces, interfaces->ifa_name);
+		my_interfaces_struct->numInterfaces += 1;
 	}
 
 	return;
 }
-
-
-/*
-void flush_all_interfaces (int *sockfd, int maxSockFd, int numInterfaces) {
-	
-	struct timeval tv = {0, 0};
-	
-	fd_set readfds;
-	int rv;
-	
-	while (1) {
-		FD_ZERO(&readfds); 
-		for (int x = 0; x < numInterfaces; x++) FD_SET(sockfd[x], &readfds);
-		
-		rv = select(maxSockFd, &readfds, NULL, NULL, &tv);
-		if (rv == -1) perror("select"); // error occurred in select()
-		else if (rv == 0) {
-			printf("Timeout occurred! All data flushed.\n");
-			break;
-		}
-		else {
-			for (int j = 0; j < numInterfaces; j++) {
-				if (FD_ISSET(sockfd[j], &readfds)) {
-					recvfrom(sockfd[j], NULL, 1500, 0, NULL, NULL);
-				}
-			}
-		}
-	}
-	return;
-}
-*/
 

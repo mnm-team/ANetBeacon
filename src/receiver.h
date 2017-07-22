@@ -31,11 +31,15 @@ struct received_lan_beacon_frame {
 /**
  * @brief Contains all variables, that are needed to access sockets on interfaces.
  */
-struct receiver_interfaces {
+struct interfaces {
 	int sockfd[20];	/**< File descriptors of raw sockets. */
 	int sockopt[20];	/**< . Options for each raw socket. */
 	int maxSockFd;	/**< Needed for select function. */
 	int numInterfaces;	/**< Number of used interfaces. */
+	struct ifreq if_idx[20];	/**< Interface IDs. */
+	struct ifreq if_mac[20];	/**< Interface MACs. */
+	unsigned short etherType;	/**< EtherType to send or receive on interface. */
+	unsigned short sendOrReceive;	/**< Switch for send or receive mode. */
 };
 
 /**
@@ -51,7 +55,7 @@ struct receiver_information {
 	int number_of_currently_received_frames;	/**< How many frames are currently stored for displaying. */
 	
 	struct open_ssl_keys lanbeacon_keys;	/**< The paths to the keys. */
-	struct receiver_interfaces my_receiver_interfaces;	/**< Interfaces, that are used for LAN-Beacon reception. */
+	struct interfaces my_receiver_interfaces;	/**< Interfaces, that are used for LAN-Beacon reception. */
 };
 
 

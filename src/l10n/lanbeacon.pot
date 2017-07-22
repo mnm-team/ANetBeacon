@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-07-22 17:55+0200\n"
+"POT-Creation-Date: 2017-07-22 22:19+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,7 +19,7 @@ msgstr ""
 
 #: receiver.c:178
 #, c-format
-msgid " failed. Sent challenge: %ld Received Challenge: %ld Timestamp: %ld"
+msgid " failed. Sent challenge: %ld Received Challenge: %ld Timestamp: %ld."
 msgstr ""
 
 #: receiver.c:158
@@ -29,50 +29,50 @@ msgstr ""
 
 #: receiver.c:174
 #, c-format
-msgid " successfull"
+msgid " successfull."
 msgstr ""
 
-#: define.h:55
+#: define.h:85
 msgid "Authentication:"
 msgstr ""
 
-#: define.h:56
+#: define.h:86
 msgid "Combined String:"
 msgstr ""
 
-#: define.h:53
+#: define.h:83
 msgid "DHCP:"
 msgstr ""
 
-#: define.h:52
+#: define.h:82
 msgid "Email:"
 msgstr ""
 
-#: sender.c:286
+#: sender.c:273
 #, c-format
 msgid "Error Parsing IP-address: %s\n"
 msgstr ""
 
-#: sender.c:309
+#: sender.c:296
 #, c-format
 msgid ""
 "Exiting since no valid IP networks (format e.g. 192.168.178.1/24) could be "
 "found in provided string \"%s\". \n"
 msgstr ""
 
-#: define.h:49
+#: define.h:79
 msgid "Freetext:"
 msgstr ""
 
-#: define.h:50
+#: define.h:80
 msgid "IPv4:"
 msgstr ""
 
-#: define.h:51
+#: define.h:81
 msgid "IPv6:"
 msgstr ""
 
-#: sender.c:136
+#: sender.c:132
 msgid "Length of passed password too long. Exiting"
 msgstr ""
 
@@ -81,64 +81,68 @@ msgstr ""
 msgid "Line %i:  \t"
 msgstr ""
 
-#: sender.c:205
+#: sender.c:196
 msgid ""
 "Maximum of 1500 Bytes in LAN-Beacon frame exceeded, not all information will "
 "be transmitted. Please include less information."
 msgstr ""
 
-#: sender.c:167
+#: sender.c:163
 msgid ""
 "No sufficiently long password was provided for private key! Please enter 4 "
 "to 1023 characters"
 msgstr ""
 
-#: sender.c:114
+#: sender.c:110
 msgid "Passed path to signing key too long. Exiting."
 msgstr ""
 
-#: sender.c:125 main.c:83
+#: sender.c:121 main.c:86
 msgid "Passed path to verifying key too long. Exiting."
 msgstr ""
 
-#: define.h:54
+#: define.h:84
 msgid "Router:"
 msgstr ""
 
-#: sender.c:238
+#: sender.c:227
 #, c-format
 msgid "String: %s is too long to be included as text and will be skipped\n"
 msgstr ""
 
-#: sender.c:105
+#: sender.c:101
 msgid "There is an error in the passed email-address. "
 msgstr ""
 
-#: sender.c:319
+#: main.c:152
 msgid "Usage: "
 msgstr ""
 
-#. Descriptor strings lanbeacon:
-#: define.h:47
+#. * @}
+#. *
+#. * @name Descriptor strings lanbeacon
+#. * @{
+#.
+#: define.h:77
 msgid "VLAN-ID:"
 msgstr ""
 
-#: define.h:48
+#: define.h:78
 msgid "VLAN-Name:"
 msgstr ""
 
-#: sender.c:210
+#: sender.c:201
 #, c-format
 msgid ""
 "Warning, TLV is %i Bytes long, exceeding maximum of 507 characters in "
 "String. End of string will be cut off."
 msgstr ""
 
-#: sender.c:37
+#: sender.c:33
 msgid "malloc error of \"combinedString\" in mergedlanbeaconCreator"
 msgstr ""
 
-#: sender.c:27
+#: sender.c:23
 msgid "malloc error of \"mylanbeacon\" in mergedlanbeaconCreator"
 msgstr ""
 

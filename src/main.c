@@ -57,7 +57,9 @@ int main(int argc, char **argv) {
 				
 				.my_receiver_interfaces = {
 					.maxSockFd = 0,
-					.numInterfaces = 0
+					.numInterfaces = 0,
+					.etherType = LAN_BEACON_ETHER_TYPE,
+					.sendOrReceive = REC_SOCKET
 				}
 			};
 			
@@ -99,11 +101,7 @@ int main(int argc, char **argv) {
 				}
 			}
 		
-			getInterfaces (my_receiver_information.my_receiver_interfaces.sockfd, 
-					&my_receiver_information.my_receiver_interfaces.numInterfaces, 
-					LAN_BEACON_ETHER_TYPE, REC_SOCKET, NULL, NULL, 
-					my_receiver_information.my_receiver_interfaces.sockopt, 
-					&my_receiver_information.my_receiver_interfaces.maxSockFd, NULL);
+			getInterfaces (&my_receiver_information.my_receiver_interfaces, NULL);
 			
 			while (1) {
 				// receive new lanbeacons

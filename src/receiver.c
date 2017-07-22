@@ -171,11 +171,11 @@ char ** evaluatelanbeacon (struct received_lan_beacon_frame *my_received_lan_bea
 					== zwischenSpeicherChallenge) &&
 					(timeStamp - zwischenSpeicherTimeStamp < 10)) {
 						sprintf(TLVstringbuffer,
-							_(" successfull"));
+							_(" successfull."));
 						my_received_lan_beacon_frame->successfullyAuthenticated = 1;
 					} else {
 						sprintf(TLVstringbuffer,
-						_(" failed. Sent challenge: %ld Received Challenge: %ld Timestamp: %ld"),
+						_(" failed. Sent challenge: %ld Received Challenge: %ld Timestamp: %ld."),
 						(unsigned long) ntohl(my_received_lan_beacon_frame->challenge), zwischenSpeicherChallenge, zwischenSpeicherTimeStamp);
 					}
 					
