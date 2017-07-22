@@ -14,11 +14,7 @@
 #include "define.h"
 #include "sender.h"
 #include "openssl_sign.h"
-
-/* Howto adding new fields:
-	1. Add defines for desired new field in define.h
-	2. Add desired options in mergedlanbeaconCreator()
-*/
+#include "main.h"
 
 // code loosely based on code from my Systempraktikum https://github.com/ciil/nine-mens-morris/blob/master/src/config.c
 char *mergedlanbeaconCreator (int *argc, char **argv, struct sender_information *my_sender_information) {
@@ -183,10 +179,6 @@ char *mergedlanbeaconCreator (int *argc, char **argv, struct sender_information 
 	return mylanbeacon;
 }
 
-
-
-
-// shortcut for cases in which only a string is transferred
 void transferToCombinedBeaconAndString (unsigned char subtype, char *TLVdescription,
 	char **combinedString, char *source, char *combinedBeacon, int *currentByte) {
 	transferToCombinedBeacon (subtype, source, combinedBeacon, currentByte, strlen(source));
@@ -194,7 +186,6 @@ void transferToCombinedBeaconAndString (unsigned char subtype, char *TLVdescript
 		transferToCombinedString (TLVdescription, combinedString, source);
 }
 
-// transferring the content of the field to the combined lanbeacon in binary format
 void transferToCombinedBeacon ( unsigned char subtype, void *source, 
 								char *combinedBeacon, int *currentByte, 
 								unsigned short int currentTLVlength) {
@@ -230,8 +221,6 @@ void transferToCombinedBeacon ( unsigned char subtype, void *source,
 	*currentByte = *currentByte + 6 + currentTLVlength;
 }
 
-// transferring the content of the field to the combined string in human-readable format
-// if one combined string exceeds 507 byte limit of TLV it is put to the next combined string TLV
 void transferToCombinedString (char *TLVdescription, char **combinedString, char *TLVcontents) {
 	int stringToBeFilled;
 	if (507 < (strlen(TLVdescription) + strlen(TLVcontents) + 2 ) ) {
@@ -249,9 +238,7 @@ void transferToCombinedString (char *TLVdescription, char **combinedString, char
 		"%s%s%s%s", TLVdescription, " ", TLVcontents, ". " );
 }
 
-// using regex to get IP-addresses from string input, then 
-// convert them to binary representation for transport
-void ipParser (int ip_V4or6, char *optarg, char **combinedString, char *mylanbeacon, int *currentByte) {
+void ipParser (int ip_V4or6, char *optarg, char **combinedString, char *combinedBeacon, int *currentByte) {
 
 	int IP_binaryLength = (ip_V4or6 == AF_INET) ? 5 : 17;
 	size_t ip_strlen = (ip_V4or6 == AF_INET) ? INET_ADDRSTRLEN : INET6_ADDRSTRLEN;
@@ -303,7 +290,7 @@ void ipParser (int ip_V4or6, char *optarg, char **combinedString, char *mylanbea
 	transferToCombinedString (ip_V4or6 == AF_INET ? DESCRIPTOR_IPV4 : DESCRIPTOR_IPV6,
 		combinedString, optarg);
 	transferToCombinedBeacon (ip_V4or6 == AF_INET ? SUBTYPE_IPV4 : SUBTYPE_IPV6,
-		ip_AddressesInBinary, mylanbeacon, currentByte, gefundeneIPAdressenAnzahl*IP_binaryLength);
+		ip_AddressesInBinary, combinedBeacon, currentByte, gefundeneIPAdressenAnzahl*IP_binaryLength);
 
 	if (gefundeneIPAdressenAnzahl < 1) {
 		printf(_("Exiting since no valid IP networks (format e.g. 192.168.178.1/24) "
@@ -315,14 +302,4 @@ void ipParser (int ip_V4or6, char *optarg, char **combinedString, char *mylanbea
 	return;
 }
 
-void printHelp() {
-	printf( "%s%s", _("Usage: "),
-		"\t./lanbeacon [-i VLAN_ID] [-n VLAN_NAME] [-4 IPv4_SUBNETWORK] [-6 IPv6_SUBNETWORK]"
-		"[-e EMAIL_CONTACTPERSON] [-d DHCP_TYPES] [-r ROUTER_INFORMATION] [-c CUSTOM_STRING]"
-		"[-f SENDING_INTERFACE] [-g] -p PRIVATE_KEY_PASSWORD [-s PATH_TO_PRIVATE_KEY]"
-		"[-v PATH_TO_PUBLIC_KEY] [-z SEND_FREQUENCY]");
-	printf("\t./lanbeacon -l [-a] [-v PATH_TO_PUBLIC_KEY] [-y SCROLL_SPEED]\n");
-	printf("\t./client -h\n");
-	exit(EXIT_FAILURE);
-}
 

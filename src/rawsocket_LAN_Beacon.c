@@ -459,6 +459,8 @@ void getInterfaces (int *sockfd, int *numInterfaces, unsigned short etherType,
 	return;
 }
 
+
+/*
 void flush_all_interfaces (int *sockfd, int maxSockFd, int numInterfaces) {
 	
 	struct timeval tv = {0, 0};
@@ -486,5 +488,5 @@ void flush_all_interfaces (int *sockfd, int maxSockFd, int numInterfaces) {
 	}
 	return;
 }
-
+*/
 

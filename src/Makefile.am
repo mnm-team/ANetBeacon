@@ -3,7 +3,7 @@ OBJECTS = main.o sender.o rawsocket_LAN_Beacon.o receiver.o openssl_sign.o
 BANANAOBJECTS = cberry_includes_tft.o cberry_includes_RAIO8870.o
 
 bin_PROGRAMS = lanbeacon
-lanbeacon_SOURCES = main.c sender.c sender.h rawsocket_LAN_Beacon.c rawsocket_LAN_Beacon.h receiver.c receiver.h openssl_sign.c openssl_sign.h cberry_includes_tft.c cberry_includes_tft.h cberry_includes_RAIO8870.c cberry_includes_RAIO8870.h
+lanbeacon_SOURCES = main.c main.h sender.c sender.h rawsocket_LAN_Beacon.c rawsocket_LAN_Beacon.h receiver.c receiver.h openssl_sign.c openssl_sign.h cberry_includes_tft.c cberry_includes_tft.h cberry_includes_RAIO8870.c cberry_includes_RAIO8870.h
 
 lanbeacon:			CFLAGS = -Wall -Werror -g -std=gnu11 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-value -lcrypto
 bananalanbeacon:	CFLAGS = -Wall -Werror -g -std=gnu11 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-value -lcrypto -DBANANAPI_SWITCH

@@ -1,19 +1,7 @@
 #ifndef OPENSSL_SIGN_H
 #define OPENSSL_SIGN_H
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <limits.h>
-#include <string.h>
-#include <assert.h>
-
 #include <openssl/evp.h>
-#include <openssl/err.h>
-#include <openssl/rsa.h>
-#include <openssl/sha.h>
-#include <openssl/rand.h>
-#include <openssl/pem.h>
-#include <openssl/bio.h>
 #include "openssl_sign.h"
 #include "define.h"
 

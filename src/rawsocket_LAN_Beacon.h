@@ -25,6 +25,6 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 					unsigned short etherType, struct open_ssl_keys *lanbeacon_keys, 
 					char *interface_to_send_on, struct sender_information *my_sender_information);
 
-void flush_all_interfaces (int *sockfd, int maxSockFd, int numInterfaces);
+//void flush_all_interfaces (int *sockfd, int maxSockFd, int numInterfaces);
 
 #endif
