@@ -99,7 +99,7 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_lanbeacon_OBJECTS = main.$(OBJEXT) sender.$(OBJEXT) \
-	rawsocket_LLDP.$(OBJEXT) receiver.$(OBJEXT) \
+	rawsocket_LAN_Beacon.$(OBJEXT) receiver.$(OBJEXT) \
 	openssl_sign.$(OBJEXT) cberry_includes_tft.$(OBJEXT) \
 	cberry_includes_RAIO8870.$(OBJEXT)
 lanbeacon_OBJECTS = $(am_lanbeacon_OBJECTS)
@@ -247,9 +247,9 @@ target_alias =
 top_build_prefix = ../
 top_builddir = ..
 top_srcdir = ..
-OBJECTS = main.o sender.o rawsocket_LLDP.o receiver.o openssl_sign.o
+OBJECTS = main.o sender.o rawsocket_LAN_Beacon.o receiver.o openssl_sign.o
 BANANAOBJECTS = cberry_includes_tft.o cberry_includes_RAIO8870.o
-lanbeacon_SOURCES = main.c sender.c sender.h rawsocket_LLDP.c rawsocket_LLDP.h receiver.c receiver.h openssl_sign.c openssl_sign.h cberry_includes_tft.c cberry_includes_tft.h cberry_includes_RAIO8870.c cberry_includes_RAIO8870.h
+lanbeacon_SOURCES = main.c sender.c sender.h rawsocket_LAN_Beacon.c rawsocket_LAN_Beacon.h receiver.c receiver.h openssl_sign.c openssl_sign.h cberry_includes_tft.c cberry_includes_tft.h cberry_includes_RAIO8870.c cberry_includes_RAIO8870.h
 all: all-am
 
 .SUFFIXES:
@@ -336,7 +336,7 @@ include ./$(DEPDIR)/cberry_includes_RAIO8870.Po
 include ./$(DEPDIR)/cberry_includes_tft.Po
 include ./$(DEPDIR)/main.Po
 include ./$(DEPDIR)/openssl_sign.Po
-include ./$(DEPDIR)/rawsocket_LLDP.Po
+include ./$(DEPDIR)/rawsocket_LAN_Beacon.Po
 include ./$(DEPDIR)/receiver.Po
 include ./$(DEPDIR)/sender.Po
 

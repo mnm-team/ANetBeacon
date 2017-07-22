@@ -15,7 +15,7 @@
 #include "openssl_sign.h"
 #include "cberry_includes_tft.h"
 #include "cberry_includes_RAIO8870.h"
-#include "rawsocket_LLDP.h"
+#include "rawsocket_LAN_Beacon.h"
 #include "receiver.h"
 #include "sender.h"
 #include "define.h"
@@ -30,11 +30,11 @@
 // +6 because header 2 + OUI 3 + Subtype 1, -4 due to 3 OUI + 1 Subtype
 #define TLV_STRING_COPY(descriptor) \
 	TLV_CUSTOM_COPY(descriptor,  \
-		(char*) &my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+6], \
+		(char*) &my_received_lan_beacon_packet->lan_beacon_ReceivedPayload[currentPayloadByte+6], \
 		currentTLVsize-4);
 	
 
-char ** evaluatelanbeacon (struct received_lldp_packet *my_received_lldp_packet, struct open_ssl_keys *lanbeacon_keys) {
+char ** evaluatelanbeacon (struct received_lan_beacon_packet *my_received_lan_beacon_packet, struct open_ssl_keys *lanbeacon_keys) {
 
 //	char parsedTLVs [PARSED_TLVS_MAX_NUMBER][PARSED_TLVS_MAX_LENGTH];
 	char ** parsedTLVs = malloc(PARSED_TLVS_MAX_NUMBER * sizeof(char*));
@@ -53,23 +53,23 @@ char ** evaluatelanbeacon (struct received_lldp_packet *my_received_lldp_packet,
 	unsigned int currentLabelSize = 0;
 	char TLVstringbuffer[500] = "";
 
-	while ( currentPayloadByte < my_received_lldp_packet->payloadSize - 2 ) {
+	while ( currentPayloadByte < my_received_lan_beacon_packet->payloadSize - 2 ) {
 
-		currentTLVsize = my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+1] + 
-			(0b100000000 * (my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte] & 1));
+		currentTLVsize = my_received_lan_beacon_packet->lan_beacon_ReceivedPayload[currentPayloadByte+1] + 
+			(0b100000000 * (my_received_lan_beacon_packet->lan_beacon_ReceivedPayload[currentPayloadByte] & 1));
 
-		if (127 == (my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte] >> 1)
-		&& (my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+2] == ( 'L' | 0b10000000)
-		&&  my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+3] == 'M'
-		&&  my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+4] == 'U'  ) ) {
+		if (127 == (my_received_lan_beacon_packet->lan_beacon_ReceivedPayload[currentPayloadByte] >> 1)
+		&& (my_received_lan_beacon_packet->lan_beacon_ReceivedPayload[currentPayloadByte+2] == ( 'L' | 0b10000000)
+		&&  my_received_lan_beacon_packet->lan_beacon_ReceivedPayload[currentPayloadByte+3] == 'M'
+		&&  my_received_lan_beacon_packet->lan_beacon_ReceivedPayload[currentPayloadByte+4] == 'U'  ) ) {
 
-			switch(my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+5]) {
+			switch(my_received_lan_beacon_packet->lan_beacon_ReceivedPayload[currentPayloadByte+5]) {
 				case SUBTYPE_VLAN_ID:
 
 					TLVstringbuffer[0] = 0;
 					unsigned short int VLAN_id;
 					memcpy (&VLAN_id, 
-						&my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+6], 2);
+						&my_received_lan_beacon_packet->lan_beacon_ReceivedPayload[currentPayloadByte+6], 2);
 					VLAN_id = ntohs(VLAN_id);
 
 					sprintf(TLVstringbuffer, "%hu", VLAN_id);
@@ -90,12 +90,12 @@ char ** evaluatelanbeacon (struct received_lldp_packet *my_received_lldp_packet,
 					for (int i = 6; i < currentTLVsize; i += 5) {
 						// get IP address
 						memcpy (currentIP4, 
-							&my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+i], 4);
+							&my_received_lan_beacon_packet->lan_beacon_ReceivedPayload[currentPayloadByte+i], 4);
 						// convert binary representation to string
 						inet_ntop(AF_INET, currentIP4, currentIP4string, 20);
 						// get IP address, then subNetwork
 						sprintf(currentIP4string, "%s/%i, ", currentIP4string, 
-							my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+i+4]);
+							my_received_lan_beacon_packet->lan_beacon_ReceivedPayload[currentPayloadByte+i+4]);
 						strcat (TLVstringbuffer, currentIP4string);
 					}
 
@@ -113,14 +113,14 @@ char ** evaluatelanbeacon (struct received_lldp_packet *my_received_lldp_packet,
 					for (int i = 6; i < currentTLVsize; i += 17) {
 						// get IP address
 						memcpy (currentIP6, 
-							&my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+i], 16);	
+							&my_received_lan_beacon_packet->lan_beacon_ReceivedPayload[currentPayloadByte+i], 16);	
 						
 						// convert binary representation to string
 						inet_ntop(AF_INET6, currentIP6, currentIP6string, 100);	
 
 						// get IP address, then subNetwork
 						sprintf(currentIP6string, "%s/%i, ", currentIP6string, 
-							my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+i+16]);		
+							my_received_lan_beacon_packet->lan_beacon_ReceivedPayload[currentPayloadByte+i+16]);		
 						strcat (TLVstringbuffer, currentIP6string);
 					}
 
@@ -149,10 +149,10 @@ char ** evaluatelanbeacon (struct received_lldp_packet *my_received_lldp_packet,
 					long zwischenSpeicherChallenge, zwischenSpeicherTimeStamp;
 					
 					// Verify signature
-					// position: end of LLDPDU - 2 LLDPDU end TLV - 14 Ethernet header
+					// position: end of LAN-Beacon PDU - 2 LAN-Beacon PDU end TLV - 14 Ethernet header
 					if (0 != verifylanbeacon(
-						&my_received_lldp_packet->lldpReceivedPayload[14],
-						my_received_lldp_packet->payloadSize - 2 - 14, lanbeacon_keys)) {
+						&my_received_lan_beacon_packet->lan_beacon_ReceivedPayload[14],
+						my_received_lan_beacon_packet->payloadSize - 2 - 14, lanbeacon_keys)) {
 							puts(_("problem with signature verification"));
 						sprintf(TLVstringbuffer,
 							_("Authentication failed! Signature could not be verified."));
@@ -161,23 +161,22 @@ char ** evaluatelanbeacon (struct received_lldp_packet *my_received_lldp_packet,
 					}
 
 					memcpy (&zwischenSpeicherChallenge,
-						&my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+6], 4);
+						&my_received_lan_beacon_packet->lan_beacon_ReceivedPayload[currentPayloadByte+6], 4);
 					zwischenSpeicherChallenge = ntohl(zwischenSpeicherChallenge);
 					memcpy (&zwischenSpeicherTimeStamp,
-						&my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+6+4], 4);
+						&my_received_lan_beacon_packet->lan_beacon_ReceivedPayload[currentPayloadByte+6+4], 4);
 					zwischenSpeicherTimeStamp = ntohl(zwischenSpeicherTimeStamp);
 
-					if ((((unsigned long) ntohl(my_received_lldp_packet->challenge))
+					if ((((unsigned long) ntohl(my_received_lan_beacon_packet->challenge))
 					== zwischenSpeicherChallenge) &&
 					(timeStamp - zwischenSpeicherTimeStamp < 10)) {
 						sprintf(TLVstringbuffer,
-							_("Authentication successfull!"),
-							(unsigned long) ntohl(my_received_lldp_packet->challenge), zwischenSpeicherChallenge, zwischenSpeicherTimeStamp);
-						my_received_lldp_packet->successfullyAuthenticated = 1;
+							_("Authentication successfull!"));
+						my_received_lan_beacon_packet->successfullyAuthenticated = 1;
 					} else {
 						sprintf(TLVstringbuffer,
 						_("Authentication failed! Sent challenge: %ld Received Challenge: %ld Timestamp: %ld"),
-						(unsigned long) ntohl(my_received_lldp_packet->challenge), zwischenSpeicherChallenge, zwischenSpeicherTimeStamp);
+						(unsigned long) ntohl(my_received_lan_beacon_packet->challenge), zwischenSpeicherChallenge, zwischenSpeicherTimeStamp);
 					}
 					
 					TLV_CUSTOM_COPY( DESCRIPTOR_SIGNATURE, TLVstringbuffer, strlen(TLVstringbuffer));
@@ -216,9 +215,9 @@ void bananaPIprint (struct receiver_information *my_receiver_information) {
 
 	int currentLastSpace = 0;
 
-	for (my_receiver_information->currentLLDPDU_for_printing = 0; 
-			my_receiver_information->currentLLDPDU_for_printing < my_receiver_information->number_of_currently_received_packets; 
-			my_receiver_information->currentLLDPDU_for_printing++) {
+	for (my_receiver_information->current_lan_beacon_pdu_for_printing = 0; 
+			my_receiver_information->current_lan_beacon_pdu_for_printing < my_receiver_information->number_of_currently_received_packets; 
+			my_receiver_information->current_lan_beacon_pdu_for_printing++) {
 
 		currentPIline = 0;
 
@@ -231,12 +230,12 @@ void bananaPIprint (struct receiver_information *my_receiver_information) {
 		for (int currentTLV = 0; currentTLV < PARSED_TLVS_MAX_NUMBER; currentTLV++) {
 
 			for (currentPosInTLV = 1, endOfLastPartialString = 0; 
-			my_receiver_information->pointers_to_received_packets[my_receiver_information->currentLLDPDU_for_printing]->parsedBeaconContents[currentTLV][currentPosInTLV-1] != 0 ; currentPosInTLV++) {
+			my_receiver_information->pointers_to_received_packets[my_receiver_information->current_lan_beacon_pdu_for_printing]->parsedBeaconContents[currentTLV][currentPosInTLV-1] != 0 ; currentPosInTLV++) {
 
-				if (my_receiver_information->pointers_to_received_packets[my_receiver_information->currentLLDPDU_for_printing]->parsedBeaconContents[currentTLV][currentPosInTLV] == ' ')
+				if (my_receiver_information->pointers_to_received_packets[my_receiver_information->current_lan_beacon_pdu_for_printing]->parsedBeaconContents[currentTLV][currentPosInTLV] == ' ')
 					currentLastSpace = currentPosInTLV;
 
-				if (my_receiver_information->pointers_to_received_packets[my_receiver_information->currentLLDPDU_for_printing]->parsedBeaconContents[currentTLV][currentPosInTLV] == 0
+				if (my_receiver_information->pointers_to_received_packets[my_receiver_information->current_lan_beacon_pdu_for_printing]->parsedBeaconContents[currentTLV][currentPosInTLV] == 0
 				||	currentPosInTLV - endOfLastPartialString 
 				> (endOfLastPartialString == 0 ? 39 : 39 - DESCRIPTOR_WIDTH)) {
 
@@ -251,12 +250,12 @@ void bananaPIprint (struct receiver_information *my_receiver_information) {
 
 					if (endOfLastPartialString == 0) {
 						snprintf(buf, currentPosInTLV - endOfLastPartialString + 1, 
-							"%s", &my_receiver_information->pointers_to_received_packets[my_receiver_information->currentLLDPDU_for_printing]->parsedBeaconContents[currentTLV][endOfLastPartialString]);
+							"%s", &my_receiver_information->pointers_to_received_packets[my_receiver_information->current_lan_beacon_pdu_for_printing]->parsedBeaconContents[currentTLV][endOfLastPartialString]);
 					}
 					else {
 						snprintf(buf, currentPosInTLV - endOfLastPartialString + 1 + DESCRIPTOR_WIDTH, 
 							"%*s%s", DESCRIPTOR_WIDTH, "", 
-							&my_receiver_information->pointers_to_received_packets[my_receiver_information->currentLLDPDU_for_printing]->parsedBeaconContents[currentTLV][endOfLastPartialString]);
+							&my_receiver_information->pointers_to_received_packets[my_receiver_information->current_lan_beacon_pdu_for_printing]->parsedBeaconContents[currentTLV][endOfLastPartialString]);
 					}
 
 					puts(buf);
@@ -288,17 +287,17 @@ void bananaPIprint (struct receiver_information *my_receiver_information) {
 		if (currentPIline != 0)	sleep (my_receiver_information->scroll_speed);
 		
 		// check, how many times frame has been printed yet
-		if (--my_receiver_information->pointers_to_received_packets[my_receiver_information->currentLLDPDU_for_printing]->times_left_to_display == 0) {
+		if (--my_receiver_information->pointers_to_received_packets[my_receiver_information->current_lan_beacon_pdu_for_printing]->times_left_to_display == 0) {
 			// remove frame
-			free(my_receiver_information->pointers_to_received_packets[my_receiver_information->currentLLDPDU_for_printing]);
+			free(my_receiver_information->pointers_to_received_packets[my_receiver_information->current_lan_beacon_pdu_for_printing]);
 			
-			for (int x = my_receiver_information->currentLLDPDU_for_printing; 
+			for (int x = my_receiver_information->current_lan_beacon_pdu_for_printing; 
 					x < my_receiver_information->number_of_currently_received_packets; 
 					x++) {
 				my_receiver_information->pointers_to_received_packets[x] = my_receiver_information->pointers_to_received_packets[x+1];
 			}
 			
-			my_receiver_information->currentLLDPDU_for_printing--;
+			my_receiver_information->current_lan_beacon_pdu_for_printing--;
 			my_receiver_information->number_of_currently_received_packets--;
 		}
 	}

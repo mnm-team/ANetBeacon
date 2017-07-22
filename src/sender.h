@@ -6,7 +6,7 @@
 struct sender_information {
 	
 	char *lanBeacon_PDU;
-	int lldpdu_len;
+	int lan_beacon_pdu_len;
 //	int generate_keys;
 	int send_frequency;
 	char *interface_to_send_on;

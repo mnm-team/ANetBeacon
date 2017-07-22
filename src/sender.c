@@ -178,7 +178,7 @@ char *mergedlanbeaconCreator (int *argc, char **argv, struct sender_information 
 	mylanbeacon[currentByte++] = 0x00;
 	mylanbeacon[currentByte++] = 0x00;
 
-	my_sender_information->lldpdu_len = currentByte;
+	my_sender_information->lan_beacon_pdu_len = currentByte;
 
 	return mylanbeacon;
 }
@@ -202,7 +202,7 @@ void transferToCombinedBeacon ( unsigned char subtype, void *source,
 	// calculating TLV length without header, then combining TLV Header and 
 	// transfering combined TLV Header to combined Beacon
 	if (1500 < (currentTLVlength + *currentByte + 6)) {
-		puts(_("Maximum of 1500 Bytes in LLDP-Packet exceeded, not all information "
+		puts(_("Maximum of 1500 Bytes in LAN-Beacon frame exceeded, not all information "
 			"will be transmitted. Please include less information."));
 		return;
 	}

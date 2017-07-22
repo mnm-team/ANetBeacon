@@ -19,7 +19,7 @@
 #include <libintl.h>
 #include <locale.h>
 
-#include "rawsocket_LLDP.h"
+#include "rawsocket_LAN_Beacon.h"
 #include "receiver.h"
 #include "openssl_sign.h"
 #include "define.h"
@@ -35,20 +35,20 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 	if (etherType == CHALLENGE_ETHTYPE)
 		* (unsigned long *) payload = htonl(*(unsigned long *) payload);
 	int frameLength = 0;
-	char lldpEthernetFrame[LLDP_BUF_SIZ];
-	struct ether_header *eh = (struct ether_header *) lldpEthernetFrame;
+	char lan_beacon_EthernetFrame[LAN_BEACON_BUF_SIZ];
+	struct ether_header *eh = (struct ether_header *) lan_beacon_EthernetFrame;
 	struct sockaddr_ll socket_address;
 
 	unsigned long *receivedChallenge = NULL;
 
-	if (etherType == LLDP_ETHER_TYPE) {
+	if (etherType == LAN_BEACON_ETHER_TYPE) {
 		receivedChallenge = calloc(sizeof(unsigned long), 1);
 		if(!receivedChallenge) 
 			puts(_("calloc error of \"receivedChallenge\" in sendRawSocket"));
 	}
 
 	// Construct the Ethernet header
-	memset(lldpEthernetFrame, 0, LLDP_BUF_SIZ);
+	memset(lan_beacon_EthernetFrame, 0, LAN_BEACON_BUF_SIZ);
 	memcpy(eh->ether_dhost, destination_mac, 6);
 
 	// Ethertype field
@@ -56,7 +56,7 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 	frameLength += sizeof(struct ether_header);
 
 	// Packet data
-	memcpy(&lldpEthernetFrame[frameLength], payload, payloadLen);
+	memcpy(&lan_beacon_EthernetFrame[frameLength], payload, payloadLen);
 	frameLength += payloadLen;
 	
 	// Address length and destination MAC
@@ -85,21 +85,21 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 			// Ethernet header, destination MAC address
 			memcpy(eh->ether_shost, ((uint8_t *)&if_mac[j].ifr_hwaddr.sa_data), 6);
 			
-			if (etherType == LLDP_ETHER_TYPE) {
+			if (etherType == LAN_BEACON_ETHER_TYPE) {
 				// Port and chassis subtype TLVs filled
-				memcpy(&lldpEthernetFrame[17], ((uint8_t *)&if_mac[j].ifr_hwaddr.sa_data), 6);
-				memcpy(&lldpEthernetFrame[26], ((uint8_t *)&if_mac[j].ifr_hwaddr.sa_data), 6);
+				memcpy(&lan_beacon_EthernetFrame[17], ((uint8_t *)&if_mac[j].ifr_hwaddr.sa_data), 6);
+				memcpy(&lan_beacon_EthernetFrame[26], ((uint8_t *)&if_mac[j].ifr_hwaddr.sa_data), 6);
 				
 				if (*receivedChallenge != 0) {
 					
 					unsigned char* sig = NULL;
 					size_t slen = 0;
 					
-					// - 2 End of LLDPDU TLV + 2 Auth TLV header + 4 OUI/subtype + 4 challenge + 4 timestamp
-					signlanbeacon(&sig, &slen, (const unsigned char *) &lldpEthernetFrame[14], 
+					// - 2 End of LAN-Beacon PDU TLV + 2 Auth TLV header + 4 OUI/subtype + 4 challenge + 4 timestamp
+					signlanbeacon(&sig, &slen, (const unsigned char *) &lan_beacon_EthernetFrame[14], 
 						(size_t) payloadLen - 2 + 2 + 4 + 4 + 4, lanbeacon_keys);
 					
-					memcpy(&lldpEthernetFrame[frameLength-2-264+4+4], sig, slen);
+					memcpy(&lan_beacon_EthernetFrame[frameLength-2-264+4+4], sig, slen);
 					free(sig);
 				}
 				
@@ -109,7 +109,7 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 			socket_address.sll_ifindex = if_idx[j].ifr_ifindex;
 
 			// Send packet
-			if (sendto(sockfd[j], lldpEthernetFrame, frameLength, 0, 
+			if (sendto(sockfd[j], lan_beacon_EthernetFrame, frameLength, 0, 
 				(struct sockaddr*)&socket_address, sizeof(struct sockaddr_ll)) < 0)
 					printf(_("Send failed on interface number %i\n"), j);
 			else
@@ -122,7 +122,7 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 			break;
 		}
 
-		if (etherType == LLDP_ETHER_TYPE) {
+		if (etherType == LAN_BEACON_ETHER_TYPE) {
 			
 			if (*receivedChallenge != 0) {
 			
@@ -132,8 +132,8 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 				memcpy(socket_address.sll_addr, destination_mac, 6);
 			
 				frameLength -= 270;
-				lldpEthernetFrame[frameLength-2] = 0x00;
-				lldpEthernetFrame[frameLength-1] = 0x00;
+				lan_beacon_EthernetFrame[frameLength-2] = 0x00;
+				lan_beacon_EthernetFrame[frameLength-1] = 0x00;
 				flush_all_interfaces (challengeSockfd, challengeMaxSockFd, challengeNumInterfaces);
 			}
 			
@@ -158,33 +158,33 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 				
 					// add signature TLV
 				
-					// LLDPDU trailing zeros removed
+					// LAN-Beacon PDU trailing zeros removed
 					frameLength -= 2;
 					
 					char signaturePlaceholder[265];
 					memset(signaturePlaceholder, '#', 264);
 					signaturePlaceholder[264] = 0;
 					
-					transferToCombinedBeacon (SUBTYPE_SIGNATURE, signaturePlaceholder, lldpEthernetFrame, &frameLength, 264);
+					transferToCombinedBeacon (SUBTYPE_SIGNATURE, signaturePlaceholder, lan_beacon_EthernetFrame, &frameLength, 264);
 				
-					memcpy(&lldpEthernetFrame[frameLength-264], receivedChallenge, 4);
+					memcpy(&lan_beacon_EthernetFrame[frameLength-264], receivedChallenge, 4);
 				
-					memcpy(&lldpEthernetFrame[frameLength-264+4], &timeStamp, 4);
+					memcpy(&lan_beacon_EthernetFrame[frameLength-264+4], &timeStamp, 4);
 				
 				
 					unsigned char* sig = NULL;
 					size_t slen = 0;
 					
 					// 14 = Size of Ethernet header
-					signlanbeacon(&sig, &slen, (const unsigned char *) &lldpEthernetFrame[14], 
+					signlanbeacon(&sig, &slen, (const unsigned char *) &lan_beacon_EthernetFrame[14], 
 						(size_t) payloadLen + 4 + 4 + 4, lanbeacon_keys);
 					
-					memcpy(&lldpEthernetFrame[frameLength-264+4+4], sig, slen);
+					memcpy(&lan_beacon_EthernetFrame[frameLength-264+4+4], sig, slen);
 					free(sig);
 				
 				
-					lldpEthernetFrame[frameLength++] = 0x00;
-					lldpEthernetFrame[frameLength++] = 0x00;
+					lan_beacon_EthernetFrame[frameLength++] = 0x00;
+					lan_beacon_EthernetFrame[frameLength++] = 0x00;
 				
 				}
 				
@@ -197,22 +197,22 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 }
 
 
-int sendLLDPrawSock (struct sender_information *my_sender_information)
+int send_lan_beacon_rawSock (struct sender_information *my_sender_information)
 {
-	sendRawSocket ((unsigned char[6]){LLDP_DEST_MAC}, my_sender_information->lanBeacon_PDU, 
-		my_sender_information->lldpdu_len, LLDP_ETHER_TYPE, &my_sender_information->lanbeacon_keys, 
+	sendRawSocket ((unsigned char[6]){LAN_BEACON_DEST_MAC}, my_sender_information->lanBeacon_PDU, 
+		my_sender_information->lan_beacon_pdu_len, LAN_BEACON_ETHER_TYPE, &my_sender_information->lanbeacon_keys, 
 		my_sender_information->interface_to_send_on, my_sender_information);
 	return EXIT_SUCCESS;
 }
 
 
 // parts of code based on https://gist.github.com/austinmarton/2862515
-void new_lldp_receiver (struct receiver_information *my_receiver_information) {
+void new_lan_beacon_receiver (struct receiver_information *my_receiver_information) {
 	
-	unsigned char LLDPreceiveBuffer[LLDP_BUF_SIZ];
-	struct ether_header *eh = (struct ether_header *) LLDPreceiveBuffer;
+	unsigned char lan_beacon_receiveBuffer[LAN_BEACON_BUF_SIZ];
+	struct ether_header *eh = (struct ether_header *) lan_beacon_receiveBuffer;
 	
-	struct received_lldp_packet *my_received_lldp_packet;// = 
+	struct received_lan_beacon_packet *my_received_lan_beacon_packet;// = 
 
 	int receiveBufferSize = 0;
 	// parameters for select()
@@ -243,21 +243,21 @@ void new_lldp_receiver (struct receiver_information *my_receiver_information) {
 				if (FD_ISSET(my_receiver_information->my_receiver_interfaces.sockfd[i], &readfds)) {
 
 					receiveBufferSize = 
-						recvfrom(my_receiver_information->my_receiver_interfaces.sockfd[i], LLDPreceiveBuffer, 
-							LLDP_BUF_SIZ, 0, NULL, NULL);
+						recvfrom(my_receiver_information->my_receiver_interfaces.sockfd[i], lan_beacon_receiveBuffer, 
+							LAN_BEACON_BUF_SIZ, 0, NULL, NULL);
 					
 					// if packet has been sent to broadcast, it is not authenticated
 					// if it is sent to singlecast, it is authenticated
 					number_of_bytes_to_compare_for_equal_check = 
-						memcmp((unsigned char[6]){LLDP_DEST_MAC}, eh->ether_dhost, 6) ? 
+						memcmp((unsigned char[6]){LAN_BEACON_DEST_MAC}, eh->ether_dhost, 6) ? 
 						receiveBufferSize - 272 : receiveBufferSize - 2;
 					
 					
 					for (iterator_current_packet_in_received_packets_array = 0; 
 							iterator_current_packet_in_received_packets_array < my_receiver_information->number_of_currently_received_packets; 
 							iterator_current_packet_in_received_packets_array++) {
-						if (0 == memcmp(&LLDPreceiveBuffer[14], 
-										&my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->lldpReceivedPayload[14],
+						if (0 == memcmp(&lan_beacon_receiveBuffer[14], 
+										&my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->lan_beacon_ReceivedPayload[14],
 										number_of_bytes_to_compare_for_equal_check - 14)) {
 							
 							// if no authentication is required, just reset display countdown
@@ -283,7 +283,7 @@ void new_lldp_receiver (struct receiver_information *my_receiver_information) {
 							// - authentication mode is active
 							// - no authenticated version has been received before
 							// - the packet has authentication information
-							memcpy(my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->lldpReceivedPayload, LLDPreceiveBuffer, receiveBufferSize);
+							memcpy(my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->lan_beacon_ReceivedPayload, lan_beacon_receiveBuffer, receiveBufferSize);
 							my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->payloadSize = receiveBufferSize;
 							memcpy(my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->current_destination_mac, eh->ether_shost, 6);
 							my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->times_left_to_display = SHOW_FRAMES_X_TIMES;
@@ -299,30 +299,30 @@ void new_lldp_receiver (struct receiver_information *my_receiver_information) {
 					if (iterator_current_packet_in_received_packets_array == my_receiver_information->number_of_currently_received_packets) {
 						
 						
-						struct received_lldp_packet *my_received_lldp_packet = 
-							malloc(sizeof(struct received_lldp_packet));
-						if(!my_received_lldp_packet) 
-							puts(_("malloc error of \"my_received_lldp_packet\" in new_lldp_receiver"));						
+						struct received_lan_beacon_packet *my_received_lan_beacon_packet = 
+							malloc(sizeof(struct received_lan_beacon_packet));
+						if(!my_received_lan_beacon_packet) 
+							puts(_("malloc error of \"my_received_lan_beacon_packet\" in new_lan_beacon_receiver"));						
 						
-						memcpy(my_received_lldp_packet->lldpReceivedPayload, LLDPreceiveBuffer, receiveBufferSize);
-						my_received_lldp_packet->payloadSize = receiveBufferSize;
-						memcpy(my_received_lldp_packet->current_destination_mac, eh->ether_shost, 6);
-						my_received_lldp_packet->times_left_to_display = SHOW_FRAMES_X_TIMES;
-						my_received_lldp_packet->successfullyAuthenticated = 0;
-						my_received_lldp_packet->parsedBeaconContents 
-							= evaluatelanbeacon(my_received_lldp_packet, &my_receiver_information->lanbeacon_keys);
+						memcpy(my_received_lan_beacon_packet->lan_beacon_ReceivedPayload, lan_beacon_receiveBuffer, receiveBufferSize);
+						my_received_lan_beacon_packet->payloadSize = receiveBufferSize;
+						memcpy(my_received_lan_beacon_packet->current_destination_mac, eh->ether_shost, 6);
+						my_received_lan_beacon_packet->times_left_to_display = SHOW_FRAMES_X_TIMES;
+						my_received_lan_beacon_packet->successfullyAuthenticated = 0;
+						my_received_lan_beacon_packet->parsedBeaconContents 
+							= evaluatelanbeacon(my_received_lan_beacon_packet, &my_receiver_information->lanbeacon_keys);
 						
 						if (my_receiver_information->authenticated) {
 							srand(time(NULL));
 
-							my_received_lldp_packet->challenge = 1+ (rand() % 4294967294);
+							my_received_lan_beacon_packet->challenge = 1+ (rand() % 4294967294);
 
-							sendRawSocket (my_received_lldp_packet->current_destination_mac, 
-									&my_received_lldp_packet->challenge, 
+							sendRawSocket (my_received_lan_beacon_packet->current_destination_mac, 
+									&my_received_lan_beacon_packet->challenge, 
 									4, CHALLENGE_ETHTYPE, NULL, NULL, NULL);
 						}
 						
-						my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array] = my_received_lldp_packet;
+						my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array] = my_received_lan_beacon_packet;
 						my_receiver_information->number_of_currently_received_packets++;
 					}
 				}

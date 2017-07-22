@@ -1,5 +1,5 @@
-#ifndef SENDLLDPRAWSOCK_H
-#define SENDLLDPRAWSOCK_H
+#ifndef RAWSOCKET_LAN_BEACON_H
+#define RAWSOCKET_LAN_BEACON_H
 
 #include <sys/ioctl.h>
 #include <net/if.h>
@@ -10,9 +10,9 @@
 #define SEND_SOCKET 0
 #define REC_SOCKET 1
 
-void new_lldp_receiver (struct receiver_information *my_receiver_information);
+void new_lan_beacon_receiver (struct receiver_information *my_receiver_information);
 
-int sendLLDPrawSock (struct sender_information *my_sender_information);
+int send_lan_beacon_rawSock (struct sender_information *my_sender_information);
 
 unsigned long receiveChallenge(int *sockfd, int numInterfaces, int maxSockFd, 
 				char *challenge_dest_mac, struct sender_information *my_sender_information);

@@ -6,20 +6,20 @@
 
 
 // Protocol options such as addresses and send frequency
-#define LLDP_SEND_FREQUENCY 5	//frequency in seconds
+#define LAN_BEACON_SEND_FREQUENCY 5	//frequency in seconds
 
-#define LLDP_DEST_MAC	0xff, 0xff, 0xff, 0xff, 0xff, 0xff
-//#define LLDP_DEST_MAC	0x01, 0x80, 0xc2, 0x00, 0x00, 0x0e
-//#define LLDP_DEST_MAC	0x01, 0x80, 0xc2, 0xde, 0x4c, 0x73
+#define LAN_BEACON_DEST_MAC	0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+//#define LAN_BEACON_DEST_MAC	0x01, 0x80, 0xc2, 0x00, 0x00, 0x0e
+//#define LAN_BEACON_DEST_MAC	0x01, 0x80, 0xc2, 0xde, 0x4c, 0x73
+#define LAN_BEACON_ETHER_TYPE	0x88B5
 #define CHALLENGE_ETHTYPE 0x88B6
-#define LLDP_ETHER_TYPE	0x88CC
-//#define LLDP_ETHER_TYPE	0x88B5 // TODO
+// #define LAN_BEACON_ETHER_TYPE	0x88CC
 
 // Buffer sizes
 #define PARSED_TLVS_MAX_NUMBER	25
 #define PARSED_TLVS_MAX_LENGTH	510
 
-#define LLDP_BUF_SIZ 2000
+#define LAN_BEACON_BUF_SIZ 2000
 #define KEY_PATHLENGTH_MAX 800
 
 // Standard paths

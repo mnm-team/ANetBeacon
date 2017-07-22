@@ -7,7 +7,7 @@
 #include <getopt.h>
 #include "openssl_sign.h"
 #include "sender.h"
-#include "rawsocket_LLDP.h"
+#include "rawsocket_LAN_Beacon.h"
 #include "receiver.h"
 #include "define.h"
 
@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
 			
 			// initialize receiver struct
 			struct receiver_information my_receiver_information = {
-				.currentLLDPDU_for_printing = 0,
+				.current_lan_beacon_pdu_for_printing = 0,
 				.authenticated = 0,
 				.number_of_currently_received_packets = 0,
 				.scroll_speed = DEFAULT_SCROLLSPEED,
@@ -100,13 +100,13 @@ int main(int argc, char **argv) {
 		
 			getInterfaces (my_receiver_information.my_receiver_interfaces.sockfd, 
 					&my_receiver_information.my_receiver_interfaces.numInterfaces, 
-					LLDP_ETHER_TYPE, REC_SOCKET, NULL, NULL, 
+					LAN_BEACON_ETHER_TYPE, REC_SOCKET, NULL, NULL, 
 					my_receiver_information.my_receiver_interfaces.sockopt, 
 					&my_receiver_information.my_receiver_interfaces.maxSockFd, NULL);
 			
 			while (1) {
 				// receive new lanbeacons
-				new_lldp_receiver (&my_receiver_information);
+				new_lan_beacon_receiver (&my_receiver_information);
 				// print everything, that just was received
 				bananaPIprint(&my_receiver_information);
 			}
@@ -131,7 +131,7 @@ int main(int argc, char **argv) {
 	// initialize receiver struct
 	struct sender_information my_sender_information = {
 		.interface_to_send_on = NULL,
-		.send_frequency = LLDP_SEND_FREQUENCY,
+		.send_frequency = LAN_BEACON_SEND_FREQUENCY,
 		.lanbeacon_keys = {
 			.sender_or_receiver_mode = SENDER_MODE,
 			.path_To_Verifying_Key = PUBLIC_KEY_STANDARD_PATH,
@@ -142,7 +142,7 @@ int main(int argc, char **argv) {
 	};
 	my_sender_information.lanBeacon_PDU = mergedlanbeaconCreator(&argc, argv, &my_sender_information);
 
-	sendLLDPrawSock (&my_sender_information);
+	send_lan_beacon_rawSock (&my_sender_information);
 
 	if (my_sender_information.interface_to_send_on) free(my_sender_information.interface_to_send_on);
 	
