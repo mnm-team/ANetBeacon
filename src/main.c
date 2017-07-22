@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
 			// initialize receiver struct
 			struct receiver_information my_receiver_information = {
 				.current_lan_beacon_pdu_for_printing = 0,
-				.authenticated = 0,
+				.authenticated_mode = 0,
 				.number_of_currently_received_frames = 0,
 				.scroll_speed = DEFAULT_SCROLLSPEED,
 				
@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
 						break;
 
 					case 'a':
-						my_receiver_information.authenticated = 1;
+						my_receiver_information.authenticated_mode = 1;
 						break;
 
 					case 'y':

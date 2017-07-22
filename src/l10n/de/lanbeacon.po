@@ -7,56 +7,163 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-04-16 13:41+0200\n"
-"PO-Revision-Date: 2017-04-16 12:10+0200\n"
+"POT-Creation-Date: 2017-07-22 17:55+0200\n"
+"PO-Revision-Date: 2017-07-22 12:10+0200\n"
 "Last-Translator: flopsstyle <dominik.bitzer@mailbox.org>\n"
 "Language-Team: German\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=ASCII\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: define.h:38
-msgid "Combined String"
+#: receiver.c:178
+#, c-format
+msgid " failed. Sent challenge: %ld Received Challenge: %ld Timestamp: %ld"
 msgstr ""
+"fehlgeschlagen. Gesendete challenge: %ld Empfangene challenge: %ld "
+"Zeitstempel: %ld"
 
-#: define.h:35
-msgid "DHCP"
+#: receiver.c:158
+#, c-format
+msgid " failed. Signature could not be verified."
+msgstr " fehlgeschlagen. Signatur konnte nicht verifiziert werden."
+
+#: receiver.c:174
+#, c-format
+msgid " successfull"
+msgstr " erfolgreich"
+
+#: define.h:55
+msgid "Authentication:"
+msgstr "Authentifizierung:"
+
+#: define.h:56
+msgid "Combined String:"
+msgstr "Gesammelter String:"
+
+#: define.h:53
+msgid "DHCP:"
+msgstr "DHCP:"
+
+#: define.h:52
+msgid "Email:"
+msgstr "Email:"
+
+#: sender.c:286
+#, c-format
+msgid "Error Parsing IP-address: %s\n"
+msgstr "Fehler beim Parsen der IP-Adresse: %s\n"
+
+#: sender.c:309
+#, c-format
+msgid ""
+"Exiting since no valid IP networks (format e.g. 192.168.178.1/24) could be "
+"found in provided string \"%s\". \n"
 msgstr ""
+"Programm wird beendet, da keine gültigen IP-Subnetze in dem übergebenen "
+"String \"%s\" gefunden werden konnten (Korrektes Format z.B. "
+"192.168.178.1/24). \n"
 
-#: define.h:34
-msgid "Email"
+#: define.h:49
+msgid "Freetext:"
+msgstr "Freitext:"
+
+#: define.h:50
+msgid "IPv4:"
+msgstr "IPv4:"
+
+#: define.h:51
+msgid "IPv6:"
+msgstr "IPv6"
+
+#: sender.c:136
+msgid "Length of passed password too long. Exiting"
+msgstr "Übergebenen Passwort zu lang. Programm wird beendet"
+
+#: receiver.c:249
+#, c-format
+msgid "Line %i:  \t"
+msgstr "Zeile %i:  \t"
+
+#: sender.c:205
+msgid ""
+"Maximum of 1500 Bytes in LAN-Beacon frame exceeded, not all information will "
+"be transmitted. Please include less information."
 msgstr ""
+"Maximale Länge des LAN-Beacon Rahmens von 1500 Byte überschritten, es werden "
+"nicht alle Informationen gesendet. Bitte geben Sie weniger Informationen an."
 
-#: define.h:31
-msgid "Freitext"
+#: sender.c:167
+msgid ""
+"No sufficiently long password was provided for private key! Please enter 4 "
+"to 1023 characters"
 msgstr ""
+"Es wurde kein ausreichend langes Passwort für den privaten Schlüssel "
+"angegeben. Bitte geben Sie zwischen 4 und 1023 Zeichen an."
 
-#: define.h:32
-msgid "IPv4"
+#: sender.c:114
+msgid "Passed path to signing key too long. Exiting."
 msgstr ""
+"Übergebener Pfad zum privaten Schlüssel zu lang. Programm wird beendet."
 
-#: define.h:33
-msgid "IPv6"
+#: sender.c:125 main.c:83
+msgid "Passed path to verifying key too long. Exiting."
 msgstr ""
+"Übergebener Pfad zum öffentlichen Schlüssel zu lang. Programm wird beendet."
 
-#: define.h:36
-msgid "Router"
+#: define.h:54
+msgid "Router:"
+msgstr "Router:"
+
+#: sender.c:238
+#, c-format
+msgid "String: %s is too long to be included as text and will be skipped\n"
 msgstr ""
+"String: %s ist zu lang, um in Textform versendet zu werden und wird daher "
+"übersprungen\n"
 
-#: sender.c:93
+#: sender.c:105
 msgid "There is an error in the passed email-address. "
 msgstr "Es gibt einen Fehler in der angegebenen Email-Adresse. "
 
-#. Descriptors lanbeacon:
-#: define.h:29
-msgid "VLAN-ID"
-msgstr ""
+#: sender.c:319
+msgid "Usage: "
+msgstr "Benutzung: "
 
-#: define.h:30
-msgid "VLAN-Name"
+#. Descriptor strings lanbeacon:
+#: define.h:47
+msgid "VLAN-ID:"
+msgstr "VLAN-ID:"
+
+#: define.h:48
+msgid "VLAN-Name:"
+msgstr "VLAN-Name:"
+
+#: sender.c:210
+#, c-format
+msgid ""
+"Warning, TLV is %i Bytes long, exceeding maximum of 507 characters in "
+"String. End of string will be cut off."
 msgstr ""
+"Warnung, TLV ist %i Bytes lang und überschreitet das Maximum von 507 Zeichen "
+"im String. Ende des Strings wird abgeschnitten."
+
+#: sender.c:37
+msgid "malloc error of \"combinedString\" in mergedlanbeaconCreator"
+msgstr "malloc Fehler in \"combinedString\" in mergedlanbeaconCreator"
+
+#: sender.c:27
+msgid "malloc error of \"mylanbeacon\" in mergedlanbeaconCreator"
+msgstr "malloc Fehler von \"mylanbeacon\" in mergedlanbeaconCreator"
+
+#: receiver.c:41 receiver.c:44
+msgid "malloc error of \"parsedTLVs\" in evaluatelanbeacon"
+msgstr "malloc Fehler von \"parsedTLVs\" in evaluatelanbeacon"
+
+#: receiver.c:156
+msgid "problem with signature verification"
+msgstr "Problem bei der Verifikation der Signatur"
 
 #~ msgid "Es gibt einen Fehler in der angegebenen Email-Adresse."
 #~ msgstr "test"

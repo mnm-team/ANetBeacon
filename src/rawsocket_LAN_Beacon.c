@@ -134,7 +134,7 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 				frameLength -= 270;
 				lan_beacon_EthernetFrame[frameLength-2] = 0x00;
 				lan_beacon_EthernetFrame[frameLength-1] = 0x00;
-				flush_all_interfaces (challengeSockfd, challengeMaxSockFd, challengeNumInterfaces);
+			//	flush_all_interfaces (challengeSockfd, challengeMaxSockFd, challengeNumInterfaces);
 			}
 			
 			if (*receivedChallenge == 0) {
@@ -261,7 +261,7 @@ void new_lan_beacon_receiver (struct receiver_information *my_receiver_informati
 										number_of_bytes_to_compare_for_equal_check - 14)) {
 							
 							// if no authentication is required, just reset display countdown
-							if (!my_receiver_information->authenticated) {
+							if (!my_receiver_information->authenticated_mode) {
 								my_receiver_information->pointers_to_received_frames[iterator_current_frame_in_received_frames_array]->times_left_to_display = SHOW_FRAMES_X_TIMES;
 								break;
 							}
@@ -312,7 +312,7 @@ void new_lan_beacon_receiver (struct receiver_information *my_receiver_informati
 						my_received_lan_beacon_frame->parsedBeaconContents 
 							= evaluatelanbeacon(my_received_lan_beacon_frame, &my_receiver_information->lanbeacon_keys);
 						
-						if (my_receiver_information->authenticated) {
+						if (my_receiver_information->authenticated_mode) {
 							srand(time(NULL));
 
 							my_received_lan_beacon_frame->challenge = 1+ (rand() % 4294967294);

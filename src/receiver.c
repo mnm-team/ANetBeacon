@@ -155,7 +155,7 @@ char ** evaluatelanbeacon (struct received_lan_beacon_frame *my_received_lan_bea
 						my_received_lan_beacon_frame->payloadSize - 2 - 14, lanbeacon_keys)) {
 							puts(_("problem with signature verification"));
 						sprintf(TLVstringbuffer,
-							_("Authentication failed! Signature could not be verified."));
+							_(" failed. Signature could not be verified."));
 						TLV_CUSTOM_COPY( DESCRIPTOR_SIGNATURE, TLVstringbuffer, strlen(TLVstringbuffer));
 						continue;
 					}
@@ -171,11 +171,11 @@ char ** evaluatelanbeacon (struct received_lan_beacon_frame *my_received_lan_bea
 					== zwischenSpeicherChallenge) &&
 					(timeStamp - zwischenSpeicherTimeStamp < 10)) {
 						sprintf(TLVstringbuffer,
-							_("Authentication successfull!"));
+							_(" successfull"));
 						my_received_lan_beacon_frame->successfullyAuthenticated = 1;
 					} else {
 						sprintf(TLVstringbuffer,
-						_("Authentication failed! Sent challenge: %ld Received Challenge: %ld Timestamp: %ld"),
+						_(" failed. Sent challenge: %ld Received Challenge: %ld Timestamp: %ld"),
 						(unsigned long) ntohl(my_received_lan_beacon_frame->challenge), zwischenSpeicherChallenge, zwischenSpeicherTimeStamp);
 					}
 					

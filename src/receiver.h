@@ -28,7 +28,7 @@ struct receiver_interfaces {
 
 struct receiver_information {
 	
-	int authenticated;
+	int authenticated_mode;
 	int scroll_speed;
 	int current_lan_beacon_pdu_for_printing;
 	

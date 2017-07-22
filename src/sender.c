@@ -315,14 +315,14 @@ void ipParser (int ip_V4or6, char *optarg, char **combinedString, char *mylanbea
 	return;
 }
 
-
 void printHelp() {
 	printf( "%s%s", _("Usage: "),
-		"\t./lanbeacon [-i vlan_id] [-n VLAN_NAME] [-4 IPv4_SUBNETWORK] [-6 IPv6_SUBNETWORK] "
-		"[-e EMAIL_CONTACTPERSON] [-d DHCP_TYPES] [-r ROUTER_INFORMATION] [-c CUSTOM_STRING]\n");
-	printf("\t./client -r\n");
+		"\t./lanbeacon [-i VLAN_ID] [-n VLAN_NAME] [-4 IPv4_SUBNETWORK] [-6 IPv6_SUBNETWORK]"
+		"[-e EMAIL_CONTACTPERSON] [-d DHCP_TYPES] [-r ROUTER_INFORMATION] [-c CUSTOM_STRING]"
+		"[-f SENDING_INTERFACE] [-g] -p PRIVATE_KEY_PASSWORD [-s PATH_TO_PRIVATE_KEY]"
+		"[-v PATH_TO_PUBLIC_KEY] [-z SEND_FREQUENCY]");
+	printf("\t./lanbeacon -l [-a] [-v PATH_TO_PUBLIC_KEY] [-y SCROLL_SPEED]\n");
 	printf("\t./client -h\n");
 	exit(EXIT_FAILURE);
 }
-
 
