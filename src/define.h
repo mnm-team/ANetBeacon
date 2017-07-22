@@ -23,8 +23,8 @@
 #define KEY_PATHLENGTH_MAX 800
 
 // Standard paths
-#define PRIVATE_KEY_STANDARD_PATH "privkey.pem"
-#define PUBLIC_KEY_STANDARD_PATH "pubkey.pem"
+#define PRIVATE_KEY_STANDARD_PATH "private_key.pem"
+#define PUBLIC_KEY_STANDARD_PATH "public_key.pem"
 
 // Display options
 #define DEFAULT_SCROLLSPEED 2

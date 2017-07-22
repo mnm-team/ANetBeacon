@@ -1,6 +1,6 @@
 .TH LAN-Beacon 8 "Dominik Bitzer"
 .SH NAME
-LAN-Beacon \- send out or receive, optionally authenticated, custom LLDP-like frames containing machine- and humanreadable information about VLANs and network topology. 
+LAN-Beacon \- send out or receive optionally authenticated, custom-fillable LLDP-like frames containing machine- and humanreadable information about VLANs and network topology. 
 .SH SYNOPSIS
 .B lanbeacon
 [\fB\-i\fR \fIVLAN_ID\fR]
@@ -27,53 +27,110 @@ LAN-Beacon \- send out or receive, optionally authenticated, custom LLDP-like fr
 .B lanbeacon
 [\fB\-h\fR]
 
-.SH DESCRIPTION		\" TODO more info
+.SH DESCRIPTION
 .PP
-In sending mode, \fBLAN-Beacon\fR periodically sends out a Ethernet-frames over all network interfaces or one selected interface. The frame contains all of the information that it was given using the parameters stated above.
+In sender mode, \fBLAN-Beacon\fR periodically sends out a Ethernet-frames over all network interfaces or one selected interface. The frame contains all of the information that it was given using the parameters stated above. The same type of content can be sent multiple times
 .PP
-In receiving mode, \fBLAN-Beacon\fR periodically checks all network interfaces for LAN-Beacon frames and evaluates all known TLV subtypes. Generally it will print out the received information on the standard output, if it is run on a microcomputer that supports the C-Berry display it will show the information there.
+In receiver mode, \fBLAN-Beacon\fR periodically checks all network interfaces for LAN-Beacon frames and evaluates all known TLV subtypes. Generally it will print out the received information on the standard output, if it is run on a microcomputer that supports the C-Berry display it will show the information there.
 .PP
 In case new frames arrive, it will update it's information that is being put out on the screen.
 .PP
 Receiving from multiple VLANs at once is supported.
-.SH OPTIONS		\" TODO options beschreiben
+
+
+
+.SH OPTIONS
+\fBSender mode\fR
 .TP
-.BR \-n ", " \-\-bits =\fIBITS\fR
-Set the number of bits to modify.
-Default is one bit.
+.BR \-i
+Specify the VLAN-ID, that should be sent.
 
+.TP
+.BR \-n
+Specify the VLAN-Name, that should be sent.
 
+.TP
+.BR \-4
+Specify the IPv4 subnetworks, that should be sent. Additional information can be included, which will be transmitted in the human-readable TLV. The following format is being used, while apart from the subnetwork the text can be in any format: "Subnet-name: 192.168.144.32/52"
 
-[-i VLAN_ID]
-[-n VLAN_NAME]
-.\" TODO	IP-Grammatik welche zusätzlichen Inhalte sind möglich?
-[-4 IPv4_SUBNETWORK]	\"		TODO example		(e.g. 192.168.178.133/24)
-[-6 IPv6_SUBNETWORK]	\"		TODO example
-[-e EMAIL_CONTACTPERSON]
-[-d DHCP_TYPES]
-[-r ROUTER_INFORMATION]
-[-c CUSTOM_STRING]
-[-s SIGNING (PRIVATE) KEY]
+.TP
+.BR \-6
+Specify the IPv6 subnetworks, that should be sent. Additional information can be included, which will be transmitted in the human-readable TLV. The following format is being used, while apart from the subnetwork the text can be in any format: "Subnet-name: 2001:618:11:1:1::1/127"
 
-[-l]
-[-v VERIFYING (PUBLIC) KEY]
+.TP
+.BR \-e
+Specify the E-Mail address of the contact peron, that should be sent.
 
-[-h]
+.TP
+.BR \-d
+Specify the DHCP types, that should be sent.
+
+.TP
+.BR \-r
+Specify the router information, that should be sent.
+
+.TP
+.BR \-c
+Specify the custom text, that should be sent.
+
+.TP
+.BR \-f
+Specify the the interface, that the LAN-Beacon should be sent on. If no interface is specified, the LAN-Beacon will be sent on all interfaces.
+
+.TP
+.BR \-g
+If this flag is set, a key-pair will be generated.
+
+.TP
+.BR \-p
+Specify the password of the private key.
+
+.TP
+.BR \-s
+Specify the path to the private key. If no path is specified, the path "private_key.pem" is used.
+
+.TP
+.BR \-v
+Specify the path to the public key. If no path is specified, the path "public_key.pem" is used.
+
+.TP
+.BR \-z
+Specify the seconds that need to pass between each sent LAN-Beacon frame. 
+
+.TP
+\fBReceiver mode\fR
+
+.TP
+.BR \-l
+Use this flag to start the receiver / listener mode.
+
+.TP
+.BR \-a
+Use this flag to use authentication, if in receiver mode.
+
+.TP
+.BR \-v
+Specify the path to the public key. If no path is specified, the path "public_key.pem" is used.
+
+.TP
+.BR \-y
+Specify the seconds that should pass, until the display scrolls to the next page.
+
+.TP
+\fBHelp\fR
+
+.TP
+.BR \-h
+Display help.
 
 
 .SH EXAMPLES
-To write some text to the standard output, use the
-.BR printf (1)
-command:
-.PP
-.nf
-.RS
-printf "this is a %s format %s\n" \\
-usual string
-.RE
-.fi
-.PP
-Nifty, huh?
+
+- to run Server enter: \./lanbeacon -6 "Sample-net: 2001:cdba:0:0:0:0:3257:9652/33" -4 "Sample-net: 192.168.178.133/24" -e "administrator@example.com" -d "DHCP info" -r "MAC: 00:04:4b:01:70:aa" -i 937 -n "Internal VLAN" -c 'This is an example for a custom string. Any text may be specified.' -p "sample_password"
+
+- to run Client in authenticated mode enter: ./lanbeacon -l -a
+
+- saving TCPdump: tcpdump -s 65535 -w dump_file ether proto 0x88B5
 
 
 .\".nf turns off paragraph filling mode: we don't want that for showing command lines.
@@ -87,8 +144,9 @@ Use ./configure, make and make install for normal computers
 .PP 
 use make bananaLANbeacon to enable C-Berry support
 .SH ENVIRONMENT
-Keys?!
+LAN-Beacon uses 2048-bit RSA keys that are saved in the PEM-format. The private key is encrypted with AES-256 CBC mode.
 .SH SEE ALSO
 lldpd
 
+openssl
 
