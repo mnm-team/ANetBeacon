@@ -154,6 +154,10 @@ char ** evaluatelanbeacon (struct received_lldp_packet *my_received_lldp_packet,
 						&my_received_lldp_packet->lldpReceivedPayload[14],
 						my_received_lldp_packet->payloadSize - 2 - 14, lanbeacon_keys)) {
 							puts(_("problem with signature verification"));
+						sprintf(TLVstringbuffer,
+							_("Authentication failed! Signature could not be verified."));
+						TLV_CUSTOM_COPY( DESCRIPTOR_SIGNATURE, TLVstringbuffer, strlen(TLVstringbuffer));
+						continue;
 					}
 
 					memcpy (&zwischenSpeicherChallenge,
@@ -163,15 +167,11 @@ char ** evaluatelanbeacon (struct received_lldp_packet *my_received_lldp_packet,
 						&my_received_lldp_packet->lldpReceivedPayload[currentPayloadByte+6+4], 4);
 					zwischenSpeicherTimeStamp = ntohl(zwischenSpeicherTimeStamp);
 
-//					printf(_("Sent challenge: %lu, received challenge: %lu\n"),	
-//						(unsigned long) ntohl(my_received_lldp_packet->challenge),
-//						zwischenSpeicherChallenge);
-
 					if ((((unsigned long) ntohl(my_received_lldp_packet->challenge))
 					== zwischenSpeicherChallenge) &&
 					(timeStamp - zwischenSpeicherTimeStamp < 10)) {
 						sprintf(TLVstringbuffer,
-							_("Authentication successfull! Sent challenge: %ld Received Challenge: %ld Timestamp: %ld"),
+							_("Authentication successfull!"),
 							(unsigned long) ntohl(my_received_lldp_packet->challenge), zwischenSpeicherChallenge, zwischenSpeicherTimeStamp);
 						my_received_lldp_packet->successfullyAuthenticated = 1;
 					} else {
@@ -305,9 +305,4 @@ void bananaPIprint (struct receiver_information *my_receiver_information) {
 
 	return;
 }
-
-
-
-
-
 

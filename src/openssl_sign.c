@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <limits.h>
 #include <string.h>
-#include <assert.h>
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -50,18 +49,12 @@ int verifylanbeacon(const unsigned char* msg, size_t mlen,
 		return(rc);
 	}
 
-	// Using the vkey or verifying key
-//	rc = verify_it(msg, mlen - 256, &msg[mlen - 256], 256, vkey);
-
 	size_t slen = 256;
-	size_t messageWithoutSignatureLength = mlen - 256;
-	const unsigned char* sig = &msg[messageWithoutSignatureLength];
-FILE *binBeacon = fopen("msgForVerify","w");
-fwrite(msg, messageWithoutSignatureLength, 1, binBeacon);
-fclose(binBeacon);
+	size_t messageLengthWithoutSignature = mlen - 256;
+	const unsigned char* sig = &msg[messageLengthWithoutSignature];
 
-	if(!msg || !messageWithoutSignatureLength || !sig || !slen || !vkey) {
-		puts(_("Problem in function \"verify_it\". "));
+	if(!msg || !messageLengthWithoutSignature || !sig || !slen || !vkey) {
+		puts(_("Problem in function \"verifylanbeacon\". "));
 		return PROBLEM_IN_VERIFY_CALL;
 	}
 
@@ -91,7 +84,7 @@ fclose(binBeacon);
 		return(ERR_get_error());
 	}
 
-	rc = EVP_DigestVerifyUpdate(ctx, msg, messageWithoutSignatureLength);
+	rc = EVP_DigestVerifyUpdate(ctx, msg, messageLengthWithoutSignature);
 	if(rc != 1) {
 		printf(_("EVP_DigestVerifyUpdate failed, error 0x%lx\n"), ERR_get_error());
 		return(ERR_get_error());
@@ -100,7 +93,6 @@ fclose(binBeacon);
 	// Clear any errors for the call below
 	ERR_clear_error();
 
-printf("mlen %i   \n", mlen );
 	rc = EVP_DigestVerifyFinal(ctx, (unsigned char *) sig, slen);
 	if(rc != 1) {
 		printf(_("EVP_DigestVerifyFinal failed, error 0x%lx\n"), ERR_get_error());
@@ -126,11 +118,8 @@ printf("mlen %i   \n", mlen );
 
 
 int signlanbeacon(unsigned char** sig, size_t* slen, const unsigned char* msg, 
-				size_t mlen, struct open_ssl_keys *lanbeacon_keys)
-{
-FILE *binBeacon = fopen("msgForSign","w");
-fwrite(msg, mlen, 1, binBeacon);
-fclose(binBeacon);
+					size_t mlen, struct open_ssl_keys *lanbeacon_keys){
+					
 	int rc;
 	int result = EXIT_SUCCESS;
 
@@ -142,11 +131,13 @@ fclose(binBeacon);
 	rc = read_keys(&skey, &vkey, lanbeacon_keys);
 
 	if(rc & NO_PRIVATE_KEY == NO_PRIVATE_KEY) {
-		printf(_("Could not read private key at specified path %s. Maybe the password or path are wrong?\n"), 
+		printf(_("Could not read private key at specified path %s. "
+					"Maybe the password or path are wrong? "
+					"If you want to generate keys, use the -g flag. \n"), 
 			lanbeacon_keys->path_To_Verifying_Key);
 		
 		if (lanbeacon_keys->generate_keys) {
-			puts("Key pair will be created. ");
+			puts(_("Key pair will be created. "));
 			rc = make_keys(&skey, &vkey, lanbeacon_keys);
 		}
 	}
@@ -155,10 +146,8 @@ fclose(binBeacon);
 		exit(NO_PRIVATE_KEY);
 
 	// Using the skey or signing key
-//	rc = sign_it(msg, mlen, sig, slen, skey);
-
 	if(!msg || !mlen || !sig || !skey) {
-		puts(_("Problem in function \"sign_it\". "));
+		puts(_("Problem in function \"signlanbeacon\". "));
 		return PROBLEM_IN_SIGN_CALL;
 	}
 
@@ -336,18 +325,12 @@ int make_keys(EVP_PKEY** skey, EVP_PKEY** vkey, struct open_ssl_keys *lanbeacon_
 		return(ERR_get_error());
 	}
 
-	// Sanity check. Verify private exponent is present
-	// assert(EVP_PKEY_get0_RSA(*skey)->d != NULL);
-
 	// Set verifier key
 	rc = EVP_PKEY_assign_RSA(*vkey, RSAPublicKey_dup(rsa));
 	if(rc != 1) {
 		printf(_("EVP_PKEY_assign_RSA (2) failed, error 0x%lx\n"), ERR_get_error());
 		return(ERR_get_error());
 	}
-
-	// Sanity check. Verify private exponent is missing
-	// assert(EVP_PKEY_get0_RSA(*vkey)->d == NULL);
 
 	result = 0;
 

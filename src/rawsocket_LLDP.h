@@ -14,8 +14,6 @@ void new_lldp_receiver (struct receiver_information *my_receiver_information);
 
 int sendLLDPrawSock (struct sender_information *my_sender_information);
 
-struct received_lldp_packet *recLLDPrawSock(struct receiver_information *my_receiver_information);
-
 unsigned long receiveChallenge(int *sockfd, int numInterfaces, int maxSockFd, 
 				char *challenge_dest_mac, struct sender_information *my_sender_information);
 

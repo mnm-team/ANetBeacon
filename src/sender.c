@@ -49,17 +49,6 @@ char *mergedlanbeaconCreator (int *argc, char **argv, struct sender_information 
 	memcpy(&mylanbeacon[currentByte], timeToLive, 4);
 	currentByte += 4;
 
-
-/*	// Fill chassis and port subtype with FFs, will be changed to MAC-addresses in send function
-	
-	memcpy(&mylanbeacon[currentByte], (unsigned char[9]){0x02, 0x07, 0x04, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}, 9);
-	currentByte += 9;
-	memcpy(&mylanbeacon[currentByte], (unsigned char[9]){0x02, 0x07, 0x04, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}, 9);
-	currentByte += 9;
-	// 20 sec time to live
-	memcpy(&mylanbeacon[currentByte], (unsigned char[4]){0x02, 0x07, 0x04, 0xff}, 4);
-	currentByte += 4;
-*/
 	// custom TLV arguments
 	if(*argc == 1) printHelp();
 	int opt;
@@ -149,7 +138,6 @@ char *mergedlanbeaconCreator (int *argc, char **argv, struct sender_information 
 				}
 				strncpy(my_sender_information->lanbeacon_keys.pcszPassphrase, optarg, 256);
 				my_sender_information->lanbeacon_keys.pcszPassphrase[strlen(optarg)] = 0;
-printf("******************************************************* %s\n", my_sender_information->lanbeacon_keys.pcszPassphrase);
 				break;
 
 			case 'd':

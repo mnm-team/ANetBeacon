@@ -43,6 +43,7 @@ int main(int argc, char **argv) {
 	for (int current_arg = 1; current_arg < argc; current_arg++) {
 		if (strcmp("-l", argv[current_arg]) == 0) {
 			
+			// initialize receiver struct
 			struct receiver_information my_receiver_information = {
 				.currentLLDPDU_for_printing = 0,
 				.authenticated = 0,
@@ -106,8 +107,7 @@ int main(int argc, char **argv) {
 			while (1) {
 				// receive new lanbeacons
 				new_lldp_receiver (&my_receiver_information);
-printf("currently there are %i received packets\n", my_receiver_information.number_of_currently_received_packets); sleep(1);
-				// print everything, that currently is received
+				// print everything, that just was received
 				bananaPIprint(&my_receiver_information);
 			}
 			
@@ -127,7 +127,8 @@ printf("currently there are %i received packets\n", my_receiver_information.numb
 	
 	
 	//lanbeacon sender mode
-	//## creating and sending lanbeacon
+	
+	// initialize receiver struct
 	struct sender_information my_sender_information = {
 		.interface_to_send_on = NULL,
 		.send_frequency = LLDP_SEND_FREQUENCY,
