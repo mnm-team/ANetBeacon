@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
 			struct receiver_information my_receiver_information = {
 				.current_lan_beacon_pdu_for_printing = 0,
 				.authenticated = 0,
-				.number_of_currently_received_packets = 0,
+				.number_of_currently_received_frames = 0,
 				.scroll_speed = DEFAULT_SCROLLSPEED,
 				
 				.lanbeacon_keys = {
@@ -112,13 +112,13 @@ int main(int argc, char **argv) {
 			}
 			
 			// free memory
-			for (int j = 0; j < my_receiver_information.number_of_currently_received_packets; j++) {
+			for (int j = 0; j < my_receiver_information.number_of_currently_received_frames; j++) {
 				
 				for (int i = 0 ; i < PARSED_TLVS_MAX_NUMBER; ++i) {
-					free(my_receiver_information.pointers_to_received_packets[j]->parsedBeaconContents[i]);
+					free(my_receiver_information.pointers_to_received_frames[j]->parsedBeaconContents[i]);
 				}
-				free(my_receiver_information.pointers_to_received_packets[j]->parsedBeaconContents);
-				free(my_receiver_information.pointers_to_received_packets[j]);
+				free(my_receiver_information.pointers_to_received_frames[j]->parsedBeaconContents);
+				free(my_receiver_information.pointers_to_received_frames[j]);
 			}
 
 			return EXIT_SUCCESS;

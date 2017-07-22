@@ -79,7 +79,7 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 		NULL, NULL, challengeSockopt, &challengeMaxSockFd, NULL);
 
 	while (1) {
-		// send packets on all interfaces
+		// send frames on all interfaces
 		for(int j = 0; j < numInterfaces; j++) {
 
 			// Ethernet header, destination MAC address
@@ -108,7 +108,7 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 			// Index of the network device
 			socket_address.sll_ifindex = if_idx[j].ifr_ifindex;
 
-			// Send packet
+			// Send frame
 			if (sendto(sockfd[j], lan_beacon_EthernetFrame, frameLength, 0, 
 				(struct sockaddr*)&socket_address, sizeof(struct sockaddr_ll)) < 0)
 					printf(_("Send failed on interface number %i\n"), j);
@@ -212,7 +212,7 @@ void new_lan_beacon_receiver (struct receiver_information *my_receiver_informati
 	unsigned char lan_beacon_receiveBuffer[LAN_BEACON_BUF_SIZ];
 	struct ether_header *eh = (struct ether_header *) lan_beacon_receiveBuffer;
 	
-	struct received_lan_beacon_packet *my_received_lan_beacon_packet;// = 
+	struct received_lan_beacon_frame *my_received_lan_beacon_frame;// = 
 
 	int receiveBufferSize = 0;
 	// parameters for select()
@@ -221,7 +221,7 @@ void new_lan_beacon_receiver (struct receiver_information *my_receiver_informati
 	int rv;
 	
 	int number_of_bytes_to_compare_for_equal_check;
-	int iterator_current_packet_in_received_packets_array;
+	int iterator_current_frame_in_received_frames_array;
 	
 	while(1) {
 	
@@ -230,7 +230,7 @@ void new_lan_beacon_receiver (struct receiver_information *my_receiver_informati
 			FD_SET(my_receiver_information->my_receiver_interfaces.sockfd[x], &readfds);
 	
 		rv = select(my_receiver_information->my_receiver_interfaces.maxSockFd, &readfds, NULL, NULL, 
-					my_receiver_information->number_of_currently_received_packets ? &tv : NULL);
+					my_receiver_information->number_of_currently_received_frames ? &tv : NULL);
 
 		if (rv == -1) 
 			perror("select");
@@ -246,84 +246,84 @@ void new_lan_beacon_receiver (struct receiver_information *my_receiver_informati
 						recvfrom(my_receiver_information->my_receiver_interfaces.sockfd[i], lan_beacon_receiveBuffer, 
 							LAN_BEACON_BUF_SIZ, 0, NULL, NULL);
 					
-					// if packet has been sent to broadcast, it is not authenticated
+					// if frame has been sent to broadcast, it is not authenticated
 					// if it is sent to singlecast, it is authenticated
 					number_of_bytes_to_compare_for_equal_check = 
 						memcmp((unsigned char[6]){LAN_BEACON_DEST_MAC}, eh->ether_dhost, 6) ? 
 						receiveBufferSize - 272 : receiveBufferSize - 2;
 					
 					
-					for (iterator_current_packet_in_received_packets_array = 0; 
-							iterator_current_packet_in_received_packets_array < my_receiver_information->number_of_currently_received_packets; 
-							iterator_current_packet_in_received_packets_array++) {
+					for (iterator_current_frame_in_received_frames_array = 0; 
+							iterator_current_frame_in_received_frames_array < my_receiver_information->number_of_currently_received_frames; 
+							iterator_current_frame_in_received_frames_array++) {
 						if (0 == memcmp(&lan_beacon_receiveBuffer[14], 
-										&my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->lan_beacon_ReceivedPayload[14],
+										&my_receiver_information->pointers_to_received_frames[iterator_current_frame_in_received_frames_array]->lan_beacon_ReceivedPayload[14],
 										number_of_bytes_to_compare_for_equal_check - 14)) {
 							
 							// if no authentication is required, just reset display countdown
 							if (!my_receiver_information->authenticated) {
-								my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->times_left_to_display = SHOW_FRAMES_X_TIMES;
+								my_receiver_information->pointers_to_received_frames[iterator_current_frame_in_received_frames_array]->times_left_to_display = SHOW_FRAMES_X_TIMES;
 								break;
 							}
 							
-							// if packet has been authenticated already, just reset display countdown
-							if (my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->successfullyAuthenticated) {
-								my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->times_left_to_display = SHOW_FRAMES_X_TIMES;
+							// if frame has been authenticated already, just reset display countdown
+							if (my_receiver_information->pointers_to_received_frames[iterator_current_frame_in_received_frames_array]->successfullyAuthenticated) {
+								my_receiver_information->pointers_to_received_frames[iterator_current_frame_in_received_frames_array]->times_left_to_display = SHOW_FRAMES_X_TIMES;
 								break;
 							}
 							
-							// if another unauthenticated broadcast packet 
+							// if another unauthenticated broadcast frame 
 							// with same contents as before arrives
 							// but an authenticated one is expected, break
-							if (my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->payloadSize == receiveBufferSize) {
+							if (my_receiver_information->pointers_to_received_frames[iterator_current_frame_in_received_frames_array]->payloadSize == receiveBufferSize) {
 								break;
 							}
 							
 							// if none of the earlier conditions apply,  
 							// - authentication mode is active
 							// - no authenticated version has been received before
-							// - the packet has authentication information
-							memcpy(my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->lan_beacon_ReceivedPayload, lan_beacon_receiveBuffer, receiveBufferSize);
-							my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->payloadSize = receiveBufferSize;
-							memcpy(my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->current_destination_mac, eh->ether_shost, 6);
-							my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->times_left_to_display = SHOW_FRAMES_X_TIMES;
-							my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array]->parsedBeaconContents 
-								= evaluatelanbeacon(my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array], 
+							// - the frame has authentication information
+							memcpy(my_receiver_information->pointers_to_received_frames[iterator_current_frame_in_received_frames_array]->lan_beacon_ReceivedPayload, lan_beacon_receiveBuffer, receiveBufferSize);
+							my_receiver_information->pointers_to_received_frames[iterator_current_frame_in_received_frames_array]->payloadSize = receiveBufferSize;
+							memcpy(my_receiver_information->pointers_to_received_frames[iterator_current_frame_in_received_frames_array]->current_destination_mac, eh->ether_shost, 6);
+							my_receiver_information->pointers_to_received_frames[iterator_current_frame_in_received_frames_array]->times_left_to_display = SHOW_FRAMES_X_TIMES;
+							my_receiver_information->pointers_to_received_frames[iterator_current_frame_in_received_frames_array]->parsedBeaconContents 
+								= evaluatelanbeacon(my_receiver_information->pointers_to_received_frames[iterator_current_frame_in_received_frames_array], 
 									&my_receiver_information->lanbeacon_keys);							
 							break; 
 						}
 					}
 					
-					// if a packet with the same contents hasn't been received before,
+					// if a frame with the same contents hasn't been received before,
 					// add it to the list of frames
-					if (iterator_current_packet_in_received_packets_array == my_receiver_information->number_of_currently_received_packets) {
+					if (iterator_current_frame_in_received_frames_array == my_receiver_information->number_of_currently_received_frames) {
 						
 						
-						struct received_lan_beacon_packet *my_received_lan_beacon_packet = 
-							malloc(sizeof(struct received_lan_beacon_packet));
-						if(!my_received_lan_beacon_packet) 
-							puts(_("malloc error of \"my_received_lan_beacon_packet\" in new_lan_beacon_receiver"));						
+						struct received_lan_beacon_frame *my_received_lan_beacon_frame = 
+							malloc(sizeof(struct received_lan_beacon_frame));
+						if(!my_received_lan_beacon_frame) 
+							puts(_("malloc error of \"my_received_lan_beacon_frame\" in new_lan_beacon_receiver"));						
 						
-						memcpy(my_received_lan_beacon_packet->lan_beacon_ReceivedPayload, lan_beacon_receiveBuffer, receiveBufferSize);
-						my_received_lan_beacon_packet->payloadSize = receiveBufferSize;
-						memcpy(my_received_lan_beacon_packet->current_destination_mac, eh->ether_shost, 6);
-						my_received_lan_beacon_packet->times_left_to_display = SHOW_FRAMES_X_TIMES;
-						my_received_lan_beacon_packet->successfullyAuthenticated = 0;
-						my_received_lan_beacon_packet->parsedBeaconContents 
-							= evaluatelanbeacon(my_received_lan_beacon_packet, &my_receiver_information->lanbeacon_keys);
+						memcpy(my_received_lan_beacon_frame->lan_beacon_ReceivedPayload, lan_beacon_receiveBuffer, receiveBufferSize);
+						my_received_lan_beacon_frame->payloadSize = receiveBufferSize;
+						memcpy(my_received_lan_beacon_frame->current_destination_mac, eh->ether_shost, 6);
+						my_received_lan_beacon_frame->times_left_to_display = SHOW_FRAMES_X_TIMES;
+						my_received_lan_beacon_frame->successfullyAuthenticated = 0;
+						my_received_lan_beacon_frame->parsedBeaconContents 
+							= evaluatelanbeacon(my_received_lan_beacon_frame, &my_receiver_information->lanbeacon_keys);
 						
 						if (my_receiver_information->authenticated) {
 							srand(time(NULL));
 
-							my_received_lan_beacon_packet->challenge = 1+ (rand() % 4294967294);
+							my_received_lan_beacon_frame->challenge = 1+ (rand() % 4294967294);
 
-							sendRawSocket (my_received_lan_beacon_packet->current_destination_mac, 
-									&my_received_lan_beacon_packet->challenge, 
+							sendRawSocket (my_received_lan_beacon_frame->current_destination_mac, 
+									&my_received_lan_beacon_frame->challenge, 
 									4, CHALLENGE_ETHTYPE, NULL, NULL, NULL);
 						}
 						
-						my_receiver_information->pointers_to_received_packets[iterator_current_packet_in_received_packets_array] = my_received_lan_beacon_packet;
-						my_receiver_information->number_of_currently_received_packets++;
+						my_receiver_information->pointers_to_received_frames[iterator_current_frame_in_received_frames_array] = my_received_lan_beacon_frame;
+						my_receiver_information->number_of_currently_received_frames++;
 					}
 				}
 			}

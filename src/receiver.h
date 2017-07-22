@@ -6,7 +6,7 @@
 
 
 
-struct received_lan_beacon_packet {
+struct received_lan_beacon_frame {
 	unsigned char lan_beacon_ReceivedPayload[LAN_BEACON_BUF_SIZ];
 	ssize_t payloadSize;
 	unsigned long challenge;
@@ -32,14 +32,14 @@ struct receiver_information {
 	int scroll_speed;
 	int current_lan_beacon_pdu_for_printing;
 	
-	int number_of_currently_received_packets;
-	struct received_lan_beacon_packet *pointers_to_received_packets[20];
+	int number_of_currently_received_frames;
+	struct received_lan_beacon_frame *pointers_to_received_frames[20];
 	
 	struct open_ssl_keys lanbeacon_keys;
 	struct receiver_interfaces my_receiver_interfaces;
 };
 
-char ** evaluatelanbeacon (struct received_lan_beacon_packet *my_received_lan_beacon_packet, struct open_ssl_keys *lanbeacon_keys);
+char ** evaluatelanbeacon (struct received_lan_beacon_frame *my_received_lan_beacon_frame, struct open_ssl_keys *lanbeacon_keys);
 void bananaPIprint (struct receiver_information *my_receiver_information);
 
 #endif
