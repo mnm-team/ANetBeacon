@@ -141,6 +141,7 @@ int signlanbeacon(unsigned char** sig, size_t* slen, const unsigned char* msg,
 		if (lanbeacon_keys->generate_keys) {
 			puts(_("Key pair will be created. "));
 			rc = make_keys(&skey, &vkey, lanbeacon_keys);
+			rc = read_keys(&skey, &vkey, lanbeacon_keys);
 		}
 	}
 

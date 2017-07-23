@@ -229,7 +229,7 @@ void lan_beacon_receiver (struct receiver_information *my_receiver_information) 
 		if (rv == -1) 
 			perror("select");
 		else if (rv == 0) {
-			printf("All current data received.\n");
+			printf("\nAll current data received.\n");
 			break;
 		}
 		else {
@@ -378,7 +378,7 @@ unsigned long receiveChallenge(struct interfaces *my_challenge_receiver_interfac
 
 				memcpy(receivedChallenge, &receiveBuf[14], 4);
 				*receivedChallenge = ntohl(*receivedChallenge);
-				printf(_("Received challenge: %lu\n"), *receivedChallenge);
+				printf(_("\nReceived challenge: %lu\n\n"), *receivedChallenge);
 				memcpy(challenge_dest_mac, &receiveBuf[6], 6);
 
 				break;

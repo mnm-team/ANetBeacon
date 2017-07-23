@@ -276,10 +276,6 @@ char ** evaluatelanbeacon (struct received_lan_beacon_frame *my_received_lan_bea
 		currentPayloadByte += currentTLVsize + 2;	// + TLVheader
 	}
 
-	printf("\n #####Parsed TLVs: %i#####\n", numberParsedTLVs);
-	for (int i = 0; i < numberParsedTLVs; i++)
-		printf("%s#\n",parsedTLVs[i]);
-
 	return parsedTLVs;
 }
 
