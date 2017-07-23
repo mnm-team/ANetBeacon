@@ -2,13 +2,13 @@
 //	http://stackoverflow.com/a/12661380
 //	https://wiki.openssl.org/index.php/EVP_Signing_and_Verifying
 
+/** @cond */
 #include <libintl.h>
 #include <locale.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
 #include <string.h>
-
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include <openssl/rsa.h>
@@ -16,6 +16,8 @@
 #include <openssl/rand.h>
 #include <openssl/pem.h>
 #include <openssl/bio.h>
+/** @endcond */
+
 #include "openssl_sign.h"
 
 

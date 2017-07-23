@@ -24,6 +24,16 @@ struct sender_information {
 	struct open_ssl_keys lanbeacon_keys;	/**< Keys configuration. */
 };
 
+/**
+ * @brief This function has the main receiver logic and starts all other receiver functions
+ * 
+ * @param argc Number of command line arguments.
+ * @param argv Contents of command line arguments.
+ * 
+ * @return Error or failure code
+ * 
+ */
+int sender(int argc, char **argv);
 
 /**
  * @brief Creates a LAN-Beacon PDU from the command line arguments
@@ -32,8 +42,8 @@ struct sender_information {
  * 1. Add defines for desired new field in define.h
  * 2. Add desired options in mergedlanbeaconCreator()
  * 
- * @param argc Number of arguments.
- * @param argv Contents of arguments.
+ * @param argc Number of command line arguments.
+ * @param argv Contents of command line arguments.
  * @return Returns an array, that contains the payload of a lanBeacon_PDU
  * 
  */

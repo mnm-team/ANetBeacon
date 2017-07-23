@@ -48,6 +48,16 @@ int make_keys(EVP_PKEY** skey, EVP_PKEY** vkey, struct open_ssl_keys *lanbeacon_
  */
 void print_it(const char* label, const unsigned char* buff, size_t len);
 
+/**
+ * @brief Password callback function to retrieve password from configuration
+ * 
+ * @param pcszBuff Buffer for password
+ * @param size Size of buffer
+ * @param rwflag Read/write flag
+ * @param pPass Password
+ * @return Success or error codes
+ * 
+ */
 int passwd_callback(char *pcszBuff,int size,int rwflag, void *pPass);
 
 /**

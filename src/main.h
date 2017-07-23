@@ -16,7 +16,7 @@
 
 
 /**
- * @brief Separates receiver from sender mode and has the main program logic. 
+ * @brief Separates receiver from sender mode and some setup. 
  * 
  * @return Success or failure code.
  * 

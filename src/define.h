@@ -9,10 +9,19 @@
 #ifndef DEFINE_H
 #define DEFINE_H
 
-#define _(STRING) gettext(STRING) /** @name Macro for gettext localization support */
+/**
+ * @name Macro for gettext localization support
+ * @{
+ */
+#define _(STRING) gettext(STRING)
+/** @} */
 
-// Protocol options such send frequency
-#define LAN_BEACON_SEND_FREQUENCY 5	/** @name Send frequency in seconds */
+/**
+ * @name Protocol options such send frequency
+ * @{
+ */
+#define LAN_BEACON_SEND_FREQUENCY 5
+/** @} */
 
 /**
  * @name LAN-Beacon Multicast addresses and EtherTypes
@@ -49,8 +58,8 @@
  * @name Display options
  * @{
  */
-#define DEFAULT_SCROLLSPEED 2
-#define SHOW_FRAMES_X_TIMES 3
+#define DEFAULT_SCROLLSPEED 5
+#define SHOW_FRAMES_X_TIMES 2
 #define DESCRIPTOR_WIDTH 10
 /** @} */
 

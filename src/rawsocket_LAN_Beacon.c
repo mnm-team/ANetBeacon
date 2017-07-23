@@ -1,3 +1,4 @@
+/** @cond */
 #include <arpa/inet.h>
 #include <linux/if_packet.h>
 #include <stdio.h>
@@ -18,6 +19,7 @@
 #include <sys/select.h>
 #include <libintl.h>
 #include <locale.h>
+/** @endcond */
 
 #include "rawsocket_LAN_Beacon.h"
 #include "receiver.h"

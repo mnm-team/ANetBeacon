@@ -1,3 +1,4 @@
+/** @cond */
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -10,11 +11,35 @@
 #include <time.h>
 #include <libintl.h>
 #include <locale.h>
+/** @endcond */
+
 #include "openssl_sign.h"
 #include "define.h"
 #include "sender.h"
 #include "openssl_sign.h"
 #include "main.h"
+
+int sender(int argc, char **argv) {
+	// initialize receiver struct
+	struct sender_information my_sender_information = {
+		.interface_to_send_on = NULL,
+		.send_frequency = LAN_BEACON_SEND_FREQUENCY,
+		.lanbeacon_keys = {
+			.sender_or_receiver_mode = SENDER_MODE,
+			.path_To_Verifying_Key = PUBLIC_KEY_STANDARD_PATH,
+			.path_To_Signing_Key = PRIVATE_KEY_STANDARD_PATH,
+			.generate_keys = 0,
+			.pcszPassphrase = ""
+		}
+	};
+	my_sender_information.lanBeacon_PDU = mergedlanbeaconCreator(&argc, argv, &my_sender_information);
+
+	send_lan_beacon_rawSock (&my_sender_information);
+
+	if (my_sender_information.interface_to_send_on) free(my_sender_information.interface_to_send_on);
+
+	return EXIT_SUCCESS;
+}
 
 // code loosely based on code from my Systempraktikum https://github.com/ciil/nine-mens-morris/blob/master/src/config.c
 char *mergedlanbeaconCreator (int *argc, char **argv, struct sender_information *my_sender_information) {

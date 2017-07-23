@@ -58,6 +58,16 @@ struct receiver_information {
 	struct interfaces my_receiver_interfaces;	/**< Interfaces, that are used for LAN-Beacon reception. */
 };
 
+/**
+ * @brief This function has the main receiver logic and starts all other receiver functions
+ * 
+ * @param argc Number of command line arguments.
+ * @param argv Contents of command line arguments.
+ * 
+ * @return Error or failure code
+ * 
+ */
+int receiver(int argc, char **argv);
 
 /**
  * @brief This function takes raw received LAN-Beacon frames and creates strings from them, that can be used for printing or further processing
@@ -79,3 +89,4 @@ char ** evaluatelanbeacon (struct received_lan_beacon_frame *my_received_lan_bea
 void bananaPIprint (struct receiver_information *my_receiver_information);
 
 #endif
+

@@ -1,3 +1,4 @@
+/** @cond */
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -11,6 +12,8 @@
 #include <time.h>
 #include <libintl.h>
 #include <locale.h>
+#include <getopt.h>
+/** @endcond */
 
 #include "openssl_sign.h"
 #include "cberry_includes_tft.h"
@@ -19,6 +22,8 @@
 #include "receiver.h"
 #include "sender.h"
 #include "define.h"
+#include "main.h"
+
 
 // copying TLV contents to collected parsed strings:
 #define TLV_CUSTOM_COPY(descriptor, TLV_parsed_content, makro_currentTLVcontentSize) \
@@ -33,6 +38,90 @@
 		(char*) &my_received_lan_beacon_frame->lan_beacon_ReceivedPayload[currentPayloadByte+6], \
 		currentTLVsize-4);
 	
+int receiver(int argc, char **argv) {
+	
+	// initialize receiver struct
+	struct receiver_information my_receiver_information = {
+		.current_lan_beacon_pdu_for_printing = 0,
+		.authenticated_mode = 0,
+		.number_of_currently_received_frames = 0,
+		.scroll_speed = DEFAULT_SCROLLSPEED,
+		
+		.lanbeacon_keys = {
+			.path_To_Verifying_Key = PUBLIC_KEY_STANDARD_PATH,
+		},
+		
+		.my_receiver_interfaces = {
+			.maxSockFd = 0,
+			.numInterfaces = 0,
+			.etherType = LAN_BEACON_ETHER_TYPE,
+			.sendOrReceive = REC_SOCKET
+		}
+	};
+	
+	my_receiver_information.lanbeacon_keys.sender_or_receiver_mode = RECEIVER_MODE; 
+	
+	int opt;
+	// if listen mode is enabled, get all arguments.
+	// if any arguments are contained, which are not used in listen mode, show help
+	while((opt=getopt(argc, argv, "lav:y:")) != -1) {
+		switch(opt) {
+
+			case 'l':
+				break;
+
+			case 'a':
+				my_receiver_information.authenticated_mode = 1;
+				break;
+
+			case 'y':
+				my_receiver_information.scroll_speed = atoi(optarg);
+				break;
+
+			case 'v':
+				if (strlen(optarg) > KEY_PATHLENGTH_MAX) {
+					puts(_("Passed path to verifying key too long. Exiting."));
+					return EXIT_FAILURE;
+				}
+				strncpy(
+					my_receiver_information.lanbeacon_keys.path_To_Verifying_Key,
+					optarg, KEY_PATHLENGTH_MAX
+				);
+				my_receiver_information.lanbeacon_keys.path_To_Verifying_Key[KEY_PATHLENGTH_MAX] = 0;
+				break;
+
+			case 'h':
+				printHelp();
+
+			default:
+				printHelp();
+		}
+	}
+
+	getInterfaces (&my_receiver_information.my_receiver_interfaces, NULL);
+	
+	while (1) {
+		// receive new lanbeacons
+		new_lan_beacon_receiver (&my_receiver_information);
+		// print everything, that just was received
+		bananaPIprint(&my_receiver_information);
+	}
+	
+	// free memory
+	for (int j = 0; j < my_receiver_information.number_of_currently_received_frames; j++) {
+		
+		for (int i = 0 ; i < PARSED_TLVS_MAX_NUMBER; ++i) {
+			free(my_receiver_information.pointers_to_received_frames[j]->parsedBeaconContents[i]);
+		}
+		free(my_receiver_information.pointers_to_received_frames[j]->parsedBeaconContents);
+		free(my_receiver_information.pointers_to_received_frames[j]);
+	}
+
+	return EXIT_SUCCESS;
+}
+
+
+
 
 char ** evaluatelanbeacon (struct received_lan_beacon_frame *my_received_lan_beacon_frame, struct open_ssl_keys *lanbeacon_keys) {
 
