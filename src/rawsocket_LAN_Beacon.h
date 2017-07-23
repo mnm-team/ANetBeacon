@@ -24,7 +24,7 @@
  * @param my_receiver_information Receiver configuration and structs for storing the received beacons
  * 
  */
-void new_lan_beacon_receiver (struct receiver_information *my_receiver_information);
+void lan_beacon_receiver (struct receiver_information *my_receiver_information);
 
 /**
  * @brief Shortcut that can be used for sending LAN-Beacons, provides some configuration already

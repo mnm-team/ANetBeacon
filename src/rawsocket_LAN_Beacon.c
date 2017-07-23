@@ -160,7 +160,7 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 					memset(signaturePlaceholder, '#', 264);
 					signaturePlaceholder[264] = 0;
 					
-					transferToCombinedBeacon (SUBTYPE_SIGNATURE, signaturePlaceholder, lan_beacon_EthernetFrame, &frameLength, 264);
+					transfer_to_pdu (SUBTYPE_SIGNATURE, signaturePlaceholder, lan_beacon_EthernetFrame, &frameLength, 264);
 				
 					memcpy(&lan_beacon_EthernetFrame[frameLength-264], receivedChallenge, 4);
 				
@@ -201,7 +201,7 @@ int send_lan_beacon_rawSock (struct sender_information *my_sender_information)
 
 
 // parts of code based on https://gist.github.com/austinmarton/2862515
-void new_lan_beacon_receiver (struct receiver_information *my_receiver_information) {
+void lan_beacon_receiver (struct receiver_information *my_receiver_information) {
 	
 	unsigned char lan_beacon_receiveBuffer[LAN_BEACON_BUF_SIZ];
 	struct ether_header *eh = (struct ether_header *) lan_beacon_receiveBuffer;
@@ -312,7 +312,7 @@ void new_lan_beacon_receiver (struct receiver_information *my_receiver_informati
 						struct received_lan_beacon_frame *my_received_lan_beacon_frame = 
 							malloc(sizeof(struct received_lan_beacon_frame));
 						if(!my_received_lan_beacon_frame) 
-							puts(_("malloc error of \"my_received_lan_beacon_frame\" in new_lan_beacon_receiver"));						
+							puts(_("malloc error of \"my_received_lan_beacon_frame\" in lan_beacon_receiver"));						
 						
 						memcpy(my_received_lan_beacon_frame->lan_beacon_ReceivedPayload, lan_beacon_receiveBuffer, receiveBufferSize);
 						my_received_lan_beacon_frame->payloadSize = receiveBufferSize;

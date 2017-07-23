@@ -41,7 +41,7 @@ int sender(int argc, char **argv) {
 	
 	getInterfaces (&my_sender_information.my_challenge_receiver_interfaces, NULL);
 	
-	my_sender_information.lanBeacon_PDU = mergedlanbeaconCreator(&argc, argv, &my_sender_information);
+	my_sender_information.lanBeacon_PDU = lanbeacon_creator(&argc, argv, &my_sender_information);
 	send_lan_beacon_rawSock (&my_sender_information);
 
 	if (my_sender_information.interface_to_send_on) free(my_sender_information.interface_to_send_on);
@@ -50,10 +50,10 @@ int sender(int argc, char **argv) {
 }
 
 // code loosely based on code from my Systempraktikum https://github.com/ciil/nine-mens-morris/blob/master/src/config.c
-char *mergedlanbeaconCreator (int *argc, char **argv, struct sender_information *my_sender_information) {
+char *lanbeacon_creator (int *argc, char **argv, struct sender_information *my_sender_information) {
 
 	char *mylanbeacon = malloc(1500);
-	if(!mylanbeacon) puts(_("malloc error of \"mylanbeacon\" in mergedlanbeaconCreator"));
+	if(!mylanbeacon) puts(_("malloc error of \"mylanbeacon\" in lanbeacon_creator"));
 	//counter for current position in Array combinedBeacon, starting after TLV header
 	int currentByte = 0;	
 
@@ -63,7 +63,7 @@ char *mergedlanbeaconCreator (int *argc, char **argv, struct sender_information 
 	for(int i=0; i<5; i++) {
 		combinedString[i] = calloc(507, 1);
 		if(!combinedString[i])
-			puts(_("malloc error of \"combinedString\" in mergedlanbeaconCreator"));
+			puts(_("malloc error of \"combinedString\" in lanbeacon_creator"));
 	}
 
 	// Fill chassis and port subtype with FFs, will be changed to MAC-addresses in send function
@@ -94,18 +94,18 @@ char *mergedlanbeaconCreator (int *argc, char **argv, struct sender_information 
 				break;
 			
 			case 'i':
-				transferToCombinedString (DESCRIPTOR_VLAN_ID, combinedString, optarg);
+				transfer_to_string (DESCRIPTOR_VLAN_ID, combinedString, optarg);
 				unsigned short int vlan_id = htons( (unsigned short int) strtoul(optarg,NULL,10) );
-				transferToCombinedBeacon (SUBTYPE_VLAN_ID, &vlan_id, mylanbeacon, &currentByte, 2);
+				transfer_to_pdu (SUBTYPE_VLAN_ID, &vlan_id, mylanbeacon, &currentByte, 2);
 				break;
 
 			case 'n':
-				transferToCombinedBeaconAndString(SUBTYPE_NAME, DESCRIPTOR_NAME,
+				transfer_to_pdu_and_string(SUBTYPE_NAME, DESCRIPTOR_NAME,
 					combinedString, optarg, mylanbeacon, &currentByte);
 				break;
 
 			case 'c':
-				transferToCombinedBeaconAndString(SUBTYPE_CUSTOM, DESCRIPTOR_CUSTOM,
+				transfer_to_pdu_and_string(SUBTYPE_CUSTOM, DESCRIPTOR_CUSTOM,
 					combinedString, optarg, mylanbeacon, &currentByte);
 				break;
 
@@ -134,7 +134,7 @@ char *mergedlanbeaconCreator (int *argc, char **argv, struct sender_information 
 					puts(_("There is an error in the passed email-address. "));
 				regfree(&compiled_regex);
 
-				transferToCombinedBeaconAndString(SUBTYPE_EMAIL, DESCRIPTOR_EMAIL,
+				transfer_to_pdu_and_string(SUBTYPE_EMAIL, DESCRIPTOR_EMAIL,
 					combinedString, optarg, mylanbeacon, &currentByte);
 				break;
 
@@ -170,12 +170,12 @@ char *mergedlanbeaconCreator (int *argc, char **argv, struct sender_information 
 				break;
 
 			case 'd':
-				transferToCombinedBeaconAndString(SUBTYPE_DHCP, DESCRIPTOR_DHCP,
+				transfer_to_pdu_and_string(SUBTYPE_DHCP, DESCRIPTOR_DHCP,
 					combinedString, optarg, mylanbeacon, &currentByte);
 				break;
 
 			case 'r':
-				transferToCombinedBeaconAndString(SUBTYPE_ROUTER, DESCRIPTOR_ROUTER,
+				transfer_to_pdu_and_string(SUBTYPE_ROUTER, DESCRIPTOR_ROUTER,
 					combinedString, optarg, mylanbeacon, &currentByte);
 				break;
 
@@ -200,7 +200,7 @@ char *mergedlanbeaconCreator (int *argc, char **argv, struct sender_information 
 	// transfer combined strings to TLVs, each with a maximum size of 507 byte
 	for(int i = 0; i < 5; i++) {
 		if (0 < strlen(combinedString[i]))
-			transferToCombinedBeacon(SUBTYPE_COMBINED_STRING, combinedString [i], 
+			transfer_to_pdu(SUBTYPE_COMBINED_STRING, combinedString [i], 
 				mylanbeacon, &currentByte, strlen(combinedString [i]));
 	}
 	
@@ -212,14 +212,14 @@ char *mergedlanbeaconCreator (int *argc, char **argv, struct sender_information 
 	return mylanbeacon;
 }
 
-void transferToCombinedBeaconAndString (unsigned char subtype, char *TLVdescription,
+void transfer_to_pdu_and_string (unsigned char subtype, char *TLVdescription,
 	char **combinedString, char *source, char *combinedBeacon, int *currentByte) {
-	transferToCombinedBeacon (subtype, source, combinedBeacon, currentByte, strlen(source));
+	transfer_to_pdu (subtype, source, combinedBeacon, currentByte, strlen(source));
 	if (!(combinedString == NULL))
-		transferToCombinedString (TLVdescription, combinedString, source);
+		transfer_to_string (TLVdescription, combinedString, source);
 }
 
-void transferToCombinedBeacon ( unsigned char subtype, void *source, 
+void transfer_to_pdu ( unsigned char subtype, void *source, 
 								char *combinedBeacon, int *currentByte, 
 								unsigned short int currentTLVlength) {
 	
@@ -254,7 +254,7 @@ void transferToCombinedBeacon ( unsigned char subtype, void *source,
 	*currentByte = *currentByte + 6 + currentTLVlength;
 }
 
-void transferToCombinedString (char *TLVdescription, char **combinedString, char *TLVcontents) {
+void transfer_to_string (char *TLVdescription, char **combinedString, char *TLVcontents) {
 	int stringToBeFilled;
 	if (507 < (strlen(TLVdescription) + strlen(TLVcontents) + 2 ) ) {
 		printf(_("String: %s is too long to be included as text and will be skipped\n"), TLVcontents);
@@ -320,9 +320,9 @@ void ipParser (int ip_V4or6, char *optarg, char **combinedString, char *combined
 	}
 
 	// transfer raw string to combined string TLV and put placeholder for binary representation
-	transferToCombinedString (ip_V4or6 == AF_INET ? DESCRIPTOR_IPV4 : DESCRIPTOR_IPV6,
+	transfer_to_string (ip_V4or6 == AF_INET ? DESCRIPTOR_IPV4 : DESCRIPTOR_IPV6,
 		combinedString, optarg);
-	transferToCombinedBeacon (ip_V4or6 == AF_INET ? SUBTYPE_IPV4 : SUBTYPE_IPV6,
+	transfer_to_pdu (ip_V4or6 == AF_INET ? SUBTYPE_IPV4 : SUBTYPE_IPV6,
 		ip_AddressesInBinary, combinedBeacon, currentByte, gefundeneIPAdressenAnzahl*IP_binaryLength);
 
 	if (gefundeneIPAdressenAnzahl < 1) {

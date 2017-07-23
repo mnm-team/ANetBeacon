@@ -42,14 +42,14 @@ int sender(int argc, char **argv);
  * 
  * Howto for adding new fields:
  * 1. Add defines for desired new field in define.h
- * 2. Add desired options in mergedlanbeaconCreator()
+ * 2. Add desired options in lanbeacon_creator()
  * 
  * @param argc Number of command line arguments.
  * @param argv Contents of command line arguments.
  * @return Returns an array, that contains the payload of a lanBeacon_PDU
  * 
  */
-char *mergedlanbeaconCreator (int *argc, char **argv, struct sender_information *my_sender_information);
+char *lanbeacon_creator (int *argc, char **argv, struct sender_information *my_sender_information);
 
 /**
  * @brief Shortcut function for cases in which only a string is transferred, no binary format TLVs.
@@ -62,7 +62,7 @@ char *mergedlanbeaconCreator (int *argc, char **argv, struct sender_information 
  * @param currentByte current position in the Beacon-PDU
  * 
  */
-void transferToCombinedBeaconAndString (unsigned char subtype, char *TLVdescription, 
+void transfer_to_pdu_and_string (unsigned char subtype, char *TLVdescription, 
 										char **combinedString, char *source, 
 										char *combinedBeacon, int *currentByte);
 
@@ -76,7 +76,7 @@ void transferToCombinedBeaconAndString (unsigned char subtype, char *TLVdescript
  * @param currentTLVlength Length of the passed TLV
  * 
  */
-void transferToCombinedBeacon (unsigned char subtype, void *source, char *combinedBeacon, 
+void transfer_to_pdu (unsigned char subtype, void *source, char *combinedBeacon, 
 								int *currentByte, unsigned short int currentTLVlength);
 
 
@@ -90,7 +90,7 @@ void transferToCombinedBeacon (unsigned char subtype, void *source, char *combin
  * @param source String contents, that should be included to the PDU
  * 
  */
-void transferToCombinedString (char *TLVdescription, char **combinedString, char *source);
+void transfer_to_string (char *TLVdescription, char **combinedString, char *source);
 
 /**
  * @brief Parse IPv4 or IPv6 subnets to binary format

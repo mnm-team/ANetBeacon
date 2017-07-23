@@ -102,7 +102,7 @@ int receiver(int argc, char **argv) {
 	
 	while (1) {
 		// receive new lanbeacons
-		new_lan_beacon_receiver (&my_receiver_information);
+		lan_beacon_receiver (&my_receiver_information);
 		// print everything, that just was received
 		bananaPIprint(&my_receiver_information);
 	}
