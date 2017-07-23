@@ -8,9 +8,10 @@
 
 #ifndef EVALUATELANBEACON_H
 #define EVALUATELANBEACON_H
+#include <net/if.h>
 #include "define.h"
 #include "openssl_sign.h"
-#include "rawsocket_LAN_Beacon.h"
+//#include "rawsocket_LAN_Beacon.h"
 
 /**
  * @brief Contains all the information related to one received frame.

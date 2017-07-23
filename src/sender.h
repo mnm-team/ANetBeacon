@@ -10,6 +10,8 @@
 #define MERGEDBEACON_H
 #include "define.h"
 #include "openssl_sign.h"
+#include "receiver.h"
+
 
 /**
  * @brief Sender configurations.
@@ -18,9 +20,9 @@ struct sender_information {
 	
 	char *lanBeacon_PDU;	/**< The combinded payload of a PDU, that is being sent. */
 	int lan_beacon_pdu_len;	/**< Length of the combined PDU. */
-//	int generate_keys;
 	int send_frequency;	/**< Number of seconds between each sent PDU. */
-	char *interface_to_send_on;	/**< If specified, interface that is used for sending. */
+	char *interface_to_send_on;	/**< If specified by start parameters, interface that is used for sending. */
+	struct interfaces my_challenge_receiver_interfaces;	/**< Interfaces that are used for receiving challenges. */
 	struct open_ssl_keys lanbeacon_keys;	/**< Keys configuration. */
 };
 

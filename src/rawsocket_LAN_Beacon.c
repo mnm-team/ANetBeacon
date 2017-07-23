@@ -7,7 +7,6 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
-//#include <linux/if.h>
 #include <net/if.h>
 #include <net/ethernet.h>
 #include <netinet/ether.h>
@@ -31,9 +30,7 @@
 
 // parts of code based on https://gist.github.com/austinmarton/1922600
 void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLen, 
-					unsigned short etherType, struct open_ssl_keys *lanbeacon_keys, 
-					char *interface_to_send_on, struct sender_information *my_sender_information) {
-	
+					unsigned short etherType, struct sender_information *my_sender_information) {
 	if (etherType == CHALLENGE_ETHTYPE)
 		* (unsigned long *) payload = htonl(*(unsigned long *) payload);
 	int frameLength = 0;
@@ -70,27 +67,15 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 		.numInterfaces = 0,
 		.etherType = etherType,
 		.sendOrReceive = SEND_SOCKET,
-//		.maxSockFd = NULL,
-//		.sockopt = NULL
 	};
 	
-//	int sockfd[20];
-//	int numInterfaces = 0;
-//	struct ifreq if_idx[20];
-//	struct ifreq if_mac[20];
-	getInterfaces (&my_interfaces, interface_to_send_on);
+	if (my_sender_information) {
+		getInterfaces (&my_interfaces, my_sender_information->interface_to_send_on);
+	}
+	else {
+		getInterfaces (&my_interfaces, NULL);
+	}
 	
-	struct interfaces my_challenge_interfaces = {
-		.numInterfaces = 0,
-		.maxSockFd = 0,
-		.etherType = CHALLENGE_ETHTYPE,
-		.sendOrReceive = REC_SOCKET,
-//		.if_idx = NULL,
-//		.if_mac = NULL
-	};
-	
-	getInterfaces (&my_challenge_interfaces, NULL);
-
 	while (1) {
 		// send frames on all interfaces
 		for(int j = 0; j < my_interfaces.numInterfaces; j++) {
@@ -110,7 +95,7 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 					
 					// - 2 End of LAN-Beacon PDU TLV + 2 Auth TLV header + 4 OUI/subtype + 4 challenge + 4 timestamp
 					signlanbeacon(&sig, &slen, (const unsigned char *) &lan_beacon_EthernetFrame[14], 
-						(size_t) payloadLen - 2 + 2 + 4 + 4 + 4, lanbeacon_keys);
+						(size_t) payloadLen - 2 + 2 + 4 + 4 + 4, &my_sender_information->lanbeacon_keys);
 					
 					memcpy(&lan_beacon_EthernetFrame[frameLength-2-264+4+4], sig, slen);
 					free(sig);
@@ -153,7 +138,7 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 
 				// receive challenge
 				char challenge_dest_mac[6];
-				*receivedChallenge = receiveChallenge(	&my_challenge_interfaces,
+				*receivedChallenge = receiveChallenge(	&my_sender_information->my_challenge_receiver_interfaces,
 														challenge_dest_mac,
 														my_sender_information);
 				*receivedChallenge = htonl(*receivedChallenge);
@@ -187,7 +172,7 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 					
 					// 14 = Size of Ethernet header
 					signlanbeacon(&sig, &slen, (const unsigned char *) &lan_beacon_EthernetFrame[14], 
-						(size_t) payloadLen + 4 + 4 + 4, lanbeacon_keys);
+						(size_t) payloadLen + 4 + 4 + 4, &my_sender_information->lanbeacon_keys);
 					
 					memcpy(&lan_beacon_EthernetFrame[frameLength-264+4+4], sig, slen);
 					free(sig);
@@ -210,8 +195,7 @@ void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLe
 int send_lan_beacon_rawSock (struct sender_information *my_sender_information)
 {
 	sendRawSocket ((unsigned char[6]){LAN_BEACON_DEST_MAC}, my_sender_information->lanBeacon_PDU, 
-		my_sender_information->lan_beacon_pdu_len, LAN_BEACON_ETHER_TYPE, &my_sender_information->lanbeacon_keys, 
-		my_sender_information->interface_to_send_on, my_sender_information);
+		my_sender_information->lan_beacon_pdu_len, LAN_BEACON_ETHER_TYPE, my_sender_information);
 	return EXIT_SUCCESS;
 }
 
@@ -293,12 +277,28 @@ void new_lan_beacon_receiver (struct receiver_information *my_receiver_informati
 							// - authentication mode is active
 							// - no authenticated version has been received before
 							// - the frame has authentication information
-							memcpy(my_receiver_information->pointers_to_received_frames[iterator_current_frame_in_received_frames_array]->lan_beacon_ReceivedPayload, lan_beacon_receiveBuffer, receiveBufferSize);
-							my_receiver_information->pointers_to_received_frames[iterator_current_frame_in_received_frames_array]->payloadSize = receiveBufferSize;
-							memcpy(my_receiver_information->pointers_to_received_frames[iterator_current_frame_in_received_frames_array]->current_destination_mac, eh->ether_shost, 6);
-							my_receiver_information->pointers_to_received_frames[iterator_current_frame_in_received_frames_array]->times_left_to_display = SHOW_FRAMES_X_TIMES;
-							my_receiver_information->pointers_to_received_frames[iterator_current_frame_in_received_frames_array]->parsedBeaconContents 
-								= evaluatelanbeacon(my_receiver_information->pointers_to_received_frames[iterator_current_frame_in_received_frames_array], 
+							memcpy(
+								my_receiver_information
+									->pointers_to_received_frames[iterator_current_frame_in_received_frames_array]
+									->lan_beacon_ReceivedPayload, 
+								lan_beacon_receiveBuffer, receiveBufferSize
+							);
+							my_receiver_information
+								->pointers_to_received_frames[iterator_current_frame_in_received_frames_array]
+								->payloadSize = receiveBufferSize;
+							memcpy(my_receiver_information
+									->pointers_to_received_frames[iterator_current_frame_in_received_frames_array]
+									->current_destination_mac, 
+								eh->ether_shost, 6);
+							my_receiver_information
+								->pointers_to_received_frames[iterator_current_frame_in_received_frames_array]
+								->times_left_to_display = SHOW_FRAMES_X_TIMES;
+							my_receiver_information
+								->pointers_to_received_frames[iterator_current_frame_in_received_frames_array]
+								->parsedBeaconContents 
+								= evaluatelanbeacon(
+									my_receiver_information
+										->pointers_to_received_frames[iterator_current_frame_in_received_frames_array],
 									&my_receiver_information->lanbeacon_keys);							
 							break; 
 						}
@@ -329,7 +329,7 @@ void new_lan_beacon_receiver (struct receiver_information *my_receiver_informati
 
 							sendRawSocket (my_received_lan_beacon_frame->current_destination_mac, 
 									&my_received_lan_beacon_frame->challenge, 
-									4, CHALLENGE_ETHTYPE, NULL, NULL, NULL);
+									4, CHALLENGE_ETHTYPE, NULL);
 						}
 						
 						my_receiver_information->pointers_to_received_frames[iterator_current_frame_in_received_frames_array] = my_received_lan_beacon_frame;
@@ -343,7 +343,7 @@ void new_lan_beacon_receiver (struct receiver_information *my_receiver_informati
 
 
 // parts of code based on https://gist.github.com/austinmarton/2862515
-unsigned long receiveChallenge(struct interfaces *my_challenge_interfaces, 
+unsigned long receiveChallenge(struct interfaces *my_challenge_receiver_interfaces, 
 			char *challenge_dest_mac, struct sender_information *my_sender_information) {
 
 	unsigned char *receiveBuf = calloc(300, 1);
@@ -360,21 +360,21 @@ unsigned long receiveChallenge(struct interfaces *my_challenge_interfaces,
 	fd_set readfds;
 
 	FD_ZERO(&readfds); 
-	for (int x = 0; x < my_challenge_interfaces->numInterfaces; x++) {
-		FD_SET(my_challenge_interfaces->sockfd[x], &readfds);	
+	for (int x = 0; x < my_challenge_receiver_interfaces->numInterfaces; x++) {
+		FD_SET(my_challenge_receiver_interfaces->sockfd[x], &readfds);	
 
 	} 
-	int rv = select(my_challenge_interfaces->maxSockFd, &readfds, NULL, NULL, &tv);
+	int rv = select(my_challenge_receiver_interfaces->maxSockFd, &readfds, NULL, NULL, &tv);
 
 	if (rv == -1) 
 		perror("select"); // error occurred in select()
 	else if (rv == 0) 
 		printf(_("Timeout occurred! No data after %i seconds.\n"), my_sender_information->send_frequency);
 	else {
-		for (int i = 0; i < my_challenge_interfaces->numInterfaces; i++) {
-			if (FD_ISSET(my_challenge_interfaces->sockfd[i], &readfds)) {
+		for (int i = 0; i < my_challenge_receiver_interfaces->numInterfaces; i++) {
+			if (FD_ISSET(my_challenge_receiver_interfaces->sockfd[i], &readfds)) {
 
-				receivedSize = recvfrom(my_challenge_interfaces->sockfd[i], receiveBuf, 300, 0, NULL, NULL);
+				receivedSize = recvfrom(my_challenge_receiver_interfaces->sockfd[i], receiveBuf, 300, 0, NULL, NULL);
 
 				memcpy(receivedChallenge, &receiveBuf[14], 4);
 				*receivedChallenge = ntohl(*receivedChallenge);

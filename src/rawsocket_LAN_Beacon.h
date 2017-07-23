@@ -63,13 +63,10 @@ void getInterfaces (struct interfaces *my_interfaces_struct, char *interface_to_
  * @param payload Payload that should be sent
  * @param payloadLen Length of payload
  * @param etherType EtherType of payload
- * @param lanbeacon_keys Keys that are used for sending
- * @param interface_to_send_on Interface, that information should be sent on
  * @param my_sender_information Sender configurations
  * 
  */
 void sendRawSocket (unsigned char *destination_mac, void *payload, int payloadLen, 
-					unsigned short etherType, struct open_ssl_keys *lanbeacon_keys, 
-					char *interface_to_send_on, struct sender_information *my_sender_information);
+					unsigned short etherType, struct sender_information *my_sender_information);
 
 #endif

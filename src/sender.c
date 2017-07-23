@@ -30,10 +30,18 @@ int sender(int argc, char **argv) {
 			.path_To_Signing_Key = PRIVATE_KEY_STANDARD_PATH,
 			.generate_keys = 0,
 			.pcszPassphrase = ""
+		},
+		.my_challenge_receiver_interfaces = {
+			.numInterfaces = 0,
+			.maxSockFd = 0,
+			.etherType = CHALLENGE_ETHTYPE,
+			.sendOrReceive = REC_SOCKET,
 		}
 	};
+	
+	getInterfaces (&my_sender_information.my_challenge_receiver_interfaces, NULL);
+	
 	my_sender_information.lanBeacon_PDU = mergedlanbeaconCreator(&argc, argv, &my_sender_information);
-
 	send_lan_beacon_rawSock (&my_sender_information);
 
 	if (my_sender_information.interface_to_send_on) free(my_sender_information.interface_to_send_on);
