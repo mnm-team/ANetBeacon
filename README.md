@@ -1,4 +1,4 @@
-# LAN-Beacon
+# A-Net-Beacon
 
 Send out or receive optionally authenticated, custom-fillable LLDP-like frames containing machine- and humanreadable information about VLANs and network topology.
 
